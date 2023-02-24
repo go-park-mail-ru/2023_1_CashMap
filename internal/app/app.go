@@ -8,7 +8,6 @@ import (
 
 func Run() {
 	router := initRouter()
-
 	server := httpserver.NewServer(router)
 
 	err := server.ListenAndServe()
@@ -20,12 +19,19 @@ func Run() {
 func initRouter() *gin.Engine {
 	router := gin.Default()
 
-	authHandler := http.Handler{}
-	authEndpoints := router.Group("/auth")
-	{
-		authEndpoints.POST("/sign-in", authHandler.SignIn)
-		authEndpoints.POST("/sign-up", authHandler.SignUp)
-	}
+	authHandler := http.NewAuthHandler()
+
+	// вешаем авторизационную миддлвару на все api
+	authMiddleware := http.NewAuthMiddleware(authHandler.Service)
+
+	apiEndpointsGroup := router.Group("/api", authMiddleware)
+	// тестовый эндпоинт
+	apiEndpointsGroup.GET("/test", func(context *gin.Context) {
+		context.Writer.WriteString("TEST")
+	})
+
+	// регистриурем урлы авторизации и регистрации
+	http.BindAuthEndpoints(router, authHandler)
 
 	return router
 }

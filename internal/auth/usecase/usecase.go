@@ -4,31 +4,77 @@ import (
 	"crypto/sha1"
 	"depeche/internal/auth/entities"
 	"depeche/internal/auth/repository"
+	"depeche/internal/auth/repository/localmem"
 	"errors"
+	"fmt"
+	"github.com/google/uuid"
 )
 
-type UseCase interface {
-	AuthenticateUser(auth *entities.UserAuth) (string, error)
+type AuthService interface {
+	RegisterUser(user *entities.User) error
+	AuthenticateUser(auth *entities.Credentials) (string, error)
+	NewSessionToken(login string) (string, error)
+	ValidateSession(sessionId string) (bool, error)
 }
 
-type AuthUseCase struct {
+func NewAuthService() AuthService {
+	return &SessionAuthService{
+		Repository: localmem.NewRepository(),
+	}
+}
+
+type SessionAuthService struct {
 	Repository repository.Repository
 }
 
-func (useCase *AuthUseCase) AuthenticateUser(auth *entities.UserAuth) (string, error) {
-	hasher := sha1.New()
+func (useCase *SessionAuthService) ValidateSession(sessionId string) (bool, error) {
+	ok, err := useCase.Repository.FindSession(sessionId)
+	return ok, err
+}
 
-	hasher.Write([]byte(auth.Password))
-	passwordHash := string(hasher.Sum(nil))
+func (useCase *SessionAuthService) RegisterUser(user *entities.User) error {
+	// TODO: валидация данных
+	user.Password = hashPassword(user.Password)
+	return useCase.Repository.CreateUser(user)
+}
 
-	hashInStorage, err := useCase.Repository.GetPasswordHash(auth.Login)
+func (useCase *SessionAuthService) AuthenticateUser(auth *entities.Credentials) (string, error) {
+	// TODO: запретить авторизацию, если сессия уже есть в базе
+	passwordHash := hashPassword(auth.Password)
+
+	hashFromStorage, err := useCase.Repository.GetPasswordHash(auth.Login)
+
 	if err != nil {
 		return "", err
 	}
 
-	if hashInStorage == passwordHash {
-		return "Your hash", nil
+	if hashFromStorage == passwordHash {
+		newToken, err := useCase.NewSessionToken(auth.Login)
+		return newToken, err
 	}
 
 	return "", errors.New("invalid login or password")
+}
+
+func (useCase *SessionAuthService) NewSessionToken(login string) (string, error) {
+	// TODO: метод New() может паниковать (судя из доки), обработать панику
+	newId := uuid.New()
+	err := useCase.Repository.CreateSession(&entities.Session{
+		SessionId:      newId.String(),
+		ExpirationTime: "2h",
+		Login:          login,
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	return newId.String(), nil
+}
+
+func hashPassword(password string) string {
+	hasher := sha1.New()
+	hasher.Write([]byte(password))
+	passwordHash := fmt.Sprintf("%x", hasher.Sum(nil)) // кодируем сырые байты в Base64
+	return passwordHash
 }
