@@ -1,29 +1,12 @@
-## build stage
-#FROM golang:alpine as builder
-#
-#WORKDIR /build
-#
-#COPY . .
-#
-#RUN go mod download
-#
-#RUN go build -o ./main ./cmd/app/main.go
-
-# product stage
-FROM golang:alpine
-
+FROM golang:alpine AS builder
 WORKDIR /depeche-backend
-
 COPY . .
-
 RUN apk update
+RUN CGO_ENABLED=0 GOOS=linux go build -o main -ldflags="-s -w" -a -installsuffix cgo ./cmd/app/main.go
 
-RUN go mod download
+FROM alpine
+WORKDIR /depeche-backend
+COPY --from=builder ./depeche-backend .
+# TODO: понять, через какой порт подключиться к контейнеру
 
-RUN apk add bash
-RUN apk add make
-RUN apk add build-base
-
-RUN go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.51.2
-
-EXPOSE 8081
+ENTRYPOINT ["./main"]
