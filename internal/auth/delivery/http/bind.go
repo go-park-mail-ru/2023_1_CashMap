@@ -5,7 +5,6 @@ import (
 )
 
 func BindAuthEndpoints(router *gin.Engine, authHandler *AuthHandler) {
-
 	authEndpointsGroup := router.Group("/auth")
 	{
 		authEndpointsGroup.POST("/sign-in", authHandler.SignIn)

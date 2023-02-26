@@ -27,7 +27,8 @@ func initRouter() *gin.Engine {
 	apiEndpointsGroup := router.Group("/api", authMiddleware)
 	// тестовый эндпоинт
 	apiEndpointsGroup.GET("/test", func(context *gin.Context) {
-		context.Writer.WriteString("TEST")
+		id, _ := context.Cookie("session_id")
+		context.Writer.WriteString("TEST: your session_id=" + id)
 	})
 
 	// регистриурем урлы авторизации и регистрации
