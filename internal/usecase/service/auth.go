@@ -42,10 +42,10 @@ func (a *AuthService) LogOut(token string) error {
 	return nil
 }
 
-func (a *AuthService) CheckSession(token string) (bool, error) {
-	_, err := a.sessionRepo.GetSession(token)
+func (a *AuthService) CheckSession(token string) (*session.Session, error) {
+	stored, err := a.sessionRepo.GetSession(token)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-	return true, nil
+	return stored, nil
 }
