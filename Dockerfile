@@ -7,6 +7,6 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o main -ldflags="-s -w" -a -installsuffix
 FROM alpine
 WORKDIR /depeche-backend
 COPY --from=builder ./depeche-backend .
-# TODO: понять, через какой порт подключиться к контейнеру
+# TODO: понять, через какой порт подключиться к контейнер
 
 ENTRYPOINT ["./main"]
