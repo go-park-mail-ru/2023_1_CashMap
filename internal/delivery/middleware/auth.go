@@ -7,12 +7,12 @@ import (
 )
 
 type AuthMiddleware struct {
-	service usecase.User
+	service usecase.Auth
 }
 
-func NewAuthMiddleware(service usecase.User) *AuthMiddleware {
+func NewAuthMiddleware(authService usecase.Auth) *AuthMiddleware {
 	return &AuthMiddleware{
-		service: service,
+		service: authService,
 	}
 }
 
@@ -20,20 +20,20 @@ func (am *AuthMiddleware) Middleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// TODO захэндлить ошибки
 		sessionId, err := ctx.Cookie("session_id")
-
 		if err != nil {
 			ctx.AbortWithError(401, err)
 			return
 		}
-		exists, err := am.service.CheckSession(sessionId)
+		session, err := am.service.CheckSession(sessionId)
 		if err != nil {
 			ctx.AbortWithError(http.StatusUnauthorized, err)
 			return
 		}
 
-		if !exists {
+		if session == nil {
 			ctx.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
+		ctx.Set("email", session.Email)
 	}
 }

@@ -30,14 +30,16 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 		return
 	}
 
-	sessionId, err := uh.service.SignIn(&user)
+	_, err = uh.service.SignIn(&user)
 	if err != nil {
 		ctx.AbortWithError(http.StatusUnauthorized, err)
 		return
 	}
+
+	token, err := uh.authService.Authenticate(&user)
 	sessionCookie := &http.Cookie{
 		Name:     "session_id",
-		Value:    sessionId,
+		Value:    token,
 		Expires:  time.Now().Add(time.Hour * 1000), // ЗАХАРДКОЖЕНО ВРЕМЯ ЭКСПИРАЦИИ
 		MaxAge:   0,
 		HttpOnly: true,
@@ -62,5 +64,27 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 	}
 }
 func (uh *UserHandler) LogOut(ctx *gin.Context) {
+	token, err := ctx.Cookie("session_id")
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	err = uh.authService.LogOut(token)
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
 
+	newCookie := &http.Cookie{
+		Name:     "session_id",
+		Value:    token,
+		Expires:  time.Now().Add(-time.Hour), // ЗАХАРДКОЖЕНО ВРЕМЯ ЭКСПИРАЦИИ
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   false,
+		Path:     "/",
+	}
+
+	http.SetCookie(ctx.Writer, newCookie)
+	ctx.Status(http.StatusOK)
 }
