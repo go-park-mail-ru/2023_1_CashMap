@@ -6,7 +6,7 @@ import (
 	storage "depeche/internal/repository/localStorage"
 	httpserver "depeche/internal/server"
 	session "depeche/internal/session/localStorage"
-	"depeche/internal/usecase"
+	"depeche/internal/usecase/service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,9 +14,10 @@ import (
 func Run() {
 	data := storage.NewMemoryStorage()
 	sessionStorage := session.NewMemorySessionStorage()
-	userService := usecase.NewUserService(data, sessionStorage)
-	userHandler := handlers.NewUserHandler(userService)
-	authMiddleware := middleware.NewAuthMiddleware(userService)
+	userService := service.NewUserService(data, sessionStorage)
+	authService := service.NewAuthService(sessionStorage)
+	userHandler := handlers.NewUserHandler(userService, authService)
+	authMiddleware := middleware.NewAuthMiddleware(authService)
 	router := initRouter(userHandler, authMiddleware)
 	server := httpserver.NewServer(router)
 
