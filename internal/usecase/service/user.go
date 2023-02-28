@@ -1,4 +1,4 @@
-package usecase
+package service
 
 import (
 	"depeche/internal/entities"
@@ -57,10 +57,10 @@ func (us *UserService) LogOut(token string) error {
 	return nil
 }
 
-func (us *UserService) CheckSession(token string) (bool, error) {
-	_, err := us.sessionRepo.GetSession(token)
+func (us *UserService) CheckSession(token string) (*session.Session, error) {
+	stored, err := us.sessionRepo.GetSession(token)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-	return true, nil
+	return stored, nil
 }

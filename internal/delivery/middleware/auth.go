@@ -25,15 +25,16 @@ func (am *AuthMiddleware) Middleware() gin.HandlerFunc {
 			ctx.AbortWithError(401, err)
 			return
 		}
-		exists, err := am.service.CheckSession(sessionId)
+		session, err := am.service.CheckSession(sessionId)
 		if err != nil {
 			ctx.AbortWithError(http.StatusUnauthorized, err)
 			return
 		}
 
-		if !exists {
+		if session == nil {
 			ctx.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
+		ctx.Set("email", session.Email)
 	}
 }
