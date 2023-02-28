@@ -43,6 +43,7 @@ func initRouter(userHandler *handlers.UserHandler, authMW *middleware.AuthMiddle
 	{
 		authEndpointsGroup.POST("/sign-in", userHandler.SignIn)
 		authEndpointsGroup.POST("/sign-up", userHandler.SignUp)
+		authEndpointsGroup.POST("/logout", userHandler.LogOut)
 	}
 
 	return router
