@@ -35,7 +35,8 @@ func initRouter(userHandler *handlers.UserHandler, authMW *middleware.AuthMiddle
 
 	// тестовый эндпоинт
 	apiEndpointsGroup.GET("/test", func(context *gin.Context) {
-		context.Writer.WriteString("TEST")
+		id, _ := context.Cookie("session_id")
+		context.Writer.WriteString("TEST: your session_id=" + id)
 	})
 
 	authEndpointsGroup := router.Group("/auth")
