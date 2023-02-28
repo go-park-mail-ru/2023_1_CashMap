@@ -1,6 +1,14 @@
 package repository
 
-import "depeche/internal/entities"
+import (
+	"depeche/internal/entities"
+	"time"
+)
+
+type FeedRepository interface {
+	GetFriendsPosts(user *entities.User, filterDateTime time.Time, postsNumber int) ([]entities.Post, error)
+	GetGroupsPosts(user *entities.User, filterDateTime time.Time, postsNumber int) ([]entities.Post, error)
+}
 
 type UserRepository interface {
 	GetUserById(id uint) (*entities.User, error)

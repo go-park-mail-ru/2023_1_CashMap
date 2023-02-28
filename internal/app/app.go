@@ -12,7 +12,7 @@ import (
 )
 
 func Run() {
-	userStorage := storage.NewMemoryStorage()
+	userStorage := storage.NewUserStorage()
 	sessionStorage := session.NewMemorySessionStorage()
 	userService := service.NewUserService(userStorage)
 	authService := service.NewAuthService(sessionStorage)
