@@ -2,6 +2,12 @@ package delivery
 
 import "github.com/gin-gonic/gin"
 
+type Handler interface {
+	FeedHandler
+	PostHandler
+	UserHandler
+}
+
 type FeedHandler interface {
 	GetPosts(ctx *gin.Context)
 }

@@ -11,6 +11,12 @@ type FeedService struct {
 	repository repository.FeedRepository
 }
 
+func NewFeedService(feedRepository repository.FeedRepository) *FeedService {
+	return &FeedService{
+		repository: feedRepository,
+	}
+}
+
 func (feed *FeedService) CollectPosts(user *entities.User, topPostDateTime time.Time, batchSize int) ([]entities.Post, error) {
 	friendsPosts, err := feed.repository.GetFriendsPosts(user, topPostDateTime, batchSize)
 	if err != nil {

@@ -37,6 +37,9 @@ type Like struct {
 }
 
 type Comment struct {
+	ID      uint
+	Sender  string
+	Date    time.Time
 	Text    string
 	PostID  uint
 	ReplyTo uint // id коммента в посте, к которому сделан коммент. null, если коммент верхнего уровня
@@ -44,9 +47,11 @@ type Comment struct {
 
 type Post struct {
 	ID          uint
-	Text        string
-	Attachments []string
-	Likes       []Like
-	Comments    []Comment
-	Date        time.Time
+	SenderName  string    `json:"sender_name"`
+	Text        string    `json:"text"`
+	Images      string    `json:"images"`
+	Attachments []string  `json:"attachments"`
+	Likes       int       `json:"likes"`
+	Comments    []Comment `json:"comments"`
+	Date        time.Time `json:"date"`
 }

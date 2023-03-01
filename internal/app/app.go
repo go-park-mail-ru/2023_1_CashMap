@@ -1,6 +1,7 @@
 package app
 
 import (
+	"depeche/internal/delivery"
 	"depeche/internal/delivery/handlers"
 	"depeche/internal/delivery/middleware"
 	storage "depeche/internal/repository/localStorage"
@@ -14,11 +15,20 @@ import (
 func Run() {
 	userStorage := storage.NewUserStorage()
 	sessionStorage := session.NewMemorySessionStorage()
+	feedStorage := storage.NewFeedStorage()
+
 	userService := service.NewUserService(userStorage)
 	authService := service.NewAuthService(sessionStorage)
+	feedService := service.NewFeedService(feedStorage)
+
 	userHandler := handlers.NewUserHandler(userService, authService)
+	feedHandler := handlers.NewFeedHandler(feedService)
+
+	handler := handlers.NewHandler(userHandler, feedHandler, nil)
+
 	authMiddleware := middleware.NewAuthMiddleware(authService)
-	router := initRouter(userHandler, authMiddleware)
+
+	router := initRouter(handler, authMiddleware)
 	server := httpserver.NewServer(router)
 
 	err := server.ListenAndServe()
@@ -27,11 +37,13 @@ func Run() {
 	}
 }
 
-func initRouter(userHandler *handlers.UserHandler, authMW *middleware.AuthMiddleware) *gin.Engine {
+func initRouter(handler delivery.Handler, authMW *middleware.AuthMiddleware) *gin.Engine {
 	router := gin.Default()
 
 	// вешаем авторизационную миддлвару на все api
 	apiEndpointsGroup := router.Group("/api", authMW.Middleware())
+
+	apiEndpointsGroup.GET("/feed")
 
 	// тестовый эндпоинт
 	apiEndpointsGroup.GET("/test", func(context *gin.Context) {
@@ -41,9 +53,9 @@ func initRouter(userHandler *handlers.UserHandler, authMW *middleware.AuthMiddle
 
 	authEndpointsGroup := router.Group("/auth")
 	{
-		authEndpointsGroup.POST("/sign-in", userHandler.SignIn)
-		authEndpointsGroup.POST("/sign-up", userHandler.SignUp)
-		authEndpointsGroup.POST("/logout", userHandler.LogOut)
+		authEndpointsGroup.POST("/sign-in", handler.SignIn)
+		authEndpointsGroup.POST("/sign-up", handler.SignUp)
+		authEndpointsGroup.POST("/logout", handler.LogOut)
 	}
 
 	return router
