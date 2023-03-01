@@ -3,6 +3,7 @@ package handlers
 import (
 	"depeche/internal/entities"
 	"depeche/internal/usecase"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"time"
 )
@@ -19,11 +20,13 @@ func NewFeedHandler(feedService usecase.Feed) *FeedHandler {
 
 func (handler *FeedHandler) GetPosts(ctx *gin.Context) {
 	feedRequest := struct {
-		BatchSize    int       `json:"batch_size"`
-		LastPostDate time.Time `json:"last_post_id"`
+		BatchSize    uint      `json:"batch_size"`
+		LastPostDate time.Time `json:"last_post_date"`
 	}{}
 
-	err := ctx.BindJSON(feedRequest)
+	var time time.Time
+	fmt.Println(time)
+	err := ctx.BindJSON(&feedRequest)
 	if err != nil {
 		ctx.AbortWithError(400, err)
 		return

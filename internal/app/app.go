@@ -4,7 +4,7 @@ import (
 	"depeche/internal/delivery"
 	"depeche/internal/delivery/handlers"
 	"depeche/internal/delivery/middleware"
-	storage "depeche/internal/repository/localStorage"
+	storage "depeche/internal/repository/local_storage"
 	httpserver "depeche/internal/server"
 	session "depeche/internal/session/localStorage"
 	"depeche/internal/usecase/service"
@@ -43,7 +43,7 @@ func initRouter(handler delivery.Handler, authMW *middleware.AuthMiddleware) *gi
 	// вешаем авторизационную миддлвару на все api
 	apiEndpointsGroup := router.Group("/api", authMW.Middleware())
 
-	apiEndpointsGroup.GET("/feed")
+	apiEndpointsGroup.GET("/feed", handler.GetPosts)
 
 	// тестовый эндпоинт
 	apiEndpointsGroup.GET("/test", func(context *gin.Context) {

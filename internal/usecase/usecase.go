@@ -18,5 +18,5 @@ type Auth interface {
 }
 
 type Feed interface {
-	CollectPosts(user *entities.User, lastPostDate time.Time, batchSize int) ([]entities.Post, error)
+	CollectPosts(user *entities.User, lastPostDate time.Time, batchSize uint) ([]entities.Post, error)
 }

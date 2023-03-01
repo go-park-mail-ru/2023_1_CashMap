@@ -17,7 +17,7 @@ func NewFeedService(feedRepository repository.FeedRepository) *FeedService {
 	}
 }
 
-func (feed *FeedService) CollectPosts(user *entities.User, topPostDateTime time.Time, batchSize int) ([]entities.Post, error) {
+func (feed *FeedService) CollectPosts(user *entities.User, topPostDateTime time.Time, batchSize uint) ([]entities.Post, error) {
 	friendsPosts, err := feed.repository.GetFriendsPosts(user, topPostDateTime, batchSize)
 	if err != nil {
 		return nil, err
@@ -33,10 +33,10 @@ func (feed *FeedService) CollectPosts(user *entities.User, topPostDateTime time.
 	posts = append(posts, groupsPosts...)
 
 	sort.Slice(posts, func(i int, j int) bool {
-		return posts[i].Date.Before(posts[j].Date)
+		return posts[i].Date.After(posts[j].Date)
 	})
 
-	if len(posts) >= batchSize {
+	if len(posts) >= int(batchSize) {
 		return posts[:batchSize], nil
 	}
 
