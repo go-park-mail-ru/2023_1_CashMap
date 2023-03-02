@@ -11,7 +11,7 @@ import (
 //	@contact.name	CashMap team
 
 //	@host		localhost:8080
-//	@BasePath	/api
+//	@BasePath	/
 
 func main() {
 	app.Run()
