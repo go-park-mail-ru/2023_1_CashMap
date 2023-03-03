@@ -1,6 +1,7 @@
 package app
 
 import (
+	"depeche/cmd/app/docs"
 	"depeche/internal/delivery"
 	"depeche/internal/delivery/handlers"
 	"depeche/internal/delivery/middleware"
@@ -9,6 +10,8 @@ import (
 	session "depeche/internal/session/localStorage"
 	"depeche/internal/usecase/service"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func Run() {
@@ -40,8 +43,8 @@ func initRouter(handler delivery.Handler, authMW *middleware.AuthMiddleware) *gi
 	router := gin.Default()
 
 	// // swagger api route
-	// docs.SwaggerInfo.BasePath = "/api"
-	// router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	docs.SwaggerInfo.BasePath = "/api"
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// вешаем авторизационную миддлвару на все api
 	apiEndpointsGroup := router.Group("/api", authMW.Middleware())
