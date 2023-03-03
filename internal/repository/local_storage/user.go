@@ -3,9 +3,11 @@ package local_storage
 import (
 	"depeche/internal/entities"
 	"errors"
+	"sync"
 )
 
 type UserStorage struct {
+	mx   sync.RWMutex
 	user map[string]*entities.User
 }
 
@@ -16,10 +18,14 @@ func NewUserStorage() *UserStorage {
 }
 
 func (lc *UserStorage) GetUserById(id uint) (*entities.User, error) {
+	lc.mx.Lock()
+	defer lc.mx.Unlock()
 	return nil, nil
 }
 
 func (lc *UserStorage) GetUserByEmail(email string) (*entities.User, error) {
+	lc.mx.Lock()
+	defer lc.mx.Unlock()
 	user := lc.user[email]
 	if user == nil {
 		return nil, errors.New("user not found")
@@ -28,10 +34,14 @@ func (lc *UserStorage) GetUserByEmail(email string) (*entities.User, error) {
 }
 
 func (lc *UserStorage) GetUserFriends(user *entities.User) ([]*entities.User, error) {
+	lc.mx.Lock()
+	defer lc.mx.Unlock()
 	return nil, nil
 }
 
 func (lc *UserStorage) CreateUser(user *entities.User) (*entities.User, error) {
+	lc.mx.RLock()
+	defer lc.mx.RUnlock()
 	if lc.user[user.Email] != nil {
 		return nil, errors.New("user already exists")
 	}
