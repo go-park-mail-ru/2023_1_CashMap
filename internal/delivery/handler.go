@@ -1,6 +1,8 @@
 package delivery
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+)
 
 type Handler interface {
 	FeedHandler
@@ -9,7 +11,7 @@ type Handler interface {
 }
 
 type FeedHandler interface {
-	GetPosts(ctx *gin.Context)
+	GetFeed(ctx *gin.Context)
 }
 
 type PostHandler interface {
@@ -23,4 +25,8 @@ type UserHandler interface {
 	SignIn(ctx *gin.Context)
 	SignUp(ctx *gin.Context)
 	LogOut(ctx *gin.Context)
+}
+
+type Response struct {
+	Body map[string]interface{} `json:"body"`
 }

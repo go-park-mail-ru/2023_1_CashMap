@@ -2,6 +2,8 @@ package entities
 
 import "time"
 
+// User entity info
+//	@Description	User account information
 type User struct {
 	ID         uint      `json:"id"`
 	Email      string    `json:"email"`
@@ -14,10 +16,10 @@ type User struct {
 	Education  string    `json:"education"`
 	BirthDate  time.Time `json:"birth_date"`
 	DateJoined time.Time `json:"date_joined"`
-	Friends    []User    `json:"friends"`
-	Photos     []string  `json:"photos"`
-	Groups     []Group   `json:"groups"`
-	Posts      []Post    `json:"posts"`
+	// Friends    []User    `json:"friends"`
+	// Photos     []string  `json:"photos"`
+	// Groups     []Group   `json:"groups"`
+	// Posts      []Post    `json:"posts"`
 }
 
 type Group struct {
@@ -45,6 +47,8 @@ type Comment struct {
 	ReplyTo uint // id коммента в посте, к которому сделан коммент. null, если коммент верхнего уровня
 }
 
+// Post entity info
+//	@Description	All post information
 type Post struct {
 	ID          uint
 	SenderName  string    `json:"sender_name"`

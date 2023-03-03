@@ -21,6 +21,18 @@ func NewUserHandler(userService usecase.User, authService usecase.Auth) *UserHan
 	}
 }
 
+// SignIn godoc
+//
+//	@Summary		Sign in
+//	@Description	Authorize client with credentials (login and password).
+//	@Tags			signin
+//	@Accept			json
+//	@Param			login		body	string	true	"User login"
+//	@Param			password	body	string	true	"User password"
+//	@Success		200
+//	@Failure		400
+//	@Failure		500
+//	@Router			/auth/sign-in [post]
 func (uh *UserHandler) SignIn(ctx *gin.Context) {
 	var user entities.User
 
@@ -50,6 +62,20 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 	http.SetCookie(ctx.Writer, sessionCookie)
 	ctx.Status(http.StatusOK)
 }
+
+// SignUp godoc
+//	@Summary		Sign up
+//	@Description	Register client with credentials and other user info.
+//	@Tags			signup
+//	@Accept			json
+//	@Param			email		body	string	true	"User email"
+//	@Param			password	body	string	true	"User password"
+//	@Param			first_name	body	string	true	"User first name"
+//	@Param			last_name	body	string	true	"User last name"
+//	@Success		200
+//	@Failure		400
+//	@Failure		500
+//	@Router			/auth/sign-up [post]
 func (uh *UserHandler) SignUp(ctx *gin.Context) {
 	var user entities.User
 	err := ctx.BindJSON(&user)
@@ -63,6 +89,15 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 		ctx.AbortWithError(http.StatusBadRequest, err)
 	}
 }
+
+// 	LogOut godoc
+//	@Summary		Log out
+//	@Description	Delete user session and invalidate session cookie
+//	@Tags			logout
+//	@Success		200
+//	@Failure		400
+//	@Failure		500
+//	@Router			/auth/logout [post]
 func (uh *UserHandler) LogOut(ctx *gin.Context) {
 	token, err := ctx.Cookie("session_id")
 	if err != nil {

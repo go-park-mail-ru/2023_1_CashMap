@@ -8,7 +8,6 @@ import (
 	httpserver "depeche/internal/server"
 	session "depeche/internal/session/localStorage"
 	"depeche/internal/usecase/service"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -40,10 +39,14 @@ func Run() {
 func initRouter(handler delivery.Handler, authMW *middleware.AuthMiddleware) *gin.Engine {
 	router := gin.Default()
 
+	// // swagger api route
+	// docs.SwaggerInfo.BasePath = "/api"
+	// router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	// вешаем авторизационную миддлвару на все api
 	apiEndpointsGroup := router.Group("/api", authMW.Middleware())
 
-	apiEndpointsGroup.GET("/feed", handler.GetPosts)
+	apiEndpointsGroup.GET("/feed", handler.GetFeed)
 
 	// тестовый эндпоинт
 	apiEndpointsGroup.GET("/test", func(context *gin.Context) {
