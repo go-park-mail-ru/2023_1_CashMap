@@ -2,7 +2,6 @@ package app
 
 import (
 	"depeche/cmd/app/docs"
-	"depeche/internal/delivery"
 	"depeche/internal/delivery/handlers"
 	"depeche/internal/delivery/middleware"
 	storage "depeche/internal/repository/local_storage"
@@ -42,7 +41,7 @@ func Run() {
 	}
 }
 
-func initRouter(handler delivery.Handler, authMW *middleware.AuthMiddleware) *gin.Engine {
+func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware) *gin.Engine {
 	router := gin.Default()
 
 	// // swagger api route
