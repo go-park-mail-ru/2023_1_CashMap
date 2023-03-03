@@ -1,7 +1,7 @@
-package localStorage
+package local_storage
 
 import (
-	"depeche/internal/session"
+	session "depeche/internal/session/repository"
 	"errors"
 )
 

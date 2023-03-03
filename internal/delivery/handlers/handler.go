@@ -8,7 +8,7 @@ type Handler struct {
 	delivery.PostHandler
 }
 
-func NewHandler(userHandler delivery.UserHandler, feedHandler delivery.FeedHandler, postHandler delivery.PostHandler) Handler {
+func NewHandler(userHandler delivery.UserHandler, feedHandler delivery.FeedHandler, postHandler delivery.PostHandler) delivery.Handler {
 	return Handler{
 		userHandler,
 		feedHandler,

@@ -7,8 +7,10 @@ import (
 	"depeche/internal/delivery/middleware"
 	storage "depeche/internal/repository/local_storage"
 	httpserver "depeche/internal/server"
-	session "depeche/internal/session/localStorage"
+	sessionStorage "depeche/internal/session/repository/local_storage"
+	authService "depeche/internal/session/service"
 	"depeche/internal/usecase/service"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -16,11 +18,11 @@ import (
 
 func Run() {
 	userStorage := storage.NewUserStorage()
-	sessionStorage := session.NewMemorySessionStorage()
+	sessionStorage := sessionStorage.NewMemorySessionStorage()
 	feedStorage := storage.NewFeedStorage()
 
 	userService := service.NewUserService(userStorage)
-	authService := service.NewAuthService(sessionStorage)
+	authService := authService.NewAuthService(sessionStorage)
 	feedService := service.NewFeedService(feedStorage)
 
 	userHandler := handlers.NewUserHandler(userService, authService)
@@ -35,6 +37,7 @@ func Run() {
 
 	err := server.ListenAndServe()
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 }
@@ -50,12 +53,6 @@ func initRouter(handler delivery.Handler, authMW *middleware.AuthMiddleware) *gi
 	apiEndpointsGroup := router.Group("/api", authMW.Middleware())
 
 	apiEndpointsGroup.GET("/feed", handler.GetFeed)
-
-	// тестовый эндпоинт
-	apiEndpointsGroup.GET("/test", func(context *gin.Context) {
-		id, _ := context.Cookie("session_id")
-		context.Writer.WriteString("TEST: your session_id=" + id)
-	})
 
 	authEndpointsGroup := router.Group("/auth")
 	{

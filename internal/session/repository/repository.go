@@ -1,4 +1,4 @@
-package session
+package repository
 
 type Repository interface {
 	CreateSession(token string, session *Session) error

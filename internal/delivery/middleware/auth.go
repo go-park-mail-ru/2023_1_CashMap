@@ -1,16 +1,16 @@
 package middleware
 
 import (
-	"depeche/internal/usecase"
+	authService "depeche/internal/session/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 type AuthMiddleware struct {
-	service usecase.Auth
+	service authService.Auth
 }
 
-func NewAuthMiddleware(authService usecase.Auth) *AuthMiddleware {
+func NewAuthMiddleware(authService authService.Auth) *AuthMiddleware {
 	return &AuthMiddleware{
 		service: authService,
 	}

@@ -6,6 +6,11 @@ import (
 	"errors"
 )
 
+type User interface {
+	SignIn(user *entities.User) (*entities.User, error)
+	SignUp(user *entities.User) (*entities.User, error)
+}
+
 type UserService struct {
 	repo repository.UserRepository
 }

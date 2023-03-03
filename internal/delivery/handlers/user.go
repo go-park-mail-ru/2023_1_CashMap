@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"depeche/internal/delivery"
 	"depeche/internal/entities"
-	"depeche/internal/usecase"
+	authService "depeche/internal/session/service"
+	"depeche/internal/usecase/service"
 	"net/http"
 	"time"
 
@@ -10,11 +12,11 @@ import (
 )
 
 type UserHandler struct {
-	service     usecase.User
-	authService usecase.Auth
+	service     service.User
+	authService authService.Auth
 }
 
-func NewUserHandler(userService usecase.User, authService usecase.Auth) *UserHandler {
+func NewUserHandler(userService service.User, authService authService.Auth) delivery.UserHandler {
 	return &UserHandler{
 		service:     userService,
 		authService: authService,

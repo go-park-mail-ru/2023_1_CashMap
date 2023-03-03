@@ -3,17 +3,17 @@ package handlers
 import (
 	"depeche/internal/delivery"
 	"depeche/internal/entities"
-	"depeche/internal/usecase"
+	"depeche/internal/usecase/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
 )
 
 type FeedHandler struct {
-	service usecase.Feed
+	service service.Feed
 }
 
-func NewFeedHandler(feedService usecase.Feed) *FeedHandler {
+func NewFeedHandler(feedService service.Feed) *FeedHandler {
 	return &FeedHandler{
 		service: feedService,
 	}
@@ -32,6 +32,12 @@ func NewFeedHandler(feedService usecase.Feed) *FeedHandler {
 //	@Failure		500
 //	@Router			api/feed [get]
 func (handler *FeedHandler) GetFeed(ctx *gin.Context) {
+	email, exists := ctx.Get("email")
+	if !exists {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
 	feedRequest := struct {
 		BatchSize    uint      `form:"batch_size"`
 		LastPostDate time.Time `form:"last_post_id"`
@@ -39,13 +45,7 @@ func (handler *FeedHandler) GetFeed(ctx *gin.Context) {
 
 	err := ctx.ShouldBind(&feedRequest)
 	if err != nil {
-		ctx.AbortWithError(400, err)
-		return
-	}
-
-	email, exists := ctx.Get("email")
-	if !exists {
-		ctx.AbortWithError(400, err)
+		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
@@ -55,7 +55,7 @@ func (handler *FeedHandler) GetFeed(ctx *gin.Context) {
 
 	posts, err := handler.service.CollectPosts(user, feedRequest.LastPostDate, feedRequest.BatchSize)
 	if err != nil {
-		ctx.AbortWithError(500, err)
+		ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 

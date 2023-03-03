@@ -2,10 +2,16 @@ package service
 
 import (
 	"depeche/internal/entities"
-	"depeche/internal/session"
+	session "depeche/internal/session/repository"
 	"github.com/google/uuid"
 	"time"
 )
+
+type Auth interface {
+	Authenticate(user *entities.User) (string, error)
+	LogOut(token string) error
+	CheckSession(token string) (*session.Session, error)
+}
 
 type AuthService struct {
 	sessionRepo session.Repository
