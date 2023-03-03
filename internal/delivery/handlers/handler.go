@@ -1,14 +1,12 @@
 package handlers
 
-import "depeche/internal/delivery"
-
 type Handler struct {
-	delivery.UserHandler
-	delivery.FeedHandler
-	delivery.PostHandler
+	UserHandler
+	FeedHandler
+	PostHandler
 }
 
-func NewHandler(userHandler delivery.UserHandler, feedHandler delivery.FeedHandler, postHandler delivery.PostHandler) delivery.Handler {
+func NewHandler(userHandler UserHandler, feedHandler FeedHandler, postHandler PostHandler) Handler {
 	return Handler{
 		userHandler,
 		feedHandler,
