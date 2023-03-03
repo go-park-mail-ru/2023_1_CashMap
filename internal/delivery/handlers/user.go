@@ -64,6 +64,7 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 }
 
 // SignUp godoc
+//
 //	@Summary		Sign up
 //	@Description	Register client with credentials and other user info.
 //	@Tags			signup
@@ -90,14 +91,14 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 	}
 }
 
-// 	LogOut godoc
-//	@Summary		Log out
-//	@Description	Delete user session and invalidate session cookie
-//	@Tags			logout
-//	@Success		200
-//	@Failure		400
-//	@Failure		500
-//	@Router			/auth/logout [post]
+// LogOut godoc
+// @Summary		Log out
+// @Description	Delete user session and invalidate session cookie
+// @Tags			logout
+// @Success		200
+// @Failure		400
+// @Failure		500
+// @Router			/auth/logout [post]
 func (uh *UserHandler) LogOut(ctx *gin.Context) {
 	token, err := ctx.Cookie("session_id")
 	if err != nil {
@@ -121,5 +122,20 @@ func (uh *UserHandler) LogOut(ctx *gin.Context) {
 	}
 
 	http.SetCookie(ctx.Writer, newCookie)
+	ctx.Status(http.StatusOK)
+}
+
+func (uh *UserHandler) CheckAuth(ctx *gin.Context) {
+	token, err := ctx.Cookie("session_id")
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	_, err = uh.authService.CheckSession(token)
+	if err != nil {
+		ctx.AbortWithError(http.StatusUnauthorized, err)
+		return
+	}
+
 	ctx.Status(http.StatusOK)
 }

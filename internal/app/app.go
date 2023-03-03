@@ -62,6 +62,7 @@ func initRouter(handler delivery.Handler, authMW *middleware.AuthMiddleware) *gi
 		authEndpointsGroup.POST("/sign-in", handler.SignIn)
 		authEndpointsGroup.POST("/sign-up", handler.SignUp)
 		authEndpointsGroup.POST("/logout", handler.LogOut)
+		authEndpointsGroup.GET("/check", handler.CheckAuth)
 	}
 
 	return router

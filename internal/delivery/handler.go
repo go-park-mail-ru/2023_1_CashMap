@@ -25,6 +25,7 @@ type UserHandler interface {
 	SignIn(ctx *gin.Context)
 	SignUp(ctx *gin.Context)
 	LogOut(ctx *gin.Context)
+	CheckAuth(ctx *gin.Context)
 }
 
 type Response struct {
