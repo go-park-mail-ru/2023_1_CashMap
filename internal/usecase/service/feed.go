@@ -2,7 +2,7 @@ package service
 
 import (
 	"depeche/internal/entities"
-	"depeche/internal/repository"
+	"depeche/internal/repository/interface"
 	"sort"
 	"time"
 )
@@ -12,10 +12,10 @@ type Feed interface {
 }
 
 type FeedService struct {
-	repository repository.FeedRepository
+	repository _interface.FeedRepository
 }
 
-func NewFeedService(feedRepository repository.FeedRepository) *FeedService {
+func NewFeedService(feedRepository _interface.FeedRepository) *FeedService {
 	return &FeedService{
 		repository: feedRepository,
 	}
