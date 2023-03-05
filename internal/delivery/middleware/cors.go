@@ -10,7 +10,7 @@ func CORS() gin.HandlerFunc {
 	corsConfig.AllowCredentials = true
 	corsConfig.AllowMethods = []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"}
 	corsConfig.AllowHeaders = []string{"Content-Type", "Origin"}
-	corsConfig.AllowOrigins = []string{"http://95.163.212.121:8080"}
+	corsConfig.AllowOrigins = []string{"http://95.163.212.121:8000", "http://95.163.212.121:8080", "http://95.163.212.121:80"}
 
 	return cors.New(corsConfig)
 }
