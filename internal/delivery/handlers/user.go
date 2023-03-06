@@ -5,6 +5,7 @@ import (
 	authService "depeche/internal/session/service"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -36,21 +37,24 @@ func NewUserHandler(userService usecase.User, authService authService.Auth) *Use
 //	@Failure		500
 //	@Router			/auth/sign-in [post]
 func (uh *UserHandler) SignIn(ctx *gin.Context) {
-	var user entities.User
+	var request = struct {
+		User entities.User `json:"body"`
+	}{}
 
-	err := ctx.BindJSON(&user)
+	err := ctx.BindJSON(&request)
+	fmt.Print(request.User)
 	if err != nil {
 		_ = ctx.Error(apperror.BadRequest)
 		return
 	}
 
-	_, err = uh.service.SignIn(&user)
+	_, err = uh.service.SignIn(&request.User)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
-	token, err := uh.authService.Authenticate(&user)
+	token, err := uh.authService.Authenticate(&request.User)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -84,20 +88,22 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 //	@Failure		500
 //	@Router			/auth/sign-up [post]
 func (uh *UserHandler) SignUp(ctx *gin.Context) {
-	var user entities.User
-	err := ctx.BindJSON(&user)
+	var request = struct {
+		User entities.User `json:"body"`
+	}{}
+	err := ctx.BindJSON(&request)
 	if err != nil {
 		_ = ctx.Error(apperror.BadRequest)
 		return
 	}
 
-	_, err = uh.service.SignUp(&user)
+	_, err = uh.service.SignUp(&request.User)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
-	token, err := uh.authService.Authenticate(&user)
+	token, err := uh.authService.Authenticate(&request.User)
 	if err != nil {
 		_ = ctx.Error(err)
 		return

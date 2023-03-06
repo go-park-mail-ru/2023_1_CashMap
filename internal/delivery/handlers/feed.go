@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"depeche/internal/delivery"
 	"depeche/internal/entities"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
@@ -36,7 +35,7 @@ func NewFeedHandler(feedService usecase.Feed) *FeedHandler {
 func (handler *FeedHandler) GetFeed(ctx *gin.Context) {
 	email, exists := ctx.Get("email")
 	if !exists {
-		ctx.AbortWithStatus(http.StatusUnauthorized)
+		_ = ctx.Error(apperror.NoAuth)
 		return
 	}
 
@@ -61,9 +60,9 @@ func (handler *FeedHandler) GetFeed(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, delivery.Response{
-		Body: map[string]interface{}{
-			"post": posts,
+	ctx.JSON(http.StatusOK, gin.H{
+		"body": gin.H{
+			"posts": posts,
 		},
 	})
 }
