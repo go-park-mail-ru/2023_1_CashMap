@@ -11,12 +11,12 @@ func ErrorMiddleware() gin.HandlerFunc {
 		ctx.Next()
 
 		if len(ctx.Errors) == 0 {
+
 			ctx.Status(200)
 			return
 		}
 
-		err := ctx.Errors[0]
-		ctx.Status(Errors[err].statusCode)
+		err := ctx.Errors[0].Unwrap()
 		ctx.JSON(Errors[err].statusCode, gin.H{
 			"status":  Errors[err].statusCode,
 			"message": Errors[err].message,
