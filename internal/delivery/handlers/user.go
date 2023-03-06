@@ -94,6 +94,7 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 	_, err = uh.service.SignUp(&user)
 	if err != nil {
 		_ = ctx.Error(err)
+		return
 	}
 
 	token, err := uh.authService.Authenticate(&user)

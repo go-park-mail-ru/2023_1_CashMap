@@ -16,6 +16,7 @@ func ErrorMiddleware() gin.HandlerFunc {
 		}
 
 		err := ctx.Errors[0]
+		ctx.Status(Errors[err].statusCode)
 		ctx.JSON(Errors[err].statusCode, gin.H{
 			"status":  Errors[err].statusCode,
 			"message": Errors[err].message,
