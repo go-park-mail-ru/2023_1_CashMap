@@ -4,13 +4,8 @@ import (
 	"depeche/internal/entities"
 	"depeche/internal/repository"
 	"depeche/internal/usecase"
-	"errors"
+	"depeche/pkg/apperror"
 )
-
-type User interface {
-	SignIn(user *entities.User) (*entities.User, error)
-	SignUp(user *entities.User) (*entities.User, error)
-}
 
 type UserService struct {
 	repo repository.UserRepository
@@ -28,7 +23,7 @@ func (us *UserService) SignIn(user *entities.User) (*entities.User, error) {
 		return nil, err
 	}
 	if stored.Password != user.Password {
-		return nil, errors.New("invalid login or password")
+		return nil, apperror.IncorrectCredentials
 	}
 
 	return stored, nil

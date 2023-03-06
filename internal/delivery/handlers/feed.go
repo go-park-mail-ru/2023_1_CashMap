@@ -3,23 +3,25 @@ package handlers
 import (
 	"depeche/internal/delivery"
 	"depeche/internal/entities"
-	"depeche/internal/usecase/service"
+	"depeche/internal/usecase"
+	"depeche/pkg/apperror"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
 )
 
 type FeedHandler struct {
-	service service.Feed
+	service usecase.Feed
 }
 
-func NewFeedHandler(feedService service.Feed) *FeedHandler {
+func NewFeedHandler(feedService usecase.Feed) *FeedHandler {
 	return &FeedHandler{
 		service: feedService,
 	}
 }
 
 // GetFeed godoc
+//
 //	@Summary		Get feed part
 //	@Description	Get users's new feed part by last post id and batch size.
 //	@Tags			feed
@@ -45,7 +47,7 @@ func (handler *FeedHandler) GetFeed(ctx *gin.Context) {
 
 	err := ctx.ShouldBind(&feedRequest)
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		_ = ctx.Error(apperror.BadRequest)
 		return
 	}
 
@@ -55,7 +57,7 @@ func (handler *FeedHandler) GetFeed(ctx *gin.Context) {
 
 	posts, err := handler.service.CollectPosts(user, feedRequest.LastPostDate, feedRequest.BatchSize)
 	if err != nil {
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		_ = ctx.Error(err)
 		return
 	}
 
@@ -64,5 +66,4 @@ func (handler *FeedHandler) GetFeed(ctx *gin.Context) {
 			"post": posts,
 		},
 	})
-
 }

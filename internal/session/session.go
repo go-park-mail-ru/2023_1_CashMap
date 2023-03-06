@@ -9,9 +9,7 @@ type Session struct {
 	ExpiresAt time.Time
 }
 
+//nolint:unused
 func (s *Session) isExpired() bool {
-	if time.Now().Before(s.ExpiresAt) {
-		return true
-	}
-	return false
+	return time.Now().Before(s.ExpiresAt)
 }

@@ -2,7 +2,7 @@ package local_storage
 
 import (
 	"depeche/internal/entities"
-	"errors"
+	"depeche/pkg/apperror"
 	"sync"
 )
 
@@ -28,7 +28,7 @@ func (lc *UserStorage) GetUserByEmail(email string) (*entities.User, error) {
 	defer lc.mx.Unlock()
 	user := lc.user[email]
 	if user == nil {
-		return nil, errors.New("user not found")
+		return nil, apperror.UserNotFound
 	}
 	return user, nil
 }
@@ -43,7 +43,7 @@ func (lc *UserStorage) CreateUser(user *entities.User) (*entities.User, error) {
 	lc.mx.RLock()
 	defer lc.mx.RUnlock()
 	if lc.user[user.Email] != nil {
-		return nil, errors.New("user already exists")
+		return nil, apperror.UserAlreadyExists
 	}
 	lc.user[user.Email] = user
 	return user, nil

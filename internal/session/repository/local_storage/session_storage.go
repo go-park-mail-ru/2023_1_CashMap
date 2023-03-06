@@ -2,7 +2,7 @@ package local_storage
 
 import (
 	"depeche/internal/session"
-	"errors"
+	"depeche/pkg/apperror"
 	"sync"
 )
 
@@ -29,7 +29,7 @@ func (s *SessionStorage) GetSession(token string) (*session.Session, error) {
 	defer s.mx.Unlock()
 	stored := s.session[token]
 	if stored == nil {
-		return nil, errors.New("session not found")
+		return nil, apperror.NoAuth
 	}
 	return stored, nil
 }
@@ -39,7 +39,7 @@ func (s *SessionStorage) DeleteSession(token string) error {
 	defer s.mx.RUnlock()
 	stored := s.session[token]
 	if stored == nil {
-		return errors.New("session not found")
+		return apperror.NoAuth
 	}
 	delete(s.session, token)
 	return nil

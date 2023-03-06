@@ -41,5 +41,5 @@ func (feed *FeedService) CollectPosts(user *entities.User, topPostDateTime time.
 		return posts[:batchSize], nil
 	}
 
-	return posts[:len(posts)], nil
+	return posts, nil
 }

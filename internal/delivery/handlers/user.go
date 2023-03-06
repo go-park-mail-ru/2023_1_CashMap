@@ -3,7 +3,8 @@ package handlers
 import (
 	"depeche/internal/entities"
 	authService "depeche/internal/session/service"
-	"depeche/internal/usecase/service"
+	"depeche/internal/usecase"
+	"depeche/pkg/apperror"
 	"net/http"
 	"time"
 
@@ -11,11 +12,11 @@ import (
 )
 
 type UserHandler struct {
-	service     service.User
+	service     usecase.User
 	authService authService.Auth
 }
 
-func NewUserHandler(userService service.User, authService authService.Auth) *UserHandler {
+func NewUserHandler(userService usecase.User, authService authService.Auth) *UserHandler {
 	return &UserHandler{
 		service:     userService,
 		authService: authService,
@@ -39,17 +40,21 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 
 	err := ctx.BindJSON(&user)
 	if err != nil {
-		ctx.AbortWithError(http.StatusUnauthorized, err)
+		_ = ctx.Error(apperror.BadRequest)
 		return
 	}
 
 	_, err = uh.service.SignIn(&user)
 	if err != nil {
-		ctx.AbortWithError(http.StatusUnauthorized, err)
+		_ = ctx.Error(err)
 		return
 	}
 
 	token, err := uh.authService.Authenticate(&user)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
 	sessionCookie := &http.Cookie{
 		Name:     "session_id",
 		Value:    token,
@@ -82,13 +87,13 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 	var user entities.User
 	err := ctx.BindJSON(&user)
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		_ = ctx.Error(apperror.BadRequest)
 		return
 	}
-	// TODO: уточнить код ответа (сейчас летит 400)
+
 	_, err = uh.service.SignUp(&user)
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		_ = ctx.Error(err)
 	}
 }
 
@@ -103,38 +108,38 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 func (uh *UserHandler) LogOut(ctx *gin.Context) {
 	token, err := ctx.Cookie("session_id")
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		_ = ctx.Error(apperror.NoAuth)
 		return
 	}
 	err = uh.authService.LogOut(token)
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		_ = ctx.Error(err)
 		return
 	}
 
-	newCookie := &http.Cookie{
+	expired := &http.Cookie{
 		Name:     "session_id",
 		Value:    token,
-		Expires:  time.Now().Add(-time.Hour), // ЗАХАРДКОЖЕНО ВРЕМЯ ЭКСПИРАЦИИ
+		Expires:  time.Now().Add(-time.Hour),
 		MaxAge:   -1,
 		HttpOnly: true,
 		Secure:   false,
 		Path:     "/",
 	}
 
-	http.SetCookie(ctx.Writer, newCookie)
+	http.SetCookie(ctx.Writer, expired)
 	ctx.Status(http.StatusOK)
 }
 
 func (uh *UserHandler) CheckAuth(ctx *gin.Context) {
 	token, err := ctx.Cookie("session_id")
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		_ = ctx.Error(apperror.NoAuth)
 		return
 	}
 	_, err = uh.authService.CheckSession(token)
 	if err != nil {
-		ctx.AbortWithError(http.StatusUnauthorized, err)
+		_ = ctx.Error(err)
 		return
 	}
 
