@@ -95,6 +95,25 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 	if err != nil {
 		_ = ctx.Error(err)
 	}
+
+	token, err := uh.authService.Authenticate(&user)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+	sessionCookie := &http.Cookie{
+		Name:     "session_id",
+		Value:    token,
+		Expires:  time.Now().Add(time.Second * 86400),
+		MaxAge:   0,
+		HttpOnly: true,
+		Secure:   false,
+		Path:     "/",
+	}
+
+	http.SetCookie(ctx.Writer, sessionCookie)
+	ctx.Status(http.StatusOK)
+
 }
 
 // LogOut godoc
