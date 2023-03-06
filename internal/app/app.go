@@ -45,6 +45,7 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware) *gi
 	router := gin.Default()
 
 	router.Use(middleware.CORS())
+	router.Use(middleware.ErrorMiddleware())
 	// // swagger api route
 	docs.SwaggerInfo.BasePath = "/api"
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
