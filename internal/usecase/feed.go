@@ -1,4 +1,4 @@
-package _interface
+package usecase
 
 import (
 	"depeche/internal/entities"

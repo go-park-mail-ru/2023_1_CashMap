@@ -2,7 +2,8 @@ package service
 
 import (
 	"depeche/internal/entities"
-	"depeche/internal/repository/interface"
+	"depeche/internal/repository"
+	"depeche/internal/usecase"
 	"errors"
 )
 
@@ -12,10 +13,10 @@ type User interface {
 }
 
 type UserService struct {
-	repo _interface.UserRepository
+	repo repository.UserRepository
 }
 
-func NewUserService(repo _interface.UserRepository) *UserService {
+func NewUserService(repo repository.UserRepository) usecase.User {
 	return &UserService{
 		repo: repo,
 	}

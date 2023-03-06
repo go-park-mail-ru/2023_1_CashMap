@@ -1,7 +1,7 @@
 package local_storage
 
 import (
-	session "depeche/internal/session/repository"
+	"depeche/internal/session"
 	"errors"
 	"sync"
 )

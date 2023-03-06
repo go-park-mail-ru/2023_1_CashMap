@@ -2,20 +2,17 @@ package service
 
 import (
 	"depeche/internal/entities"
-	"depeche/internal/repository/interface"
+	"depeche/internal/repository"
+	"depeche/internal/usecase"
 	"sort"
 	"time"
 )
 
-type Feed interface {
-	CollectPosts(user *entities.User, lastPostDate time.Time, batchSize uint) ([]entities.Post, error)
-}
-
 type FeedService struct {
-	repository _interface.FeedRepository
+	repository repository.FeedRepository
 }
 
-func NewFeedService(feedRepository _interface.FeedRepository) *FeedService {
+func NewFeedService(feedRepository repository.FeedRepository) usecase.Feed {
 	return &FeedService{
 		repository: feedRepository,
 	}

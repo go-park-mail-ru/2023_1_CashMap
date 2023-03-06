@@ -1,4 +1,4 @@
-package _interface
+package repository
 
 import (
 	"depeche/internal/entities"

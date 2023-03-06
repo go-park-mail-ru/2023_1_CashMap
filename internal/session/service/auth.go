@@ -2,6 +2,7 @@ package service
 
 import (
 	"depeche/internal/entities"
+	entities2 "depeche/internal/session"
 	session "depeche/internal/session/repository"
 	"github.com/google/uuid"
 	"time"
@@ -10,7 +11,7 @@ import (
 type Auth interface {
 	Authenticate(user *entities.User) (string, error)
 	LogOut(token string) error
-	CheckSession(token string) (*session.Session, error)
+	CheckSession(token string) (*entities2.Session, error)
 }
 
 type AuthService struct {
@@ -30,7 +31,7 @@ func (a *AuthService) Authenticate(user *entities.User) (string, error) {
 	}
 	token := id.String()
 
-	err = a.sessionRepo.CreateSession(token, &session.Session{
+	err = a.sessionRepo.CreateSession(token, &entities2.Session{
 		Email:     user.Email,
 		ExpiresAt: time.Now().Add(time.Second * 86400),
 	})
@@ -48,7 +49,7 @@ func (a *AuthService) LogOut(token string) error {
 	return nil
 }
 
-func (a *AuthService) CheckSession(token string) (*session.Session, error) {
+func (a *AuthService) CheckSession(token string) (*entities2.Session, error) {
 	stored, err := a.sessionRepo.GetSession(token)
 	if err != nil {
 		return nil, err

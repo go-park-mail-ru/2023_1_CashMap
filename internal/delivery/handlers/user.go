@@ -53,7 +53,7 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 	sessionCookie := &http.Cookie{
 		Name:     "session_id",
 		Value:    token,
-		Expires:  time.Now().Add(time.Hour * 1000), // ЗАХАРДКОЖЕНО ВРЕМЯ ЭКСПИРАЦИИ
+		Expires:  time.Now().Add(time.Second * 86400),
 		MaxAge:   0,
 		HttpOnly: true,
 		Secure:   false,
