@@ -5,7 +5,6 @@ import (
 	authService "depeche/internal/session/service"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -42,7 +41,6 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 	}{}
 
 	err := ctx.BindJSON(&request)
-	fmt.Print(request.User)
 	if err != nil {
 		_ = ctx.Error(apperror.BadRequest)
 		return
