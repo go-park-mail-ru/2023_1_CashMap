@@ -61,7 +61,7 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 		Name:     "session_id",
 		Value:    token,
 		Expires:  time.Now().Add(time.Second * 86400),
-		MaxAge:   0,
+		MaxAge:   86400,
 		HttpOnly: true,
 		Secure:   false,
 		Path:     "/",
@@ -89,7 +89,7 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 	var request = struct {
 		User entities.User `json:"body"`
 	}{}
-	err := ctx.BindJSON(&request)
+	err := ctx.ShouldBindJSON(&request)
 	if err != nil {
 		_ = ctx.Error(apperror.BadRequest)
 		return
@@ -110,7 +110,7 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 		Name:     "session_id",
 		Value:    token,
 		Expires:  time.Now().Add(time.Second * 86400),
-		MaxAge:   0,
+		MaxAge:   86400,
 		HttpOnly: true,
 		Secure:   false,
 		Path:     "/",

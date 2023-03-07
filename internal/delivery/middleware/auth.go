@@ -23,8 +23,8 @@ func (am *AuthMiddleware) Middleware() gin.HandlerFunc {
 		if err != nil {
 			err = apperror.NoAuth
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"status":  Errors[err].statusCode,
-				"message": Errors[err].message,
+				"status":  Errors[err].Code,
+				"Message": Errors[err].Message,
 			})
 			return
 		}
@@ -32,8 +32,8 @@ func (am *AuthMiddleware) Middleware() gin.HandlerFunc {
 		if err != nil {
 			err = apperror.NoAuth
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"status":  Errors[err].statusCode,
-				"message": Errors[err].message,
+				"status":  Errors[err].Code,
+				"Message": Errors[err].Message,
 			})
 			return
 		}

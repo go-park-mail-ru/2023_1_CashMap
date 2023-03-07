@@ -17,16 +17,16 @@ func ErrorMiddleware() gin.HandlerFunc {
 		}
 
 		err := ctx.Errors[0].Unwrap()
-		ctx.JSON(Errors[err].statusCode, gin.H{
-			"status":  Errors[err].statusCode,
-			"message": Errors[err].message,
+		ctx.JSON(Errors[err].Code, gin.H{
+			"status":  Errors[err].Code,
+			"message": Errors[err].Message,
 		})
 	}
 }
 
 var Errors = map[error]struct {
-	statusCode int
-	message    string
+	Code    int
+	Message string
 }{
 	apperror.UserNotFound: {
 		http.StatusNotFound,

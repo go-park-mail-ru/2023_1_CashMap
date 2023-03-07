@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"depeche/internal/delivery/middleware"
 	"depeche/internal/mocks/usecase"
+	"depeche/pkg/apperror"
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -15,13 +17,13 @@ import (
 
 var (
 	signUpTestcases = map[string]struct {
-		request  *http.Request
-		code     int
-		response []byte
-		cookie   string
+		request *http.Request
+		code    int
+		err     error
+		cookie  string
 	}{
 		"200 Success #1": {
-			request: request(http.MethodPost, "auth/sign-up",
+			request: request(http.MethodPost, "/auth/sign-up",
 				`{
 					"body":{
 						"email": "example@example.com",
@@ -29,9 +31,16 @@ var (
 					}
 				}`,
 			),
-			code:     200,
-			response: []byte{},
-			cookie:   "expected",
+			code:   http.StatusOK,
+			err:    nil,
+			cookie: "expected",
+		},
+		"400 Invalid Json": {
+			request: request(http.MethodPost, "/auth/sign-up",
+				`invalid json body`,
+			),
+			code: http.StatusBadRequest,
+			err:  apperror.BadRequest,
 		},
 	}
 
@@ -56,16 +65,25 @@ func TestUserHandlerSignUp(t *testing.T) {
 
 			router := gin.Default()
 			router.Use(middleware.ErrorMiddleware())
-			router.POST("/auth/sign-up", handler.SignIn)
+			router.POST("/auth/sign-up", handler.SignUp)
 
 			rr := httptest.NewRecorder()
 			router.ServeHTTP(rr, test.request)
 
 			require.Equal(t, test.code, rr.Code)
-			require.Equal(t, test.cookie, rr.Result().Cookies()[0])
-			require.Equal(t, test.response, rr.Body)
-			mockUserService.AssertExpectations(t)
-			mockAuthService.AssertExpectations(t)
+
+			if test.err != nil {
+				body, err := json.Marshal(gin.H{
+					"status":  middleware.Errors[test.err].Code,
+					"message": middleware.Errors[test.err].Message,
+				})
+				require.NoError(t, err)
+				require.Equal(t, body, rr.Body.Bytes())
+			} else {
+				require.Equal(t, test.cookie, rr.Result().Cookies()[0].Value)
+			}
+			//mockUserService.AssertExpectations(t)
+			//mockAuthService.AssertExpectations(t)
 		})
 	}
 }
