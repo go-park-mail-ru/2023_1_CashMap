@@ -47,7 +47,7 @@ func TestUserHandlerSignUp(t *testing.T) {
 	for name, test := range signUpTestcases {
 		t.Run(name, func(t *testing.T) {
 			mockUserService := new(usecase.MockUserService)
-			mockUserService.On("SignUp", mock.AnythingOfType("*gin.Context")).Return(nil, nil)
+			mockUserService.On("SignUp", mock.AnythingOfType("*entities.User")).Return(nil, nil)
 
 			mockAuthService := new(usecase.MockAuthService)
 			mockAuthService.On("Authenticate", mock.AnythingOfType("*entities.User")).Return(test.cookie, nil)
