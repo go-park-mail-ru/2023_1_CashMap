@@ -52,7 +52,7 @@ func (lc *UserStorage) CreateUser(user *entities.User) (*entities.User, error) {
 var mockUsers = map[string]*entities.User{
 	"user1@mail.ru": {
 		Email:     "user1@mail.ru",
-		Password:  "some_hash",
+		Password:  "Qwerty123!",
 		FirstName: "Vladimir",
 		LastName:  "Mayakovsky",
 	},

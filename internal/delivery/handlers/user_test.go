@@ -3,42 +3,81 @@ package handlers
 import (
 	"bytes"
 	"depeche/internal/delivery/middleware"
-	"depeche/internal/mocks/usecase"
+	storage "depeche/internal/repository/local_storage"
+	sessionStorage "depeche/internal/session/repository/local_storage"
+	authService "depeche/internal/session/service"
+	"depeche/internal/usecase/service"
 	"depeche/pkg/apperror"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 )
 
 var (
 	signUpTestcases = map[string]struct {
-		request *http.Request
-		code    int
-		err     error
-		cookie  string
+		url    string
+		method string
+		body   gin.H
+		code   int
+		err    error
+		cookie string
 	}{
-		"200 Success #1": {
-			request: request(http.MethodPost, "/auth/sign-up",
-				`{
-					"body":{
-						"email": "example@example.com",
-						"password": "Qwerty123!"
-					}
-				}`,
-			),
+		"Sign-Up 200 Success": {
+			url:    "/auth/sign-up",
+			method: http.MethodPost,
+			body: gin.H{
+				"body": gin.H{
+					"email":    "example@example.com",
+					"password": "Qwerty123!",
+				},
+			},
 			code:   http.StatusOK,
 			err:    nil,
 			cookie: "expected",
 		},
-		"400 Invalid Json": {
-			request: request(http.MethodPost, "/auth/sign-up",
-				`invalid json body`,
-			),
+		"Sign-Up 400 Invalid Json": {
+			url:    "/auth/sign-up",
+			method: http.MethodPost,
+			body: gin.H{
+				"body": "invalid json body",
+			},
+			code: http.StatusBadRequest,
+			err:  apperror.BadRequest,
+		},
+		"Sign-Up 409 Already exists": {
+			url:    "/auth/sign-up",
+			method: http.MethodPost,
+			body: gin.H{
+				"body": gin.H{
+					"email":    "user1@mail.ru",
+					"password": "Qwerty123!",
+				},
+			},
+			code: http.StatusConflict,
+			err:  apperror.UserAlreadyExists,
+		},
+		"Sign-In 200 success": {
+			url:    "/auth/sign-in",
+			method: http.MethodPost,
+			body: gin.H{
+				"body": gin.H{
+					"email":    "user1@mail.ru",
+					"password": "Qwerty123!",
+				},
+			},
+			code:   http.StatusOK,
+			cookie: "expected",
+		},
+		"Sign-In 400 BadRequest": {
+			url:    "/auth/sign-in",
+			method: http.MethodPost,
+			body: gin.H{
+				"body": "invalid json body",
+			},
 			code: http.StatusBadRequest,
 			err:  apperror.BadRequest,
 		},
@@ -52,23 +91,44 @@ var (
 	}{}
 )
 
-func TestUserHandlerSignUp(t *testing.T) {
+var router = gin.Default()
+
+func TestMain(m *testing.M) {
+	userStorage := storage.NewUserStorage()
+	sessionStorage := sessionStorage.NewMemorySessionStorage()
+	feedStorage := storage.NewFeedStorage()
+
+	userService := service.NewUserService(userStorage)
+	authService := authService.NewAuthService(sessionStorage)
+	feedService := service.NewFeedService(feedStorage)
+
+	userHandler := NewUserHandler(userService, authService)
+	feedHandler := NewFeedHandler(feedService)
+
+	handler := NewHandler(userHandler, feedHandler, nil)
+
+	router.Use(middleware.ErrorMiddleware())
+
+	authEndpointsGroup := router.Group("/auth")
+	{
+		authEndpointsGroup.POST("/sign-in", handler.SignIn)
+		authEndpointsGroup.POST("/sign-up", handler.SignUp)
+		authEndpointsGroup.POST("/logout", handler.LogOut)
+		authEndpointsGroup.GET("/check", handler.CheckAuth)
+	}
+
+	os.Exit(m.Run())
+}
+
+func TestUserHandler(t *testing.T) {
 	for name, test := range signUpTestcases {
 		t.Run(name, func(t *testing.T) {
-			mockUserService := new(usecase.MockUserService)
-			mockUserService.On("SignUp", mock.AnythingOfType("*entities.User")).Return(nil, nil)
 
-			mockAuthService := new(usecase.MockAuthService)
-			mockAuthService.On("Authenticate", mock.AnythingOfType("*entities.User")).Return(test.cookie, nil)
-
-			handler := NewUserHandler(mockUserService, mockAuthService)
-
-			router := gin.Default()
-			router.Use(middleware.ErrorMiddleware())
-			router.POST("/auth/sign-up", handler.SignUp)
+			request, err := request(test.method, test.url, test.body)
+			require.NoError(t, err)
 
 			rr := httptest.NewRecorder()
-			router.ServeHTTP(rr, test.request)
+			router.ServeHTTP(rr, request)
 
 			require.Equal(t, test.code, rr.Code)
 
@@ -80,31 +140,18 @@ func TestUserHandlerSignUp(t *testing.T) {
 				require.NoError(t, err)
 				require.Equal(t, body, rr.Body.Bytes())
 			} else {
-				require.Equal(t, test.cookie, rr.Result().Cookies()[0].Value)
+				require.NotNil(t, rr.Result().Cookies())
+				require.NotNil(t, rr.Result().Cookies()[0])
 			}
-			//mockUserService.AssertExpectations(t)
-			//mockAuthService.AssertExpectations(t)
 		})
 	}
 }
 
-func TestUserHandlerSignIn(t *testing.T) {
+func request(method string, url string, data gin.H) (*http.Request, error) {
 
-}
-
-func TestUserHandlerLogOut(t *testing.T) {
-
-}
-
-func TestUserHandlerCheckAuth(t *testing.T) {
-
-}
-
-func request(method string, url string, data string) *http.Request {
-	req, _ := http.NewRequest(method, url, body([]byte(data)))
-	return req
-}
-func body(data []byte) io.Reader {
-	reader := bytes.NewReader(data)
-	return reader
+	body, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	return http.NewRequest(method, url, bytes.NewReader(body))
 }

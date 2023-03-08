@@ -40,7 +40,7 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 		User entities.User `json:"body"`
 	}{}
 
-	err := ctx.BindJSON(&request)
+	err := ctx.ShouldBindJSON(&request)
 	if err != nil {
 		_ = ctx.Error(apperror.BadRequest)
 		return
