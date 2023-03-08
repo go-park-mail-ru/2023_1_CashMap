@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	signUpTestcases = map[string]struct {
+	authTestcases = map[string]struct {
 		url    string
 		method string
 		body   gin.H
@@ -81,14 +81,31 @@ var (
 			code: http.StatusBadRequest,
 			err:  apperror.BadRequest,
 		},
+		"Sign-In 404 not found": {
+			url:    "/auth/sign-in",
+			method: http.MethodPost,
+			body: gin.H{
+				"body": gin.H{
+					"email":    "notfound@mail.ru",
+					"password": "Qwerty123!",
+				},
+			},
+			code: http.StatusNotFound,
+			err:  apperror.UserNotFound,
+		},
+		"Sign-In 401 incorrect credentials": {
+			url:    "/auth/sign-in",
+			method: http.MethodPost,
+			body: gin.H{
+				"body": gin.H{
+					"email":    "user1@mail.ru",
+					"password": "Password123!",
+				},
+			},
+			code: http.StatusUnauthorized,
+			err:  apperror.IncorrectCredentials,
+		},
 	}
-
-	signInTestcases = map[string]struct {
-	}{}
-	logoutTestcases = map[string]struct {
-	}{}
-	checkAuthTestcases = map[string]struct {
-	}{}
 )
 
 var router = gin.Default()
@@ -108,6 +125,9 @@ func TestMain(m *testing.M) {
 	handler := NewHandler(userHandler, feedHandler, nil)
 
 	router.Use(middleware.ErrorMiddleware())
+	router.Use(func(ctx *gin.Context) {
+		ctx.Set("email", "user1@mail.ru")
+	})
 
 	authEndpointsGroup := router.Group("/auth")
 	{
@@ -117,11 +137,16 @@ func TestMain(m *testing.M) {
 		authEndpointsGroup.GET("/check", handler.CheckAuth)
 	}
 
+	apiEndpointsGroup := router.Group("/api")
+	{
+		apiEndpointsGroup.GET("/feed", handler.GetFeed)
+	}
+
 	os.Exit(m.Run())
 }
 
 func TestUserHandler(t *testing.T) {
-	for name, test := range signUpTestcases {
+	for name, test := range authTestcases {
 		t.Run(name, func(t *testing.T) {
 
 			request, err := request(test.method, test.url, test.body)
@@ -148,7 +173,6 @@ func TestUserHandler(t *testing.T) {
 }
 
 func request(method string, url string, data gin.H) (*http.Request, error) {
-
 	body, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
