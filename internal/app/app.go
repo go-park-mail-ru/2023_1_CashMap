@@ -2,22 +2,34 @@ package app
 
 import (
 	"depeche/cmd/app/docs"
+	"depeche/configs"
 	"depeche/internal/delivery/handlers"
 	"depeche/internal/delivery/middleware"
 	storage "depeche/internal/repository/local_storage"
 	httpserver "depeche/internal/server"
-	sessionStorage "depeche/internal/session/repository/local_storage"
+	"depeche/internal/session/repository/redis"
 	authService "depeche/internal/session/service"
 	"depeche/internal/usecase/service"
+	"depeche/pkg/connector"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"log"
 )
 
 func Run() {
+	var cfg configs.Config
+	err := configs.InitCfg(&cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+	client, err := connector.Connect(&cfg.SessionStorage)
+	if err != nil {
+		log.Fatal(err)
+	}
 	userStorage := storage.NewUserStorage()
-	sessionStorage := sessionStorage.NewMemorySessionStorage()
+	sessionStorage := redis.NewRedisStorage(client)
 	feedStorage := storage.NewFeedStorage()
 
 	userService := service.NewUserService(userStorage)
@@ -34,7 +46,7 @@ func Run() {
 	router := initRouter(handler, authMiddleware)
 	server := httpserver.NewServer(router)
 
-	err := server.ListenAndServe()
+	err = server.ListenAndServe()
 	if err != nil {
 		fmt.Println(err)
 		return
