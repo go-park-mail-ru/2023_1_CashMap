@@ -4,6 +4,7 @@ import (
 	"depeche/internal/session"
 	"depeche/internal/session/repository"
 	"depeche/pkg/apperror"
+	"fmt"
 	"github.com/go-redis/redis"
 )
 
@@ -14,6 +15,7 @@ type Storage struct {
 
 func (s *Storage) CreateSession(token string, session *session.Session) error {
 	_, err := s.Client.Do("SET", token, session.Email, "EX", s.ExpirationTime).Result()
+	fmt.Println("NEW SESSION: ", session.Email)
 	if err != nil {
 		return err
 	}
