@@ -1,0 +1,30 @@
+version: "3.8"
+services:
+  backend:
+    build: .
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env/postgres
+      - .env/backend
+
+  db:
+    image: postgres:15-alpine
+    ports:
+      - "9090:9090"
+    env_file:
+      - .env/postgres
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./sql/initdb.sql:/docker-entrypoint-initdb.d/initdb.sql
+
+    healthcheck:
+      test: "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: always
+
+volumes:
+  db_data:
