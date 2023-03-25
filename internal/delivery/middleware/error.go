@@ -11,8 +11,6 @@ func ErrorMiddleware() gin.HandlerFunc {
 		ctx.Next()
 
 		if len(ctx.Errors) == 0 {
-
-			ctx.Status(200)
 			return
 		}
 

@@ -1,0 +1,19 @@
+version: "3.9"
+services:
+  backend:
+    container_name: "backend"
+    build: .
+    ports:
+      - "8080:8080"
+    links:
+      - "redis:redis"
+    depends_on:
+      redis:
+        condition: service_started
+  redis:
+    image: redis:latest
+    container_name: dpredis
+    ports:
+      - "6379:6379"
+    command:
+     - --requirepass ${REDIS_PASS}
