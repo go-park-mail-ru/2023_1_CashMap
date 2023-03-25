@@ -9,6 +9,8 @@ import (
 	httpserver "depeche/internal/server"
 	"depeche/internal/session/repository/redis"
 	authService "depeche/internal/session/service"
+	staticDelivery "depeche/internal/static/delivery"
+	staticService "depeche/internal/static/service"
 	"depeche/internal/usecase/service"
 	"depeche/pkg/connector"
 	"fmt"
@@ -41,11 +43,13 @@ func Run() {
 	userService := service.NewUserService(userStorage)
 	authService := authService.NewAuthService(sessionStorage)
 	feedService := service.NewFeedService(feedStorage)
+	fileService := staticService.NewFileUsecase()
 
+	staticHandler := staticDelivery.NewFileHandler(fileService)
 	userHandler := handlers.NewUserHandler(userService, authService)
 	feedHandler := handlers.NewFeedHandler(feedService)
 
-	handler := handlers.NewHandler(userHandler, feedHandler, nil)
+	handler := handlers.NewHandler(userHandler, feedHandler, nil, staticHandler)
 
 	authMiddleware := middleware.NewAuthMiddleware(authService)
 
@@ -61,7 +65,6 @@ func Run() {
 
 func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware) *gin.Engine {
 	router := gin.Default()
-
 	router.Use(middleware.CORS())
 	router.Use(middleware.ErrorMiddleware())
 	// // swagger api route
@@ -69,9 +72,15 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware) *gi
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// вешаем авторизационную миддлвару на все api
-	apiEndpointsGroup := router.Group("/api", authMW.Middleware())
+	//apiEndpointsGroup := router.Group("/api", authMW.Middleware())
+	apiEndpointsGroup := router.Group("/api")
 
 	apiEndpointsGroup.GET("/feed", handler.GetFeed)
+
+	staticEndpointsGroup := apiEndpointsGroup.Group("/static")
+	{
+		staticEndpointsGroup.POST("/upload", handler.LoadFile)
+	}
 
 	authEndpointsGroup := router.Group("/auth")
 	{

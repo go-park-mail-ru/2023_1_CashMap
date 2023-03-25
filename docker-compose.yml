@@ -2,7 +2,9 @@ version: "3.9"
 services:
   backend:
     container_name: depeche_backend
-    build: .
+    build:
+      context: ./
+      dockerfile: ./docker/dev/Dockerfile
     ports:
       - "8080:8080"
     links:
@@ -13,6 +15,8 @@ services:
         condition: service_started
       postgres:
         condition: service_started
+    volumes:
+      - ./:/depeche-backend
   redis:
     image: redis:latest
     container_name: depeche_redis
