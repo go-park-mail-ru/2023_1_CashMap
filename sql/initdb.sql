@@ -1,12 +1,21 @@
+CREATE TABLE Photo (
+                       id serial,
+                       url text,
+                       is_deleted boolean NOT NULL DEFAULT false,
+                       PRIMARY KEY (id)
+);
+
+
+
 CREATE TABLE UserProfile (
-                             id         serial NOT NULL,
+                             id         serial,
                              email      text NOT NULL UNIQUE,
-                             link     text NOT NULL UNIQUE,
+                             link       text NOT NULL UNIQUE,
                              avatar_id  int REFERENCES Photo(id) ON DELETE SET NULL,
                              sex        text,
                              bio        text,
-                             birthday   date,
-                             is_deleted boolean NOT NULL,
+                             birthday   text,
+                             is_deleted boolean NOT NULL DEFAULT false,
                              dying_time interval,
                              PRIMARY KEY (id)
 );
@@ -17,7 +26,7 @@ CREATE TABLE UserSubscriber (
 );
 
 CREATE Table Album (
-                       id serial NOT NULL,
+                       id serial,
                        user_id int REFERENCES UserProfile(id) ON DELETE CASCADE,
                        title text NOT NULL,
                        visibility boolean NOT NULL,
@@ -25,17 +34,17 @@ CREATE Table Album (
 );
 
 CREATE TABLE AlbumPhoto (
-                            user_id int REFERENCES UserProfile(id) ON DELETE SET NULL,
+                            album_id int REFERENCES Album(id) ON DELETE SET NULL,
                             photo_id int REFERENCES Photo(id) ON DELETE CASCADE
 );
 
 CREATE TABLE Community (
-                           id serial NOT NULL,
+                           id serial,
                            title text NOT NULL,
-                           link text NOT NULL UNIQUE ,
+                           link text NOT NULL UNIQUE,
                            bio text,
                            privacy text NOT NULL,
-                           creation_date date NOT NULL DEFAULT current_timestamp,
+                           creation_date text NOT NULL,
                            id_deleted boolean NOT NULL DEFAULT false,
                            is_banned boolean NOT NULL DEFAULT false,
                            PRIMARY KEY (id)
@@ -44,7 +53,8 @@ CREATE TABLE Community (
 CREATE TABLE CommunityManagement (
                                      user_id int REFERENCES UserProfile(id),
                                      community_id int REFERENCES Community(id),
-                                     user_role text
+                                     user_role text,
+                                     description text
 );
 
 
@@ -54,15 +64,24 @@ CREATE TABLE CommunitySubscriber (
 );
 
 CREATE TABLE Post (
-                      id serial,
+                      id bigserial,
                       author_id int REFERENCES UserProfile(id),
                       community_id int REFERENCES Community(id),
                       show_author boolean,
                       text_content text,
                       likes_amount int,
-                      creation_date timestamptz,
-                      change_date timestamptz,
+                      creation_date text,
+                      change_date text,
+                      is_deleted boolean NOT NULL DEFAULT false,
                       PRIMARY KEY (id)
+);
+
+
+CREATE TABLE Documents (
+                           id serial,
+                           url text,
+                           is_deleted boolean NOT NULL DEFAULT false,
+                           PRIMARY KEY (id)
 );
 
 CREATE TABLE PostDocument (
@@ -87,7 +106,8 @@ CREATE TABLE Comment (
                          reply_to     int REFERENCES Comment (id),
                          text_content text,
                          creation_date text,
-                         change_date  timestamptz,
+                         change_date  text,
+                         is_deleted boolean NOT NULL DEFAULT false,
                          PRIMARY KEY (id)
 );
 
@@ -113,15 +133,17 @@ CREATE TABLE Folder (
                         PRIMARY KEY (id)
 );
 
+CREATE TABLE Chat (
+                      id serial,
+                      PRIMARY KEY (id)
+);
+
 CREATE TABLE ChatFolder (
                             folder_id int REFERENCES Folder(id),
                             chat_id int REFERENCES Chat(id)
 );
 
-CREATE TABLE Chat (
-                      id serial,
-                      PRIMARY KEY (id)
-);
+
 
 CREATE TABLE GroupChat (
                            chat_id int REFERENCES Chat(id),
@@ -145,6 +167,8 @@ CREATE TABLE Message (
                          creation_date date,
                          change_date date,
                          reply_to int REFERENCES Message(id),
+
+                         is_deleted boolean NOT NULL DEFAULT false,
                          PRIMARY KEY (id)
 );
 
@@ -158,12 +182,6 @@ CREATE TABLE PhotoDocument (
                                message_id int REFERENCES Message(id)
 );
 
-CREATE TABLE Sticker (
-                         id serial,
-                         url text,
-                         sticker_pack_id int REFERENCES StickerPack(id)
-);
-
 
 CREATE TABLE StickerPack (
                              id serial,
@@ -173,14 +191,17 @@ CREATE TABLE StickerPack (
                              PRIMARY KEY (id)
 );
 
-
-CREATE TABLE Documents (
-                           id serial,
-                           url text
+CREATE TABLE Sticker (
+                         id serial,
+                         url text,
+                         sticker_pack_id int REFERENCES StickerPack(id),
+                         PRIMARY KEY (id)
 );
 
-CREATE TABLE Photo (
-                       id serial,
-                       url text
-);
+
+
+
+
+
+
 
