@@ -9,17 +9,17 @@ import (
 )
 
 type Config struct {
-	Host           string                `yaml:"host"`
-	Port           int                   `yaml:"port"`
-	SessionStorage connector.RedisConfig `yaml:"session"`
+	Host           string                   `yaml:"host"`
+	Port           int                      `yaml:"port"`
+	SessionStorage connector.RedisConfig    `yaml:"session"`
+	DB             connector.PostgresConfig `yaml:"db"`
 }
 
 func InitCfg(config *Config) error {
-	err := godotenv.Load(".env")
+	err := godotenv.Load(".env/backend", ".env/postgres", ".env/redis")
 	if err != nil {
 		return err
 	}
-	rPass := os.Getenv("REDIS_PASS")
 
 	filename, err := filepath.Abs("./configs/config.yml")
 
@@ -31,12 +31,17 @@ func InitCfg(config *Config) error {
 	if err != nil {
 		return err
 	}
-	//fmt.Println(config)
+
 	err = yaml.Unmarshal(file, config)
 	if err != nil {
 		return err
 	}
-
+	rPass := os.Getenv("REDIS_PASS")
 	config.SessionStorage.Pass = rPass
+
+	pgUser := os.Getenv("POSTGRES_USER")
+	pgPass := os.Getenv("POSTGRES_PASSWORD")
+	config.DB.User = pgUser
+	config.DB.Password = pgPass
 	return nil
 }

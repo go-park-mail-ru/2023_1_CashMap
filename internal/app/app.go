@@ -24,10 +24,16 @@ func Run() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	client, err := connector.Connect(&cfg.SessionStorage)
+	client, err := connector.ConnectRedis(&cfg.SessionStorage)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	_, err = connector.ConnectPostgres(&cfg.DB)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	userStorage := storage.NewUserStorage()
 	sessionStorage := redis.NewRedisStorage(client)
 	feedStorage := storage.NewFeedStorage()

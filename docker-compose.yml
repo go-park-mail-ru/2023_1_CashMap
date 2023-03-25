@@ -1,19 +1,46 @@
 version: "3.9"
 services:
   backend:
-    container_name: "backend"
+    container_name: depeche_backend
     build: .
     ports:
       - "8080:8080"
     links:
       - "redis:redis"
+      - "postgres:postgres"
     depends_on:
       redis:
         condition: service_started
+      postgres:
+        condition: service_started
   redis:
     image: redis:latest
-    container_name: dpredis
+    container_name: depeche_redis
+    env_file:
+      - .env/redis
     ports:
       - "6379:6379"
-    command:
-     - --requirepass ${REDIS_PASS}
+    command: >
+     --requirepass "password"
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: depeche_postgres
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env/postgres
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./sql/initdb.sql:/docker-entrypoint-initdb.d/initdb.sql
+
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $POSTGRES_DB" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: always
+
+volumes:
+  db_data:

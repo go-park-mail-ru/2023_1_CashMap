@@ -12,14 +12,13 @@ type RedisConfig struct {
 	Pass string `yaml:"-"`
 }
 
-func Connect(cfg *RedisConfig) (*redis.Client, error) {
+func ConnectRedis(cfg *RedisConfig) (*redis.Client, error) {
 	opts := &redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 		DB:       cfg.DB,
 		Password: cfg.Pass,
 	}
 	client := redis.NewClient(opts)
-
 	err := client.Ping().Err()
 	if err != nil {
 		return nil, fmt.Errorf("redis error: %w", err)
