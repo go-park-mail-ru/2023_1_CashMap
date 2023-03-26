@@ -53,3 +53,8 @@ func (fileHandler *FileHandler) LoadFile(ctx *gin.Context) {
 		}
 	}
 }
+
+func (fileHandler *FileHandler) GetFile(ctx *gin.Context) {
+	ctx.Error(apperror.Forbidden)
+	return
+}

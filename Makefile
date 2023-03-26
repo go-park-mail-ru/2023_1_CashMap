@@ -1,10 +1,8 @@
-all: build check test
+start:
+	./scripts/start.sh
+
+push:
+	./scripts/rebuild.sh
 
 build:
 	./scripts/build.sh
-
-check: build
-	./scripts/linters.sh
-
-test: build
-	./scripts/test.sh
