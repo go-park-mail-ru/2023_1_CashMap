@@ -5,13 +5,15 @@ import (
 	"depeche/pkg/apperror"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"log"
 	"os"
+	"strings"
 )
 
+var BASE_PATH, _ = os.Getwd()
+
 const (
-	IMG_STATIC_PATH = "../files/img"
-	DOC_STATIC_PATH = "../files/doc"
+	IMG_STATIC_PATH = "/internal/static/files/img/"
+	DOC_STATIC_PATH = "/internal/static/files/doc/"
 )
 
 type FileHandler struct {
@@ -31,15 +33,21 @@ func (fileHandler *FileHandler) LoadFile(ctx *gin.Context) {
 		return
 	}
 
-	path, err := os.Getwd()
-	if err != nil {
-		log.Println(err)
-	}
-	fmt.Println(path)
-
+	// TOOO: ОТФИЛЬТРОВАТЬ КАЧЕСТВЕННО КОНТЕНТ ТУПЕ
+	// TODO: ЗАХШИРОВАТЬ ИМЯ ФАЙЛА
 	for _, file := range files.File["img"] {
-		err = ctx.SaveUploadedFile(file, IMG_STATIC_PATH)
+		filename := file.Filename
+		if contentType := file.Header.Get("Content-Type"); strings.Contains(contentType, "image") {
+			err = ctx.SaveUploadedFile(file, BASE_PATH+IMG_STATIC_PATH+filename)
+		} else if contentType == "" {
+			ctx.Error(apperror.BadRequest)
+			return
+		} else {
+			err = ctx.SaveUploadedFile(file, BASE_PATH+DOC_STATIC_PATH+filename)
+		}
+
 		if err != nil {
+			fmt.Println(err)
 			ctx.Error(apperror.InternalServerError)
 			return
 		}

@@ -5,6 +5,7 @@ services:
     build:
       context: ./
       dockerfile: ./docker/dev/Dockerfile
+    init: true
     ports:
       - "8080:8080"
     links:
