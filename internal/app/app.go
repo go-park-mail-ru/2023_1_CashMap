@@ -1,8 +1,8 @@
 package app
 
 import (
-	"depeche/cmd/app/docs"
 	"depeche/configs"
+	"depeche/docs"
 	"depeche/internal/delivery/handlers"
 	"depeche/internal/delivery/middleware"
 	storage "depeche/internal/repository/local_storage"
@@ -80,6 +80,8 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware) *gi
 	staticEndpointsGroup := apiEndpointsGroup.Group("/static")
 	{
 		staticEndpointsGroup.POST("/upload", handler.LoadFile)
+		staticEndpointsGroup.GET("/download", handler.GetFile)
+		staticEndpointsGroup.DELETE("/remove", handler.DeleteFile)
 	}
 
 	authEndpointsGroup := router.Group("/auth")

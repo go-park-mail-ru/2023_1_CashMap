@@ -124,13 +124,13 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 }
 
 // LogOut godoc
-// @Summary		Log out
-// @Description	Delete user session and invalidate session cookie
-// @Tags			logout
-// @Success		200
-// @Failure		400
-// @Failure		500
-// @Router			/auth/logout [post]
+//	@Summary		Log out
+//	@Description	Delete user session and invalidate session cookie
+//	@Tags			logout
+//	@Success		200
+//	@Failure		400
+//	@Failure		500
+//	@Router			/auth/logout [post]
 func (uh *UserHandler) LogOut(ctx *gin.Context) {
 	token, err := ctx.Cookie("session_id")
 	if err != nil {

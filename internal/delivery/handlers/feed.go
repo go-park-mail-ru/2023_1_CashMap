@@ -31,7 +31,7 @@ func NewFeedHandler(feedService usecase.Feed) *FeedHandler {
 //	@Failure		400
 //	@Failure		401
 //	@Failure		500
-//	@Router			api/feed [get]
+//	@Router			/api/feed [get]
 func (handler *FeedHandler) GetFeed(ctx *gin.Context) {
 	email, exists := ctx.Get("email")
 	if !exists {

@@ -1,13 +1,13 @@
 package entities
 
-type FileType int64
+type FileType string
 
 const (
-	IMAGE    FileType = 1
-	DOCUMENT FileType = 2
+	IMAGE    FileType = "img"
+	DOCUMENT FileType = "doc"
 )
 
 type UserFile struct {
-	Path string
-	Type FileType
+	Name string   `form:"name" json:"name"`
+	Type FileType `form:"type" json:"type"`
 }

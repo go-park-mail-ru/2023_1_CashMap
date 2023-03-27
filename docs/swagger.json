@@ -9,8 +9,162 @@
         "version": "1.0"
     },
     "host": "localhost:8080",
-    "basePath": "/api",
+    "basePath": "/",
     "paths": {
+        "/api/feed": {
+            "get": {
+                "description": "Get users's new feed part by last post id and batch size.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "feed"
+                ],
+                "summary": "Get feed part",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Posts amount",
+                        "name": "batch_size",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date and time of last post given. If not specified the newest posts will be sent",
+                        "name": "last_post_date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entities.Post"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/static/delete": {
+            "delete": {
+                "description": "Users can delete file on server",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "delete"
+                ],
+                "summary": "Delete file from server",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "File name",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "File type (",
+                        "name": "type",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/static/download": {
+            "get": {
+                "description": "Users can read file on server",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "read"
+                ],
+                "summary": "Read file from server",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "File name",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "File type (",
+                        "name": "type",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/static/upload": {
+            "post": {
+                "description": "Users can upload many files using multipart/form-data",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "upload"
+                ],
+                "summary": "Load file on server",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entities.UserFile"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "413": {
+                        "description": "Request Entity Too Large"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/auth/logout": {
             "post": {
                 "description": "Delete user session and invalidate session cookie",
@@ -134,53 +288,6 @@
                     }
                 }
             }
-        },
-        "/feed": {
-            "get": {
-                "description": "Get users's new feed part by last post id and batch size.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "feed"
-                ],
-                "summary": "Get feed part",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Posts amount",
-                        "name": "batch_size",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Date and time of last post given. If not specified the newest posts will be sent",
-                        "name": "last_post_date",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/entities.Post"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request"
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    },
-                    "500": {
-                        "description": "Internal Server Error"
-                    }
-                }
-            }
         }
     },
     "definitions": {
@@ -193,20 +300,30 @@
                 "id": {
                     "type": "integer"
                 },
-                "postID": {
+                "post_id": {
                     "type": "integer"
                 },
-                "replyTo": {
-                    "description": "id коммента в посте, к которому сделан коммент. null, если коммент верхнего уровня",
+                "reply_to": {
                     "type": "integer"
                 },
-                "sender": {
+                "sender_name": {
                     "type": "string"
                 },
                 "text": {
                     "type": "string"
                 }
             }
+        },
+        "entities.FileType": {
+            "type": "string",
+            "enum": [
+                "img",
+                "doc"
+            ],
+            "x-enum-varnames": [
+                "IMAGE",
+                "DOCUMENT"
+            ]
         },
         "entities.Post": {
             "description": "All post information",
@@ -244,6 +361,17 @@
                 },
                 "text": {
                     "type": "string"
+                }
+            }
+        },
+        "entities.UserFile": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/entities.FileType"
                 }
             }
         }

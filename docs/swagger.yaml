@@ -1,0 +1,251 @@
+basePath: /
+definitions:
+  entities.Comment:
+    properties:
+      date:
+        type: string
+      id:
+        type: integer
+      post_id:
+        type: integer
+      reply_to:
+        type: integer
+      sender_name:
+        type: string
+      text:
+        type: string
+    type: object
+  entities.FileType:
+    enum:
+    - img
+    - doc
+    type: string
+    x-enum-varnames:
+    - IMAGE
+    - DOCUMENT
+  entities.Post:
+    description: All post information
+    properties:
+      attachments:
+        items:
+          type: string
+        type: array
+      comments:
+        items:
+          $ref: '#/definitions/entities.Comment'
+        type: array
+      date:
+        type: string
+      id:
+        type: integer
+      images:
+        items:
+          type: string
+        type: array
+      likes:
+        type: integer
+      sender_name:
+        type: string
+      text:
+        type: string
+    type: object
+  entities.UserFile:
+    properties:
+      name:
+        type: string
+      type:
+        $ref: '#/definitions/entities.FileType'
+    type: object
+host: localhost:8080
+info:
+  contact:
+    name: CashMap team
+  description: Api for Depeche social network. VK Education project. Spring, 2023
+  title: Depeche API
+  version: "1.0"
+paths:
+  /api/feed:
+    get:
+      description: Get users's new feed part by last post id and batch size.
+      parameters:
+      - description: Posts amount
+        in: query
+        name: batch_size
+        required: true
+        type: integer
+      - description: Date and time of last post given. If not specified the newest
+          posts will be sent
+        in: query
+        name: last_post_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entities.Post'
+            type: array
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Get feed part
+      tags:
+      - feed
+  /api/static/delete:
+    delete:
+      description: Users can delete file on server
+      parameters:
+      - description: File name
+        in: query
+        name: name
+        required: true
+        type: string
+      - description: File type (
+        in: query
+        name: type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Delete file from server
+      tags:
+      - delete
+  /api/static/download:
+    get:
+      description: Users can read file on server
+      parameters:
+      - description: File name
+        in: query
+        name: name
+        required: true
+        type: string
+      - description: File type (
+        in: query
+        name: type
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Read file from server
+      tags:
+      - read
+  /api/static/upload:
+    post:
+      description: Users can upload many files using multipart/form-data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entities.UserFile'
+        "400":
+          description: Bad Request
+        "413":
+          description: Request Entity Too Large
+        "500":
+          description: Internal Server Error
+      summary: Load file on server
+      tags:
+      - upload
+  /auth/logout:
+    post:
+      description: Delete user session and invalidate session cookie
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Log out
+      tags:
+      - logout
+  /auth/sign-in:
+    post:
+      consumes:
+      - application/json
+      description: Authorize client with credentials (login and password).
+      parameters:
+      - description: User login
+        in: body
+        name: login
+        required: true
+        schema:
+          type: string
+      - description: User password
+        in: body
+        name: password
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Sign in
+      tags:
+      - signin
+  /auth/sign-up:
+    post:
+      consumes:
+      - application/json
+      description: Register client with credentials and other user info.
+      parameters:
+      - description: User email
+        in: body
+        name: email
+        required: true
+        schema:
+          type: string
+      - description: User password
+        in: body
+        name: password
+        required: true
+        schema:
+          type: string
+      - description: User first name
+        in: body
+        name: first_name
+        required: true
+        schema:
+          type: string
+      - description: User last name
+        in: body
+        name: last_name
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Sign up
+      tags:
+      - signup
+swagger: "2.0"

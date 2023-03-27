@@ -15,8 +15,8 @@ func ErrorMiddleware() gin.HandlerFunc {
 		}
 
 		err := ctx.Errors[0].Unwrap()
-		ctx.JSON(Errors[err].Code, gin.H{
-			"status":  Errors[err].Code,
+		ctx.JSON(err.(*apperror.ServerError).Code, gin.H{
+			"status":  err.(*apperror.ServerError).Code,
 			"message": Errors[err].Message,
 		})
 	}
@@ -49,5 +49,9 @@ var Errors = map[error]struct {
 	apperror.Forbidden: {
 		http.StatusForbidden,
 		"Доступ запрещен.",
+	},
+	apperror.TooLargePayload: {
+		http.StatusRequestEntityTooLarge,
+		"Превышен допустимый размер файла",
 	},
 }
