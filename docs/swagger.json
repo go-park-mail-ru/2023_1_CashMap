@@ -65,7 +65,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "delete"
+                    "static"
                 ],
                 "summary": "Delete file from server",
                 "parameters": [
@@ -104,7 +104,7 @@
                     "application/octet-stream"
                 ],
                 "tags": [
-                    "read"
+                    "static"
                 ],
                 "summary": "Read file from server",
                 "parameters": [
@@ -143,7 +143,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "upload"
+                    "static"
                 ],
                 "summary": "Load file on server",
                 "responses": {
@@ -169,7 +169,7 @@
             "post": {
                 "description": "Delete user session and invalidate session cookie",
                 "tags": [
-                    "logout"
+                    "auth"
                 ],
                 "summary": "Log out",
                 "responses": {
@@ -192,7 +192,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "signin"
+                    "auth"
                 ],
                 "summary": "Sign in",
                 "parameters": [
@@ -235,7 +235,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "signup"
+                    "auth"
                 ],
                 "summary": "Sign up",
                 "parameters": [

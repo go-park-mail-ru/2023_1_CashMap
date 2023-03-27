@@ -30,7 +30,7 @@ func NewFileHandler(fileUsecase service.FileUsecase) *FileHandler {
 //
 //	@Summary		Load file on server
 //	@Description	Users can upload many files using multipart/form-data
-//	@Tags			upload
+//	@Tags			static
 //	@Produce		json
 //	@Success		200	{object}	entities.UserFile
 //	@Failure		400
@@ -125,7 +125,7 @@ func (fileHandler *FileHandler) LoadFile(ctx *gin.Context) {
 //
 //	@Summary		Read file from server
 //	@Description	Users can read file on server
-//	@Tags			read
+//	@Tags			static
 //	@Produce		octet-stream
 //	@Param			name	query	string	true	"File name"
 //	@Param			type	query	string	true	"File type ("doc" or "img")"
@@ -154,7 +154,7 @@ func (fileHandler *FileHandler) GetFile(ctx *gin.Context) {
 //
 //	@Summary		Delete file from server
 //	@Description	Users can delete file on server
-//	@Tags			delete
+//	@Tags			static
 //	@Produce		json
 //	@Param			name	query	string	true	"File name"
 //	@Param			type	query	string	true	"File type ("doc" or "img")"

@@ -72,7 +72,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "delete"
+                    "static"
                 ],
                 "summary": "Delete file from server",
                 "parameters": [
@@ -111,7 +111,7 @@ const docTemplate = `{
                     "application/octet-stream"
                 ],
                 "tags": [
-                    "read"
+                    "static"
                 ],
                 "summary": "Read file from server",
                 "parameters": [
@@ -150,7 +150,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "upload"
+                    "static"
                 ],
                 "summary": "Load file on server",
                 "responses": {
@@ -176,7 +176,7 @@ const docTemplate = `{
             "post": {
                 "description": "Delete user session and invalidate session cookie",
                 "tags": [
-                    "logout"
+                    "auth"
                 ],
                 "summary": "Log out",
                 "responses": {
@@ -199,7 +199,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "signin"
+                    "auth"
                 ],
                 "summary": "Sign in",
                 "parameters": [
@@ -242,7 +242,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "signup"
+                    "auth"
                 ],
                 "summary": "Sign up",
                 "parameters": [

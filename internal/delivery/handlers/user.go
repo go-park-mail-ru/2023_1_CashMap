@@ -28,7 +28,7 @@ func NewUserHandler(userService usecase.User, authService authService.Auth) *Use
 //
 //	@Summary		Sign in
 //	@Description	Authorize client with credentials (login and password).
-//	@Tags			signin
+//	@Tags			auth
 //	@Accept			json
 //	@Param			login		body	string	true	"User login"
 //	@Param			password	body	string	true	"User password"
@@ -76,7 +76,7 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 //
 //	@Summary		Sign up
 //	@Description	Register client with credentials and other user info.
-//	@Tags			signup
+//	@Tags			auth
 //	@Accept			json
 //	@Param			email		body	string	true	"User email"
 //	@Param			password	body	string	true	"User password"
@@ -124,9 +124,10 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 }
 
 // LogOut godoc
+//
 //	@Summary		Log out
 //	@Description	Delete user session and invalidate session cookie
-//	@Tags			logout
+//	@Tags			auth
 //	@Success		200
 //	@Failure		400
 //	@Failure		500

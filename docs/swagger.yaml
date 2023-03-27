@@ -121,7 +121,7 @@ paths:
           description: Internal Server Error
       summary: Delete file from server
       tags:
-      - delete
+      - static
   /api/static/download:
     get:
       description: Users can read file on server
@@ -147,7 +147,7 @@ paths:
           description: Internal Server Error
       summary: Read file from server
       tags:
-      - read
+      - static
   /api/static/upload:
     post:
       description: Users can upload many files using multipart/form-data
@@ -166,7 +166,7 @@ paths:
           description: Internal Server Error
       summary: Load file on server
       tags:
-      - upload
+      - static
   /auth/logout:
     post:
       description: Delete user session and invalidate session cookie
@@ -179,7 +179,7 @@ paths:
           description: Internal Server Error
       summary: Log out
       tags:
-      - logout
+      - auth
   /auth/sign-in:
     post:
       consumes:
@@ -207,7 +207,7 @@ paths:
           description: Internal Server Error
       summary: Sign in
       tags:
-      - signin
+      - auth
   /auth/sign-up:
     post:
       consumes:
@@ -247,5 +247,5 @@ paths:
           description: Internal Server Error
       summary: Sign up
       tags:
-      - signup
+      - auth
 swagger: "2.0"
