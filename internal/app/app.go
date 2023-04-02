@@ -6,6 +6,7 @@ import (
 	"depeche/internal/delivery/handlers"
 	"depeche/internal/delivery/middleware"
 	storage "depeche/internal/repository/local_storage"
+	"depeche/internal/repository/pstgrs"
 	httpserver "depeche/internal/server"
 	"depeche/internal/session/repository/redis"
 	authService "depeche/internal/session/service"
@@ -26,6 +27,16 @@ func Run() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	postgresDefault, err := connector.GetPostgresConnector(&cfg.DB)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sqlxConnector := connector.GetSqlxConnector(postgresDefault, cfg.DBMSName)
+	// TODO: как обработать ошибку в дефере нормаль?...
+	defer sqlxConnector.Close()
+
 	client, err := connector.ConnectRedis(&cfg.SessionStorage)
 	if err != nil {
 		log.Fatal(err)
@@ -39,17 +50,20 @@ func Run() {
 	userStorage := storage.NewUserStorage()
 	sessionStorage := redis.NewRedisStorage(client)
 	feedStorage := storage.NewFeedStorage()
+	postStorage := pstgrs.NewPostRepository(sqlxConnector)
 
 	userService := service.NewUserService(userStorage)
 	authService := authService.NewAuthService(sessionStorage)
 	feedService := service.NewFeedService(feedStorage)
 	fileService := staticService.NewFileUsecase()
+	postService := service.NewPostService(postStorage)
 
 	staticHandler := staticDelivery.NewFileHandler(fileService)
 	userHandler := handlers.NewUserHandler(userService, authService)
 	feedHandler := handlers.NewFeedHandler(feedService)
+	postHandler := handlers.NewPostHandler(postService)
 
-	handler := handlers.NewHandler(userHandler, feedHandler, nil, staticHandler)
+	handler := handlers.NewHandler(userHandler, feedHandler, postHandler, staticHandler)
 
 	authMiddleware := middleware.NewAuthMiddleware(authService)
 

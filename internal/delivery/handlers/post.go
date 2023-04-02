@@ -1,8 +1,18 @@
 package handlers
 
-import "github.com/gin-gonic/gin"
+import (
+	"depeche/internal/usecase"
+	"github.com/gin-gonic/gin"
+)
 
 type PostHandler struct {
+	usecase.PostUsecase
+}
+
+func NewPostHandler(postService usecase.PostUsecase) *PostHandler {
+	return &PostHandler{
+		postService,
+	}
 }
 
 func GetPost(ctx *gin.Context) {
