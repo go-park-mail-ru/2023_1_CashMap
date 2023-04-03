@@ -2,7 +2,9 @@ package connector
 
 import (
 	"fmt"
-	"github.com/jackc/pgx"
+	_ "github.com/jackc/pgx/stdlib"
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 )
 
 type PostgresConfig struct {
@@ -13,17 +15,11 @@ type PostgresConfig struct {
 	Password string `yaml:"-"`
 }
 
-func ConnectPostgres(cfg *PostgresConfig) (*pgx.Conn, error) {
-	connCfg := pgx.ConnConfig{
-		Host:     cfg.Host,
-		Port:     cfg.Port,
-		Database: cfg.Database,
-		User:     cfg.User,
-		Password: cfg.Password,
-	}
-	conn, err := pgx.Connect(connCfg)
+func ConnectPostgres(cfg *PostgresConfig) (*sqlx.DB, error) {
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.Database)
+	db, err := sqlx.Connect("postgres", connStr)
 	if err != nil {
 		return nil, fmt.Errorf("postgres error: %w", err)
 	}
-	return conn, nil
+	return db, nil
 }

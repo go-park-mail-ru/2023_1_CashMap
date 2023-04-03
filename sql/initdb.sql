@@ -7,23 +7,24 @@ CREATE TABLE Photo (
 
 
 
-CREATE TABLE UserProfile (
+CREATE TABLE userprofile (
      id         serial,
      email      text NOT NULL UNIQUE,
      link       text NOT NULL UNIQUE,
      avatar_id  int REFERENCES Photo(id) ON DELETE SET NULL,
-     sex        text,
-     bio        text,
-     birthday   text,
+     sex        text DEFAULT '',
+     bio        text DEFAULT '',
+     status     text DEFAULT '',
+     birthday   text DEFAULT '',
      is_deleted boolean NOT NULL DEFAULT false,
      dying_time interval,
      PRIMARY KEY (id)
 );
 
-CREATE TABLE UserSubscriber (
-    user_id int REFERENCES UserProfile(id) ON DELETE SET NULL,
-    subscriber_id int REFERENCES UserProfile(id) ON DELETE SET NULL
-);
+-- CREATE TABLE UserSubscriber (
+--     user_id int REFERENCES UserProfile(id) ON DELETE SET NULL,
+--     subscriber_id int REFERENCES UserProfile(id) ON DELETE SET NULL
+-- );
 
 CREATE Table Album (
     id serial,
@@ -198,7 +199,13 @@ CREATE TABLE Sticker (
 );
 
 
-
+CREATE TABLE FriendRequests (
+    subscriber serial references userprofile(id),
+    subscribed serial references userprofile(id),
+    request_time text,
+    rejected boolean default false,
+    unique (subscriber, subscribed)
+)
 
 
 

@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"depeche/internal/entities"
+	"depeche/internal/delivery/dto"
 	authService "depeche/internal/session/service"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
-	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -38,7 +38,7 @@ func NewUserHandler(userService usecase.User, authService authService.Auth) *Use
 //	@Router			/auth/sign-in [post]
 func (uh *UserHandler) SignIn(ctx *gin.Context) {
 	var request = struct {
-		User entities.User `json:"body"`
+		Data dto.SignIn `json:"body"`
 	}{}
 
 	err := ctx.ShouldBindJSON(&request)
@@ -47,13 +47,13 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 		return
 	}
 
-	_, err = uh.service.SignIn(&request.User)
+	_, err = uh.service.SignIn(&request.Data)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
-	token, err := uh.authService.Authenticate(&request.User)
+	token, err := uh.authService.Authenticate(&request.Data)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -88,22 +88,22 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 //	@Router			/auth/sign-up [post]
 func (uh *UserHandler) SignUp(ctx *gin.Context) {
 	var request = struct {
-		User entities.User `json:"body"`
+		Data dto.SignUp `json:"body"`
 	}{}
-	fmt.Println(request)
+
 	err := ctx.ShouldBindJSON(&request)
 	if err != nil {
 		_ = ctx.Error(apperror.BadRequest)
 		return
 	}
 
-	_, err = uh.service.SignUp(&request.User)
+	_, err = uh.service.SignUp(&request.Data)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
-	token, err := uh.authService.Authenticate(&request.User)
+	token, err := uh.authService.Authenticate(&request.Data)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -170,4 +170,166 @@ func (uh *UserHandler) CheckAuth(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusOK)
+}
+
+func (uh *UserHandler) SubscribeHandler(subType int) gin.HandlerFunc {
+
+	var useCase func(string, string) error
+	switch subType {
+	case Subscribe:
+		useCase = uh.service.Subscribe
+	case Unsubscribe:
+		useCase = uh.service.Unsubscribe
+	case Reject:
+		useCase = uh.service.Reject
+	}
+
+	return func(ctx *gin.Context) {
+		token, err := ctx.Cookie("session_id")
+		if err != nil {
+			_ = ctx.Error(apperror.NoAuth)
+			return
+		}
+		stored, err := uh.authService.CheckSession(token)
+		if err != nil {
+			_ = ctx.Error(err)
+		}
+
+		var request = struct {
+			Data dto.Subscribes `json:"body"`
+		}{}
+
+		err = ctx.ShouldBindJSON(&request)
+		if err != nil {
+			_ = ctx.Error(apperror.BadRequest)
+			return
+		}
+		email := stored.Email
+		err = useCase(email, request.Data.Link)
+		if err != nil {
+			_ = ctx.Error(err)
+			return
+		}
+	}
+}
+
+const (
+	Subscribe = iota
+	Unsubscribe
+	Reject
+)
+
+func (uh *UserHandler) Profile(ctx *gin.Context) {
+	link := ctx.Param("link")
+	profile, err := uh.service.GetProfileByLink(link)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"body": gin.H{
+			"profile": profile,
+		},
+	})
+
+}
+
+func (uh *UserHandler) EditProfile(ctx *gin.Context) {
+
+}
+
+func (uh *UserHandler) Friends(ctx *gin.Context) {
+	link := ctx.Query("link")
+	token, err := ctx.Cookie("session_id")
+	if err != nil {
+		_ = ctx.Error(apperror.NoAuth)
+		return
+	}
+	stored, err := uh.authService.CheckSession(token)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+	email := stored.Email
+
+	limitQ := ctx.Query("limit")
+	offsetQ := ctx.Query("offset")
+
+	limit, err := strconv.Atoi(limitQ)
+	if err != nil {
+		_ = ctx.Error(apperror.BadRequest)
+		return
+	}
+	offset, err := strconv.Atoi(offsetQ)
+	if err != nil {
+		_ = ctx.Error(apperror.BadRequest)
+		return
+	}
+
+	friends, err := uh.service.GetFriendsByLink(email, link, limit, offset)
+	if err != nil {
+		_ = ctx.Error(err)
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"body": gin.H{
+			"friends": friends,
+		},
+	})
+}
+
+func (uh *UserHandler) Subscribes(ctx *gin.Context) {
+	subType := ctx.Query("type")
+	link := ctx.Query("link")
+
+	token, err := ctx.Cookie("session_id")
+	if err != nil {
+		_ = ctx.Error(apperror.NoAuth)
+		return
+	}
+	stored, err := uh.authService.CheckSession(token)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+	email := stored.Email
+	limitQ := ctx.Query("limit")
+	offsetQ := ctx.Query("offset")
+
+	limit, err := strconv.Atoi(limitQ)
+	if err != nil {
+		_ = ctx.Error(apperror.BadRequest)
+		return
+	}
+	offset, err := strconv.Atoi(offsetQ)
+	if err != nil {
+		_ = ctx.Error(apperror.BadRequest)
+		return
+	}
+
+	var subs []*dto.Profile
+
+	switch subType {
+	case "in":
+		subs, err = uh.service.GetSubscribersByLink(email, link, limit, offset)
+		if err != nil {
+			_ = ctx.Error(err)
+			return
+		}
+	case "out":
+		subs, err = uh.service.GetSubscribesByLink(email, link, limit, offset)
+		if err != nil {
+			_ = ctx.Error(err)
+			return
+		}
+	default:
+		_ = ctx.Error(apperror.BadRequest)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"body": gin.H{
+			"subs": subs,
+		},
+	})
 }

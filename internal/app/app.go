@@ -6,6 +6,7 @@ import (
 	"depeche/internal/delivery/handlers"
 	"depeche/internal/delivery/middleware"
 	storage "depeche/internal/repository/local_storage"
+	"depeche/internal/repository/postgres"
 	httpserver "depeche/internal/server"
 	"depeche/internal/session/repository/redis"
 	authService "depeche/internal/session/service"
@@ -31,12 +32,12 @@ func Run() {
 		log.Fatal(err)
 	}
 
-	_, err = connector.ConnectPostgres(&cfg.DB)
+	db, err := connector.ConnectPostgres(&cfg.DB)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	userStorage := storage.NewUserStorage()
+	userStorage := postgres.NewPostgresUserRepo(db)
 	sessionStorage := redis.NewRedisStorage(client)
 	feedStorage := storage.NewFeedStorage()
 
@@ -65,23 +66,15 @@ func Run() {
 
 func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware) *gin.Engine {
 	router := gin.Default()
+	// [MIDDLEWARE]
 	router.Use(middleware.CORS())
 	router.Use(middleware.ErrorMiddleware())
-	// // swagger api route
+
+	// [SWAGGER]
 	docs.SwaggerInfo.BasePath = "/api"
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// вешаем авторизационную миддлвару на все api
-	//apiEndpointsGroup := router.Group("/api", authMW.Middleware())
-	apiEndpointsGroup := router.Group("/api")
-
-	apiEndpointsGroup.GET("/feed", handler.GetFeed)
-
-	staticEndpointsGroup := apiEndpointsGroup.Group("/static")
-	{
-		staticEndpointsGroup.POST("/upload", handler.LoadFile)
-	}
-
+	// [AUTH]
 	authEndpointsGroup := router.Group("/auth")
 	{
 		authEndpointsGroup.POST("/sign-in", handler.SignIn)
@@ -90,5 +83,45 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware) *gi
 		authEndpointsGroup.GET("/check", handler.CheckAuth)
 	}
 
+	// [API]
+	apiEndpointsGroup := router.Group("/api")
+	//apiEndpointsGroup.Use(authMW.Middleware())
+	{
+
+		// [FEED]
+		apiEndpointsGroup.GET("/feed", handler.GetFeed)
+
+		// [STATIC]
+		staticEndpointsGroup := apiEndpointsGroup.Group("/static")
+		{
+			staticEndpointsGroup.POST("/upload", handler.LoadFile)
+		}
+
+		// [USER]
+		userEndpoints := apiEndpointsGroup.Group("/user")
+		{
+			// [PROFILE]
+			profileEndpoints := userEndpoints.Group("/profile")
+			{
+				profileEndpoints.GET("/:link", handler.Profile)
+				profileEndpoints.PATCH("/edit", handler.EditProfile)
+			}
+			// [FRIENDS]
+			userEndpoints.GET("friends/", handler.Friends)
+
+			// [SUBSCRIBES]
+			userEndpoints.GET("/sub", handler.Subscribes)
+
+			// [SUBSCRIBE]
+			userEndpoints.POST("/sub", handler.SubscribeHandler(handlers.Subscribe))
+
+			// [UNSUBSCRIBE]
+			userEndpoints.POST("/unsub", handler.SubscribeHandler(handlers.Unsubscribe))
+
+			// [REJECT]
+			userEndpoints.POST("/reject", handler.SubscribeHandler(handlers.Reject))
+		}
+
+	}
 	return router
 }
