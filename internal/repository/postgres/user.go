@@ -1,11 +1,16 @@
 package postgres
 
 import (
+	"database/sql"
 	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
 	"depeche/internal/repository"
+	"depeche/pkg/apperror"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"strings"
+
+	"github.com/fatih/structs"
 )
 
 type UserRepository struct {
@@ -54,7 +59,9 @@ func (ur *UserRepository) GetUserByEmail(email string) (*entities.User, error) {
 	row := ur.DB.QueryRowx(UserByEmail, email)
 	err := row.StructScan(user)
 	if err != nil {
-		fmt.Println(err)
+		if err == sql.ErrNoRows {
+			return nil, apperror.UserNotFound
+		}
 		return nil, err
 	}
 	return user, nil
@@ -108,22 +115,81 @@ func (ur *UserRepository) GetSubscribers(user *entities.User, limit, offset int)
 	return users, nil
 }
 
-func (ur *UserRepository) GetPendingFriendRequests(user *entities.User, limit, offset int) ([]*dto.Profile, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (ur *UserRepository) Subscribe(subEmail, targetLink, requestTime string) (bool, error) {
-	//TODO implement me
-	panic("implement me")
+
+	_, err := ur.DB.Queryx(Subscribe, subEmail, targetLink, requestTime)
+	if err != nil {
+		return false, err
+	}
+	return false, nil
 }
 
 func (ur *UserRepository) Unsubscribe(userEmail, targetLink string) (bool, error) {
+	_, err := ur.DB.Queryx(Unsubscribe, userEmail, targetLink)
+	if err != nil {
+		return false, err
+	}
+	return false, nil
+}
+
+func (ur *UserRepository) RejectFriendRequest(userEmail, targetLink string) error {
+	_, err := ur.DB.Queryx(Unsubscribe, userEmail, targetLink)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (ur *UserRepository) CreateUser(user *entities.User) (*entities.User, error) {
+
+	err := ur.DB.QueryRowx(CreateUser, user.Email, user.Password).Err()
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (ur *UserRepository) UpdateUser(email string, user *dto.EditProfile) (*entities.User, error) {
+	query := "update userprofile set "
+	var fields []interface{}
+	for name, el := range structs.Map(user) {
+		field, ok := el.(*string)
+		if !ok {
+			continue
+		}
+		if field != nil {
+			fields = append(fields, *field)
+			query += fmt.Sprintf("%s = $%d, ", mapNames[name], len(fields))
+		}
+	}
+	query = strings.TrimSuffix(query, ", ")
+	query += fmt.Sprintf(" where email = $%d", len(fields)+1)
+	fields = append(fields, email)
+	_, err := ur.DB.Queryx(query, fields...)
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+
+var mapNames = map[string]string{
+	"Email":     "email",
+	"Password":  "password",
+	"FirstName": "first_name",
+	"LastName":  "last_name",
+	"Link":      "link",
+	"Sex":       "sex",
+	"Status":    "status",
+	"Bio":       "bio",
+	"Birthday":  "birthday",
+}
+
+func (ur *UserRepository) DeleteUser(email string, user *entities.User) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (ur *UserRepository) RejectFriendRequest(userEmail, targetLink string) error {
+func (ur *UserRepository) GetPendingFriendRequests(user *entities.User, limit, offset int) ([]*dto.Profile, error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -139,21 +205,6 @@ func (ur *UserRepository) IsSubscriber(user, target *entities.User) (bool, error
 }
 
 func (ur *UserRepository) HasPendingRequest(user, target *entities.User) (bool, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (ur *UserRepository) CreateUser(user *entities.User) (*entities.User, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (ur *UserRepository) UpdateUser(user *entities.User) (*entities.User, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (ur *UserRepository) DeleteUser(user *entities.User) error {
 	//TODO implement me
 	panic("implement me")
 }

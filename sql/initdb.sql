@@ -10,21 +10,21 @@ CREATE TABLE Photo (
 CREATE TABLE userprofile (
      id         serial,
      email      text NOT NULL UNIQUE,
-     link       text NOT NULL UNIQUE,
-     avatar_id  int REFERENCES Photo(id) ON DELETE SET NULL,
+     link       text UNIQUE,
+     first_name text DEFAULT '',
+     last_name  text DEFAULT '',
+     password   text NOT NULL,
      sex        text DEFAULT '',
      bio        text DEFAULT '',
      status     text DEFAULT '',
      birthday   text DEFAULT '',
+     avatar_id  int REFERENCES Photo(id) ON DELETE SET NULL,
      is_deleted boolean NOT NULL DEFAULT false,
+     last_active text,
      dying_time interval,
      PRIMARY KEY (id)
 );
 
--- CREATE TABLE UserSubscriber (
---     user_id int REFERENCES UserProfile(id) ON DELETE SET NULL,
---     subscriber_id int REFERENCES UserProfile(id) ON DELETE SET NULL
--- );
 
 CREATE Table Album (
     id serial,

@@ -31,6 +31,6 @@ type UserRepository interface {
 	HasPendingRequest(user, target *entities.User) (bool, error)
 
 	CreateUser(user *entities.User) (*entities.User, error)
-	UpdateUser(user *entities.User) (*entities.User, error)
-	DeleteUser(user *entities.User) error
+	UpdateUser(email string, user *dto.EditProfile) (*entities.User, error)
+	DeleteUser(email string, user *entities.User) error
 }

@@ -10,7 +10,9 @@ type User interface {
 	SignUp(user *dto.SignUp) (*entities.User, error)
 
 	GetProfileByEmail(email string) (*dto.Profile, error)
-	GetProfileByLink(link string) (*dto.Profile, error)
+	GetProfileByLink(email string, link string) (*dto.Profile, error)
+
+	EditProfile(email string, profile *dto.EditProfile) error
 
 	Subscribe(subEmail, followLink string) error
 	Unsubscribe(subEmail, followLink string) error

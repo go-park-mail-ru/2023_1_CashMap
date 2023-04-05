@@ -7,7 +7,8 @@ import (
 	"depeche/internal/usecase"
 	"depeche/internal/utils"
 	"depeche/pkg/apperror"
-	"fmt"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -54,9 +55,7 @@ func (us *UserService) SignUp(user *dto.SignUp) (*entities.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	// TODO generate link
-	stored.Link = fmt.Sprintf("%d", stored.ID)
-	return us.repo.UpdateUser(stored)
+	return stored, nil
 }
 
 func (us *UserService) GetProfileByEmail(email string) (*dto.Profile, error) {
@@ -76,10 +75,9 @@ func (us *UserService) GetProfileByEmail(email string) (*dto.Profile, error) {
 	return profile, nil
 }
 
-func (us *UserService) GetProfileByLink(link string) (*dto.Profile, error) {
-	// TODO проверить есть ли доступ ко всем полям (закрытый аккаунт)
-	// TODO добавить параметр email автора запроса
-	user, err := us.repo.GetUserByLink(link)
+func (us *UserService) GetProfileByLink(email string, link string) (*dto.Profile, error) {
+	// TODO сравить email с email в найденой моели по линку и если не совпадает - запросить инфу о допутсимых действиях
+	user, err := us.getUser(link)
 	if err != nil {
 		return nil, err
 	}
@@ -95,8 +93,15 @@ func (us *UserService) GetProfileByLink(link string) (*dto.Profile, error) {
 	return profile, nil
 }
 
+func (us *UserService) EditProfile(email string, profile *dto.EditProfile) error {
+	_, err := us.repo.UpdateUser(email, profile)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (us *UserService) Subscribe(subEmail, followLink string) error {
-	// подписаться (запись в user_subscriber)
 	reqTime := time.Now().String()
 	_, err := us.repo.Subscribe(subEmail, followLink, reqTime)
 	if err != nil {
@@ -108,8 +113,6 @@ func (us *UserService) Subscribe(subEmail, followLink string) error {
 }
 
 func (us *UserService) Unsubscribe(subEmail, followLink string) error {
-
-	// отписаться (запись в user_subscriber)
 	_, err := us.repo.Unsubscribe(subEmail, followLink)
 	if err != nil {
 		// проверить на повторную отписку
@@ -164,11 +167,12 @@ func (us *UserService) GetSubscribersByEmail(email string, limit, offset int) ([
 }
 
 func (us *UserService) GetFriendsByLink(requestEmail, targetLink string, limit, offset int) ([]*entities.User, error) {
-	user, err := us.repo.GetUserByLink(targetLink)
+	user, err := us.getUser(targetLink)
+
 	if err != nil {
 		return nil, err
 	}
-	// TODO добавить проверки разрешения requestEmail на просмотр друзей targetLink
+	// TODO сравить requestEmail с email в найденой моели по линку и если не совпадает - запросить инфу о допутсимых действиях
 	users, err := us.repo.GetFriends(user, limit, offset)
 	if err != nil {
 		return nil, err
@@ -177,11 +181,11 @@ func (us *UserService) GetFriendsByLink(requestEmail, targetLink string, limit, 
 }
 
 func (us *UserService) GetSubscribesByLink(requestEmail, targetLink string, limit, offset int) ([]*entities.User, error) {
-	user, err := us.repo.GetUserByLink(targetLink)
+	user, err := us.getUser(targetLink)
 	if err != nil {
 		return nil, err
 	}
-	// TODO добавить проверки разрешения requestEmail на просмотр подписок targetLink
+	// TODO сравить requestEmail с email в найденой моели по линку и если не совпадает - запросить инфу о допутсимых действиях
 	users, err := us.repo.GetSubscribes(user, limit, offset)
 	if err != nil {
 		return nil, err
@@ -190,14 +194,26 @@ func (us *UserService) GetSubscribesByLink(requestEmail, targetLink string, limi
 }
 
 func (us *UserService) GetSubscribersByLink(requestEmail, targetLink string, limit, offset int) ([]*entities.User, error) {
-	user, err := us.repo.GetUserByLink(targetLink)
+	user, err := us.getUser(targetLink)
 	if err != nil {
 		return nil, err
 	}
-	// TODO добавить проверки разрешения requestEmail на просмотр подписчиков targetLink
+	// TODO сравить requestEmail с email в найденой моели по линку и если не совпадает - запросить инфу о допутсимых действиях
 	users, err := us.repo.GetSubscribers(user, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 	return users, nil
+}
+
+func (us *UserService) getUser(link string) (*entities.User, error) {
+	if strings.HasPrefix(link, "id") {
+		id, err := strconv.Atoi(strings.TrimPrefix(link, "id"))
+		if err != nil {
+			return nil, apperror.BadRequest
+		}
+		return us.repo.GetUserById(uint(id))
+	}
+
+	return us.repo.GetUserByLink(link)
 }

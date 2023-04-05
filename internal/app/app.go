@@ -85,7 +85,7 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware) *gi
 
 	// [API]
 	apiEndpointsGroup := router.Group("/api")
-	//apiEndpointsGroup.Use(authMW.Middleware())
+	apiEndpointsGroup.Use(authMW.Middleware())
 	{
 
 		// [FEED]
@@ -103,6 +103,7 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware) *gi
 			// [PROFILE]
 			profileEndpoints := userEndpoints.Group("/profile")
 			{
+				profileEndpoints.GET("", handler.Self)
 				profileEndpoints.GET("/:link", handler.Profile)
 				profileEndpoints.PATCH("/edit", handler.EditProfile)
 			}

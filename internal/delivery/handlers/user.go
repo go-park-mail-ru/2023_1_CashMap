@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"depeche/internal/delivery/dto"
+	"depeche/internal/entities"
+	"depeche/internal/session"
 	authService "depeche/internal/session/service"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
@@ -185,14 +187,11 @@ func (uh *UserHandler) SubscribeHandler(subType int) gin.HandlerFunc {
 	}
 
 	return func(ctx *gin.Context) {
-		token, err := ctx.Cookie("session_id")
-		if err != nil {
-			_ = ctx.Error(apperror.NoAuth)
-			return
-		}
-		stored, err := uh.authService.CheckSession(token)
+
+		stored, err := uh.getSession(ctx)
 		if err != nil {
 			_ = ctx.Error(err)
+			return
 		}
 
 		var request = struct {
@@ -221,7 +220,8 @@ const (
 
 func (uh *UserHandler) Profile(ctx *gin.Context) {
 	link := ctx.Param("link")
-	profile, err := uh.service.GetProfileByLink(link)
+
+	profile, err := uh.service.GetProfileByLink("", link)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -231,21 +231,48 @@ func (uh *UserHandler) Profile(ctx *gin.Context) {
 			"profile": profile,
 		},
 	})
+}
 
+func (uh *UserHandler) Self(ctx *gin.Context) {
+	stored, err := uh.getSession(ctx)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+	email := stored.Email
+
+	profile, err := uh.service.GetProfileByEmail(email)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"body": gin.H{
+			"profile": profile,
+		},
+	})
 }
 
 func (uh *UserHandler) EditProfile(ctx *gin.Context) {
+	stored, err := uh.getSession(ctx)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+	email := stored.Email
+	request := struct {
+		Data dto.EditProfile `json:"body"`
+	}{}
 
+	err = uh.service.EditProfile(email, &request.Data)
+	if err != nil {
+	}
 }
 
 func (uh *UserHandler) Friends(ctx *gin.Context) {
 	link := ctx.Query("link")
-	token, err := ctx.Cookie("session_id")
-	if err != nil {
-		_ = ctx.Error(apperror.NoAuth)
-		return
-	}
-	stored, err := uh.authService.CheckSession(token)
+	stored, err := uh.getSession(ctx)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -282,12 +309,7 @@ func (uh *UserHandler) Subscribes(ctx *gin.Context) {
 	subType := ctx.Query("type")
 	link := ctx.Query("link")
 
-	token, err := ctx.Cookie("session_id")
-	if err != nil {
-		_ = ctx.Error(apperror.NoAuth)
-		return
-	}
-	stored, err := uh.authService.CheckSession(token)
+	stored, err := uh.getSession(ctx)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -307,7 +329,7 @@ func (uh *UserHandler) Subscribes(ctx *gin.Context) {
 		return
 	}
 
-	var subs []*dto.Profile
+	var subs []*entities.User
 
 	switch subType {
 	case "in":
@@ -332,4 +354,17 @@ func (uh *UserHandler) Subscribes(ctx *gin.Context) {
 			"subs": subs,
 		},
 	})
+}
+
+func (uh *UserHandler) getSession(ctx *gin.Context) (*session.Session, error) {
+	token, err := ctx.Cookie("session_id")
+	if err != nil {
+
+		return nil, apperror.NoAuth
+	}
+	stored, err := uh.authService.CheckSession(token)
+	if err != nil {
+		return nil, err
+	}
+	return stored, nil
 }

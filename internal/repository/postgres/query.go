@@ -3,7 +3,7 @@ package postgres
 // TODO sink fields with entities
 var (
 	UserById = `
-	select u.id, u.email, u.link, u.sex,
+	select  u.id, u.email, u.link, u.password, u.sex,
        u.bio, u.birthday,
        case when p.url is null 
            then ''
@@ -13,7 +13,7 @@ var (
 	where u.id = $1
 	`
 	UserByEmail = `
-	select u.id, u.email, u.link, u.sex,
+	select u.id, u.email, u.link, u.password, u.sex,
        u.bio, u.birthday,
        case when p.url is null 
            then ''
@@ -24,7 +24,7 @@ var (
 	`
 
 	UserByLink = `
-	select u.id, u.email, u.link, u.sex,
+	select u.id, u.email, u.link, u.password, u.sex,
        u.bio, u.birthday,
        case when p.url is null 
            then ''
@@ -49,8 +49,8 @@ var (
 	left join photo p on
 	  u.avatar_id = p.id
 	where
-	   f1.subscriber = ?
-	limit ? offset ?;
+	   f1.subscriber = $1
+	limit $2 offset $3
 	`
 
 	SubscribesById = `
@@ -124,35 +124,40 @@ var (
 
 	Subscribe = `
 	with sub as
-    (insert into friendrequests
-            (subscriber, subscribed, request_time)
-        	values
-            ($1, $2, $3)
-        returning
-            subscriber s1, subscribed s2, request_time time
-    )
+         (insert into friendrequests
+             (subscriber, subscribed, request_time)
+             select u1.id , u2.id, $3 from
+                userprofile u1 cross join
+                userprofile u2 where u1.email = $1 and u2.link = $2
+             returning
+                 subscriber s1, subscribed s2, request_time time
+         )
 	update friendrequests
-    set rejected = false,
-        request_time = time
-    from sub s
-    where
+	set rejected = false,
+    	request_time = time
+	from sub s	
+	where
         s.s1 = subscribed and
         s.s2 = subscriber 
 	`
 	Unsubscribe = `
 	with unsub as (
-    delete from friendrequests 
-        where 
-            subscriber = ? and subscribed = ?
+    delete from friendrequests
+        where (subscriber, subscribed)
+        in
+        (select u1.id , u2.id from
+                userprofile u1 cross join
+                userprofile u2 where
+                u1.email = $1 and u2.link = $2)
         returning
             subscriber s1, subscribed s2
-    )
-	update friendrequests 
-    set rejected = true
-    from unsub s
-    where
+	)
+	update friendrequests
+	set rejected = true
+	from unsub s
+	where
         s.s1 = subscribed and
-        s.s2 = subscriber	
+        s.s2 = subscriber
 `
 
 	RejectFriendRequest = `
@@ -169,4 +174,26 @@ var (
         u1.email = $1 and u2.link = $2 and
         f1.subscriber = f2.subscriber and f1.subscribed = f2.subscribed;
 `
+
+	CreateUser = `
+	insert into 
+    userprofile 
+    (email, password) 
+	values 
+    ($1, $2) returning id
+`
+
+	UpdateUser = `
+	update userprofile 
+	set 
+	    email = $2,
+	    password = $3,
+	    link = $4,
+	    sex = $5,
+	    bio = $6,
+	    status = $7,
+	    birthday = $8
+	where 
+		id = $1
+	`
 )

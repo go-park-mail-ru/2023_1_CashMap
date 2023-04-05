@@ -15,6 +15,15 @@ type SignUp struct {
 }
 
 type EditProfile struct {
+	Email     *string `json:"email"`
+	Password  *string `json:"password"`
+	FirstName *string `json:"first_name"`
+	LastName  *string `json:"last_name"`
+	Link      *string `json:"link"`
+	Sex       *string `json:"sex"`
+	Status    *string `json:"status"`
+	Bio       *string `json:"bio"`
+	Birthday  *string `json:"birthday"`
 }
 
 type Subscribes struct {
