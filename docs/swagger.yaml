@@ -1,0 +1,435 @@
+basePath: /
+definitions:
+  dto.Profile:
+    properties:
+      avatar:
+        type: string
+      bio:
+        type: string
+      birth_date:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      link:
+        type: string
+      private:
+        type: boolean
+      sex:
+        type: string
+      status:
+        type: string
+    type: object
+  dto.SignIn:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  dto.SignUp:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        type: string
+    type: object
+  entities.Comment:
+    properties:
+      date:
+        type: string
+      id:
+        type: integer
+      post_id:
+        type: integer
+      reply_to:
+        type: integer
+      sender_name:
+        type: string
+      text:
+        type: string
+    type: object
+  entities.Post:
+    description: All post information
+    properties:
+      attachments:
+        items:
+          type: string
+        type: array
+      comments:
+        items:
+          $ref: '#/definitions/entities.Comment'
+        type: array
+      date:
+        type: string
+      id:
+        type: integer
+      images:
+        items:
+          type: string
+        type: array
+      likes:
+        type: integer
+      sender_name:
+        type: string
+      text:
+        type: string
+    type: object
+  middleware.ErrorResponse:
+    properties:
+      message:
+        example: Невалидный запрос.
+        type: string
+      status:
+        example: 400
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact:
+    name: CashMap team
+  description: Api for Depeche social network. VK Education project. Spring, 2023
+  title: Depeche API
+  version: "1.0"
+paths:
+  /api/feed:
+    get:
+      description: Get users's new feed part by last post id and batch size.
+      parameters:
+      - description: Posts amount
+        in: query
+        name: batch_size
+        required: true
+        type: integer
+      - description: Date and time of last post given. If not specified the newest
+          posts will be sent
+        in: query
+        name: last_post_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entities.Post'
+            type: array
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Get feed part
+      tags:
+      - feed
+  /api/user/friends:
+    get:
+      description: Get subscribes or subscribers for requested user
+      parameters:
+      - description: in/out for subscribers/subscribes
+        in: query
+        name: type
+        required: true
+        type: string
+      - description: link to requested profile
+        in: query
+        name: link
+        required: true
+        type: string
+      - description: amount of profiles
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: number of batch
+        in: query
+        name: offset
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.Profile'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: Subscribes
+      tags:
+      - Profiles
+  /api/user/profile:
+    get:
+      description: Get self profile
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Profile'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: Self
+      tags:
+      - Profiles
+  /api/user/profile/edit:
+    post:
+      consumes:
+      - application/json
+      description: Edit profile
+      parameters:
+      - description: Edited fields
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/dto.Profile'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Profile'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: EditProfile
+      tags:
+      - Profiles
+  /api/user/profile/link:
+    get:
+      description: Get profile by link
+      parameters:
+      - description: link to requested profile
+        in: path
+        name: link
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Profile'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: Profile
+      tags:
+      - Profiles
+  /api/user/reject:
+    post:
+      description: Reject friend request
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: Reject
+      tags:
+      - Subscribes
+  /api/user/sub:
+    post:
+      description: Subscribe to other user
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: Subscribe
+      tags:
+      - Subscribes
+  /api/user/unsub:
+    post:
+      description: Unsubscribe from other user
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: Unsubscribe
+      tags:
+      - Subscribes
+  /auth/logout:
+    post:
+      description: Delete user session and invalidate session cookie
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: Log out
+      tags:
+      - Auth
+  /auth/sign-in:
+    post:
+      consumes:
+      - application/json
+      description: Authorize client with credentials (login and password).
+      parameters:
+      - description: User credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SignIn'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: Sign in
+      tags:
+      - Auth
+  /auth/sign-up:
+    post:
+      consumes:
+      - application/json
+      description: Register client with credentials and other user info.
+      parameters:
+      - description: Required register fields
+        in: body
+        name: email
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SignUp'
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: Sign up
+      tags:
+      - Auth
+swagger: "2.0"

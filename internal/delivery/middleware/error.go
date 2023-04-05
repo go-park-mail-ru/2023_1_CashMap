@@ -22,10 +22,12 @@ func ErrorMiddleware() gin.HandlerFunc {
 	}
 }
 
-var Errors = map[error]struct {
-	Code    int
-	Message string
-}{
+type ErrorResponse struct {
+	Code    int    `json:"status" example:"400"`
+	Message string `json:"message" example:"Невалидный запрос."`
+}
+
+var Errors = map[error]ErrorResponse{
 	apperror.UserNotFound: {
 		http.StatusNotFound,
 		"Пользователь не найден.",

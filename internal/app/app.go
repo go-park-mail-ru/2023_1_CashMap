@@ -1,8 +1,8 @@
 package app
 
 import (
-	"depeche/cmd/app/docs"
 	"depeche/configs"
+	"depeche/docs"
 	"depeche/internal/delivery/handlers"
 	"depeche/internal/delivery/middleware"
 	storage "depeche/internal/repository/local_storage"
@@ -114,13 +114,13 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware) *gi
 			userEndpoints.GET("/sub", handler.Subscribes)
 
 			// [SUBSCRIBE]
-			userEndpoints.POST("/sub", handler.SubscribeHandler(handlers.Subscribe))
+			userEndpoints.POST("/sub", handler.Subscribe)
 
 			// [UNSUBSCRIBE]
-			userEndpoints.POST("/unsub", handler.SubscribeHandler(handlers.Unsubscribe))
+			userEndpoints.POST("/unsub", handler.Unsubscribe)
 
 			// [REJECT]
-			userEndpoints.POST("/reject", handler.SubscribeHandler(handlers.Reject))
+			userEndpoints.POST("/reject", handler.Reject)
 		}
 
 	}
