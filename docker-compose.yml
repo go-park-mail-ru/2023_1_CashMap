@@ -4,7 +4,7 @@ services:
     container_name: depeche_backend
     build:
       context: ./
-      dockerfile: ./docker/dev/Dockerfile
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
     links:
