@@ -42,9 +42,10 @@ func (ur *UserRepository) GetUser(query string, args ...interface{}) (*entities.
 
 func (ur *UserRepository) GetUserById(id uint) (*entities.User, error) {
 	user := &entities.User{}
-	row := ur.DB.QueryRowx(UserByLink, id)
+	row := ur.DB.QueryRowx(UserById, id)
 	err := row.StructScan(user)
 	if err != nil {
+		fmt.Println(err)
 		if err == sql.ErrNoRows {
 			return nil, apperror.UserNotFound
 		}
@@ -58,6 +59,7 @@ func (ur *UserRepository) GetUserByLink(link string) (*entities.User, error) {
 	row := ur.DB.QueryRowx(UserByLink, link)
 	err := row.StructScan(user)
 	if err != nil {
+		fmt.Println(err)
 		if err == sql.ErrNoRows {
 			return nil, apperror.UserNotFound
 		}
