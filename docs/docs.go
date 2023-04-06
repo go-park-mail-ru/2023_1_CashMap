@@ -99,10 +99,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.Profile"
-                            }
+                            "$ref": "#/definitions/handlers.ProfileArray"
                         }
                     },
                     "400": {
@@ -143,7 +140,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.Profile"
+                            "$ref": "#/definitions/handlers.Profile"
                         }
                     },
                     "400": {
@@ -174,7 +171,7 @@ const docTemplate = `{
             }
         },
         "/api/user/profile/edit": {
-            "post": {
+            "patch": {
                 "description": "Edit profile",
                 "consumes": [
                     "application/json"
@@ -189,7 +186,7 @@ const docTemplate = `{
                         "name": "request",
                         "in": "body",
                         "schema": {
-                            "$ref": "#/definitions/dto.Profile"
+                            "$ref": "#/definitions/handlers.Profile"
                         }
                     }
                 ],
@@ -197,7 +194,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.Profile"
+                            "$ref": "#/definitions/handlers.Profile"
                         }
                     },
                     "400": {
@@ -247,7 +244,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.Profile"
+                            "$ref": "#/definitions/handlers.Profile"
                         }
                     },
                     "400": {
@@ -284,6 +281,17 @@ const docTemplate = `{
                     "Subscribes"
                 ],
                 "summary": "Reject",
+                "parameters": [
+                    {
+                        "description": "Link to user to reject friend request.",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Subscribes"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK"
@@ -356,10 +364,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.Profile"
-                            }
+                            "$ref": "#/definitions/handlers.ProfileArray"
                         }
                     },
                     "400": {
@@ -394,6 +399,17 @@ const docTemplate = `{
                     "Subscribes"
                 ],
                 "summary": "Subscribe",
+                "parameters": [
+                    {
+                        "description": "Link to user to subscribe.",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Subscribes"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK"
@@ -432,6 +448,17 @@ const docTemplate = `{
                     "Subscribes"
                 ],
                 "summary": "Unsubscribe",
+                "parameters": [
+                    {
+                        "description": "Link to user to unsubscribe.",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Subscribes"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK"
@@ -506,7 +533,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.SignIn"
+                            "$ref": "#/definitions/handlers.SignIn"
                         }
                     }
                 ],
@@ -558,7 +585,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.SignUp"
+                            "$ref": "#/definitions/handlers.SignUp"
                         }
                     }
                 ],
@@ -673,6 +700,14 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.Subscribes": {
+            "type": "object",
+            "properties": {
+                "link": {
+                    "type": "string"
+                }
+            }
+        },
         "entities.Comment": {
             "type": "object",
             "properties": {
@@ -732,6 +767,49 @@ const docTemplate = `{
                 },
                 "text": {
                     "type": "string"
+                }
+            }
+        },
+        "handlers.Profile": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/dto.Profile"
+                }
+            }
+        },
+        "handlers.ProfileArray": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Profile"
+                    }
+                }
+            }
+        },
+        "handlers.SignIn": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/dto.SignIn"
+                }
+            }
+        },
+        "handlers.SignUp": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/dto.SignUp"
+                }
+            }
+        },
+        "handlers.Subscribes": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/dto.Subscribes"
                 }
             }
         },

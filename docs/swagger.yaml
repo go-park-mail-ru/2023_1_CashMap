@@ -57,6 +57,11 @@ definitions:
       password:
         type: string
     type: object
+  dto.Subscribes:
+    properties:
+      link:
+        type: string
+    type: object
   entities.Comment:
     properties:
       date:
@@ -97,6 +102,33 @@ definitions:
         type: string
       text:
         type: string
+    type: object
+  handlers.Profile:
+    properties:
+      body:
+        $ref: '#/definitions/dto.Profile'
+    type: object
+  handlers.ProfileArray:
+    properties:
+      body:
+        items:
+          $ref: '#/definitions/dto.Profile'
+        type: array
+    type: object
+  handlers.SignIn:
+    properties:
+      body:
+        $ref: '#/definitions/dto.SignIn'
+    type: object
+  handlers.SignUp:
+    properties:
+      body:
+        $ref: '#/definitions/dto.SignUp'
+    type: object
+  handlers.Subscribes:
+    properties:
+      body:
+        $ref: '#/definitions/dto.Subscribes'
     type: object
   middleware.ErrorResponse:
     properties:
@@ -170,9 +202,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/dto.Profile'
-            type: array
+            $ref: '#/definitions/handlers.ProfileArray'
         "400":
           description: Bad Request
           schema:
@@ -199,7 +229,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.Profile'
+            $ref: '#/definitions/handlers.Profile'
         "400":
           description: Bad Request
           schema:
@@ -220,7 +250,7 @@ paths:
       tags:
       - Profiles
   /api/user/profile/edit:
-    post:
+    patch:
       consumes:
       - application/json
       description: Edit profile
@@ -229,12 +259,12 @@ paths:
         in: body
         name: request
         schema:
-          $ref: '#/definitions/dto.Profile'
+          $ref: '#/definitions/handlers.Profile'
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.Profile'
+            $ref: '#/definitions/handlers.Profile'
         "400":
           description: Bad Request
           schema:
@@ -267,7 +297,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.Profile'
+            $ref: '#/definitions/handlers.Profile'
         "400":
           description: Bad Request
           schema:
@@ -290,6 +320,13 @@ paths:
   /api/user/reject:
     post:
       description: Reject friend request
+      parameters:
+      - description: Link to user to reject friend request.
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.Subscribes'
       responses:
         "200":
           description: OK
@@ -340,9 +377,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/dto.Profile'
-            type: array
+            $ref: '#/definitions/handlers.ProfileArray'
         "400":
           description: Bad Request
           schema:
@@ -364,6 +399,13 @@ paths:
       - Profiles
     post:
       description: Subscribe to other user
+      parameters:
+      - description: Link to user to subscribe.
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.Subscribes'
       responses:
         "200":
           description: OK
@@ -389,6 +431,13 @@ paths:
   /api/user/unsub:
     post:
       description: Unsubscribe from other user
+      parameters:
+      - description: Link to user to unsubscribe.
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.Subscribes'
       responses:
         "200":
           description: OK
@@ -439,7 +488,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/dto.SignIn'
+          $ref: '#/definitions/handlers.SignIn'
       responses:
         "200":
           description: OK
@@ -473,7 +522,7 @@ paths:
         name: email
         required: true
         schema:
-          $ref: '#/definitions/dto.SignUp'
+          $ref: '#/definitions/handlers.SignUp'
       responses:
         "400":
           description: Bad Request
