@@ -103,6 +103,13 @@ definitions:
       text:
         type: string
     type: object
+  handlers.PostArray:
+    properties:
+      body:
+        items:
+          $ref: '#/definitions/entities.Post'
+        type: array
+    type: object
   handlers.Profile:
     properties:
       body:
@@ -149,7 +156,7 @@ info:
 paths:
   /api/feed:
     get:
-      description: Get users's new feed part by last post id and batch size.
+      description: Get user's new feed part by last post id and batch size.
       parameters:
       - description: Posts amount
         in: query
@@ -167,15 +174,23 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/entities.Post'
-            type: array
+            $ref: '#/definitions/handlers.PostArray'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
         "500":
           description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
       summary: Get feed part
       tags:
       - Feed
