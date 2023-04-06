@@ -113,7 +113,7 @@ func (ur *UserRepository) GetSubscribes(user *entities.User, limit, offset int) 
 
 func (ur *UserRepository) GetSubscribers(user *entities.User, limit, offset int) ([]*entities.User, error) {
 	var users []*entities.User
-	rows, err := ur.DB.Queryx(SubscribesById, user.ID, limit, offset)
+	rows, err := ur.DB.Queryx(SubscribersById, user.ID, limit, offset)
 	if err != nil {
 		return nil, apperror.InternalServerError
 	}
@@ -161,10 +161,35 @@ func (ur *UserRepository) RejectFriendRequest(userEmail, targetLink string) erro
 
 func (ur *UserRepository) CreateUser(user *entities.User) (*entities.User, error) {
 
-	err := ur.DB.QueryRowx(CreateUser, user.Email, user.Password, user.FirstName, user.LastName, time.Now().String()).Err()
+	tx, err := ur.DB.Beginx()
 	if err != nil {
 		fmt.Println(err)
+		// TODO check
 		return nil, apperror.InternalServerError
+
+	}
+	var id uint
+	err = tx.QueryRowx(CreateUser, user.Email, user.Password, user.FirstName, user.LastName, time.Now().String()).Scan(&id)
+	if err != nil {
+		fmt.Println(err)
+		// TODO check
+		return nil, apperror.InternalServerError
+
+	}
+
+	_, err = tx.Exec(UpdateUserLink, fmt.Sprintf("id%d", id), id)
+	if err != nil {
+		fmt.Println(err)
+		// TODO check
+		return nil, apperror.InternalServerError
+
+	}
+	err = tx.Commit()
+	if err != nil {
+		fmt.Println(err)
+		// TODO check
+		return nil, apperror.InternalServerError
+
 	}
 	return user, nil
 }

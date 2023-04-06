@@ -3,11 +3,15 @@ package postgres
 // TODO sink fields with entities
 var (
 	UserById = `
-	select  u.id, u.email, u.link, u.password, u.sex,
-       u.bio, u.birthday,
-       case when p.url is null 
-           then ''
-           else p.url end avatar
+	select  u.id, u.email, 
+	    case when 
+	    	u.link is null then '' else 
+	    	u.link end link,
+		u.password, u.sex,
+		u.bio, u.birthday,
+		case when p.url is null 
+			then ''
+			else p.url end avatar
 	from userprofile u
          left join photo p on u.avatar_id = p.id
 	where u.id = $1
@@ -24,7 +28,10 @@ var (
 	`
 
 	UserByLink = `
-	select u.id, u.email, u.link, u.password, u.sex,
+	select u.id, u.email, 
+			case when 
+			u.link is null then '' else 
+	    	u.link end link, u.password, u.sex,
        u.bio, u.birthday,
        case when p.url is null 
            then ''
@@ -35,8 +42,11 @@ var (
 	`
 
 	FriendsById = `
-	select u.id, u.link, u.sex,
-	  u.bio, u.birthday, 
+	select u.id, 
+		case when 
+	    	u.link is null then '' else 
+	    	u.link end link, 
+		u.sex, u.bio, u.birthday, 
 	  case when p.url is null
 	      then '' 
 	      else p.url end avatar from
@@ -54,7 +64,11 @@ var (
 	`
 
 	SubscribesById = `
-	select u.id, u.email, u.link, u.sex, u.bio, u.birthday,
+	select u.id, u.email, 
+		case when 
+	    	u.link is null then '' else 
+	    	u.link end link, 
+	    u.sex, u.bio, u.birthday,
 		case when p.url is null
             then ''
         	else p.url
@@ -75,8 +89,13 @@ var (
     	f1 is null and f3.subscriber = $1
 	limit $2 offset $3
 	`
+
 	SubscribersById = `
-	select u.id, u.email, u.link, u.sex, u.bio, u.birthday,
+	select u.id, u.email, 
+	       case when 
+			u.link is null then '' else 
+	    	u.link end link, 
+	    u.sex, u.bio, u.birthday,
 		case when p.url is null
             then ''
         	else p.url
@@ -98,10 +117,13 @@ var (
 	limit $2 offset $3
 	`
 
-	// TODO add time to pending requests dto
 	PendingFriendRequestsById = `
-	select u.id, u.email, u.link, u.sex, u.bio, u.birthday,
-       case when p.url is null
+	select u.id, u.email, 
+		case when 
+	    	u.link is null then '' else 
+	    	u.link end link, 
+	    u.sex, u.bio, u.birthday,
+		case when p.url is null
                 then ''
             else p.url
            end avatar
@@ -181,19 +203,14 @@ var (
     (email, password, first_name, last_name, last_active) 
 	values 
     ($1, $2, $3, $4, $5) returning id
+	 
 `
 
-	UpdateUser = `
+	UpdateUserLink = `
 	update userprofile 
 	set 
-	    email = $2,
-	    password = $3,
-	    link = $4,
-	    sex = $5,
-	    bio = $6,
-	    status = $7,
-	    birthday = $8
+	    link = $1
 	where 
-		id = $1
+		id = $2
 	`
 )
