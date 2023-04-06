@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"strings"
+	"time"
 
 	"github.com/fatih/structs"
 )
@@ -160,7 +161,7 @@ func (ur *UserRepository) RejectFriendRequest(userEmail, targetLink string) erro
 
 func (ur *UserRepository) CreateUser(user *entities.User) (*entities.User, error) {
 
-	err := ur.DB.QueryRowx(CreateUser, user.Email, user.Password).Err()
+	err := ur.DB.QueryRowx(CreateUser, user.Email, user.Password, user.FirstName, user.LastName, time.Now().String()).Err()
 	if err != nil {
 		fmt.Println(err)
 		return nil, apperror.InternalServerError
