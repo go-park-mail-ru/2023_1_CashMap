@@ -17,6 +17,9 @@ type UserRepository struct {
 	DB *sqlx.DB
 }
 
+// TODO specify errors (replace 500 with smth) and find a way to wrap an sql error
+// TODO remove println
+
 func NewPostgresUserRepo(db *sqlx.DB) repository.UserRepository {
 	return &UserRepository{
 		DB: db,
@@ -28,7 +31,10 @@ func (ur *UserRepository) GetUser(query string, args ...interface{}) (*entities.
 	row := ur.DB.QueryRowx(query, args)
 	err := row.StructScan(user)
 	if err != nil {
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, apperror.UserNotFound
+		}
+		return nil, apperror.InternalServerError
 	}
 	return user, nil
 }
@@ -38,8 +44,10 @@ func (ur *UserRepository) GetUserById(id uint) (*entities.User, error) {
 	row := ur.DB.QueryRowx(UserByLink, id)
 	err := row.StructScan(user)
 	if err != nil {
-		fmt.Println(err)
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, apperror.UserNotFound
+		}
+		return nil, apperror.InternalServerError
 	}
 	return user, nil
 }
@@ -49,7 +57,10 @@ func (ur *UserRepository) GetUserByLink(link string) (*entities.User, error) {
 	row := ur.DB.QueryRowx(UserByLink, link)
 	err := row.StructScan(user)
 	if err != nil {
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, apperror.UserNotFound
+		}
+		return nil, apperror.InternalServerError
 	}
 	return user, nil
 }
@@ -62,7 +73,7 @@ func (ur *UserRepository) GetUserByEmail(email string) (*entities.User, error) {
 		if err == sql.ErrNoRows {
 			return nil, apperror.UserNotFound
 		}
-		return nil, err
+		return nil, apperror.InternalServerError
 	}
 	return user, nil
 }
@@ -71,12 +82,12 @@ func (ur *UserRepository) GetFriends(user *entities.User, limit, offset int) ([]
 	var users []*entities.User
 	rows, err := ur.DB.Queryx(FriendsById, user.ID, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, apperror.InternalServerError
 	}
 	for rows.Next() {
 		var user = &entities.User{}
 		if err := rows.StructScan(user); err != nil {
-			return nil, err
+			return nil, apperror.InternalServerError
 		}
 		users = append(users, user)
 	}
@@ -87,12 +98,12 @@ func (ur *UserRepository) GetSubscribes(user *entities.User, limit, offset int) 
 	var users []*entities.User
 	rows, err := ur.DB.Queryx(SubscribesById, user.ID, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, apperror.InternalServerError
 	}
 	for rows.Next() {
 		var user = &entities.User{}
 		if err := rows.StructScan(user); err != nil {
-			return nil, err
+			return nil, apperror.InternalServerError
 		}
 		users = append(users, user)
 	}
@@ -103,12 +114,12 @@ func (ur *UserRepository) GetSubscribers(user *entities.User, limit, offset int)
 	var users []*entities.User
 	rows, err := ur.DB.Queryx(SubscribesById, user.ID, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, apperror.InternalServerError
 	}
 	for rows.Next() {
 		var user = &entities.User{}
 		if err := rows.StructScan(user); err != nil {
-			return nil, err
+			return nil, apperror.InternalServerError
 		}
 		users = append(users, user)
 	}
@@ -119,7 +130,9 @@ func (ur *UserRepository) Subscribe(subEmail, targetLink, requestTime string) (b
 
 	_, err := ur.DB.Queryx(Subscribe, subEmail, targetLink, requestTime)
 	if err != nil {
-		return false, err
+		fmt.Println(err)
+		// TODO check subscribe conflict (repeated subscribe)
+		return false, apperror.InternalServerError
 	}
 	return false, nil
 }
@@ -127,7 +140,9 @@ func (ur *UserRepository) Subscribe(subEmail, targetLink, requestTime string) (b
 func (ur *UserRepository) Unsubscribe(userEmail, targetLink string) (bool, error) {
 	_, err := ur.DB.Queryx(Unsubscribe, userEmail, targetLink)
 	if err != nil {
-		return false, err
+		fmt.Println(err)
+		// TODO check subscribe conflict (repeated unsubscribe)
+		return false, apperror.InternalServerError
 	}
 	return false, nil
 }
@@ -135,7 +150,10 @@ func (ur *UserRepository) Unsubscribe(userEmail, targetLink string) (bool, error
 func (ur *UserRepository) RejectFriendRequest(userEmail, targetLink string) error {
 	_, err := ur.DB.Queryx(Unsubscribe, userEmail, targetLink)
 	if err != nil {
-		return err
+		fmt.Println(err)
+		// TODO check
+		return apperror.InternalServerError
+
 	}
 	return nil
 }
@@ -144,7 +162,8 @@ func (ur *UserRepository) CreateUser(user *entities.User) (*entities.User, error
 
 	err := ur.DB.QueryRowx(CreateUser, user.Email, user.Password).Err()
 	if err != nil {
-		return nil, err
+		fmt.Println(err)
+		return nil, apperror.InternalServerError
 	}
 	return user, nil
 }
@@ -167,7 +186,8 @@ func (ur *UserRepository) UpdateUser(email string, user *dto.EditProfile) (*enti
 	fields = append(fields, email)
 	_, err := ur.DB.Queryx(query, fields...)
 	if err != nil {
-		return nil, err
+		fmt.Println(err)
+		return nil, apperror.InternalServerError
 	}
 	return nil, nil
 }
