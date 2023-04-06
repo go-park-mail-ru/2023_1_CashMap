@@ -52,4 +52,8 @@ var Errors = map[error]ErrorResponse{
 		http.StatusForbidden,
 		"Доступ запрещен.",
 	},
+	apperror.InternalServerError: {
+		http.StatusInternalServerError,
+		"Ошибка сервера :(",
+	},
 }
