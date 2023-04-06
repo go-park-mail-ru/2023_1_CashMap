@@ -58,39 +58,25 @@ func (us *UserService) SignUp(user *dto.SignUp) (*entities.User, error) {
 	return stored, nil
 }
 
-func (us *UserService) GetProfileByEmail(email string) (*dto.Profile, error) {
+func (us *UserService) GetProfileByEmail(email string) (*entities.User, error) {
 	user, err := us.repo.GetUserByEmail(email)
+
 	if err != nil {
 		return nil, err
 	}
-	profile := &dto.Profile{
-		Link:      user.Link,
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-		Avatar:    user.Avatar,
-		Status:    user.Status,
-		Bio:       user.Bio,
-		BirthDate: user.BirthDay,
-	}
-	return profile, nil
+
+	return user, nil
 }
 
-func (us *UserService) GetProfileByLink(email string, link string) (*dto.Profile, error) {
-	// TODO сравить email с email в найденой моели по линку и если не совпадает - запросить инфу о допутсимых действиях
+func (us *UserService) GetProfileByLink(email string, link string) (*entities.User, error) {
+	// TODO сравить email с email в найденой моели по линку и если не совпадает
+	// TODO - запросить инфу о допутсимых действиях
 	user, err := us.getUser(link)
 	if err != nil {
 		return nil, err
 	}
-	profile := &dto.Profile{
-		Link:      user.Link,
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-		Avatar:    user.Avatar,
-		Status:    user.Status,
-		Bio:       user.Bio,
-		BirthDate: user.BirthDay,
-	}
-	return profile, nil
+
+	return user, nil
 }
 
 func (us *UserService) EditProfile(email string, profile *dto.EditProfile) error {

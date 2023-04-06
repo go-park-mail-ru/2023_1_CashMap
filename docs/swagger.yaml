@@ -3,22 +3,40 @@ definitions:
   dto.Profile:
     properties:
       avatar:
+        example: ""
         type: string
       bio:
+        example: Текст с информацией о себе.
         type: string
-      birth_date:
+      birthday:
+        example: 30.04.2002
+        type: string
+      date_joined:
+        example: 10.02.2023
+        type: string
+      email:
+        example: example@mail.ru
         type: string
       first_name:
+        example: Василий
+        type: string
+      last_active:
+        example: ""
         type: string
       last_name:
+        example: Петров
         type: string
       link:
+        example: id100500
         type: string
       private:
+        example: false
         type: boolean
       sex:
+        example: male
         type: string
       status:
+        example: Текст статуса.
         type: string
     type: object
   dto.SignIn:
@@ -128,16 +146,11 @@ paths:
           description: Internal Server Error
       summary: Get feed part
       tags:
-      - feed
+      - Feed
   /api/user/friends:
     get:
-      description: Get subscribes or subscribers for requested user
+      description: Get friends
       parameters:
-      - description: in/out for subscribers/subscribes
-        in: query
-        name: type
-        required: true
-        type: string
       - description: link to requested profile
         in: query
         name: link
@@ -176,7 +189,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/middleware.ErrorResponse'
-      summary: Subscribes
+      summary: Friends
       tags:
       - Profiles
   /api/user/profile:
@@ -300,6 +313,55 @@ paths:
       tags:
       - Subscribes
   /api/user/sub:
+    get:
+      description: Get subscribes or subscribers for requested user
+      parameters:
+      - description: in/out for subscribers/subscribes
+        in: query
+        name: type
+        required: true
+        type: string
+      - description: link to requested profile
+        in: query
+        name: link
+        required: true
+        type: string
+      - description: amount of profiles
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: number of batch
+        in: query
+        name: offset
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.Profile'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: Subscribes
+      tags:
+      - Profiles
     post:
       description: Subscribe to other user
       responses:

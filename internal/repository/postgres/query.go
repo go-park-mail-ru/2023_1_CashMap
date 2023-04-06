@@ -178,9 +178,9 @@ var (
 	CreateUser = `
 	insert into 
     userprofile 
-    (email, password) 
+    (email, password, first_name, last_name, last_active) 
 	values 
-    ($1, $2) returning id
+    ($1, $2, $3, $4, $5) returning id
 `
 
 	UpdateUser = `

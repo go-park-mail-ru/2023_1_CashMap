@@ -397,9 +397,15 @@ func (uh *UserHandler) Friends(ctx *gin.Context) {
 		return
 	}
 
-	friends, err := uh.service.GetFriendsByLink(email, link, limit, offset)
+	users, err := uh.service.GetFriendsByLink(email, link, limit, offset)
 	if err != nil {
 		_ = ctx.Error(err)
+	}
+
+	friends := make([]*dto.Profile, 0, len(users))
+
+	for _, user := range users {
+		friends = append(friends, dto.NewProfileFromUser(user))
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
@@ -422,7 +428,7 @@ func (uh *UserHandler) Friends(ctx *gin.Context) {
 // @Failure     401 {object} middleware.ErrorResponse
 // @Failure     404 {object} middleware.ErrorResponse
 // @Failure		500 {object} middleware.ErrorResponse
-// @Router		/api/user/friends [get]
+// @Router		/api/user/sub [get]
 func (uh *UserHandler) Subscribes(ctx *gin.Context) {
 	subType := ctx.Query("type")
 	link := ctx.Query("link")
@@ -447,17 +453,17 @@ func (uh *UserHandler) Subscribes(ctx *gin.Context) {
 		return
 	}
 
-	var subs []*entities.User
+	var users []*entities.User
 
 	switch subType {
 	case "in":
-		subs, err = uh.service.GetSubscribersByLink(email, link, limit, offset)
+		users, err = uh.service.GetSubscribersByLink(email, link, limit, offset)
 		if err != nil {
 			_ = ctx.Error(err)
 			return
 		}
 	case "out":
-		subs, err = uh.service.GetSubscribesByLink(email, link, limit, offset)
+		users, err = uh.service.GetSubscribesByLink(email, link, limit, offset)
 		if err != nil {
 			_ = ctx.Error(err)
 			return
@@ -465,6 +471,12 @@ func (uh *UserHandler) Subscribes(ctx *gin.Context) {
 	default:
 		_ = ctx.Error(apperror.BadRequest)
 		return
+	}
+
+	subs := make([]*dto.Profile, 0, len(users))
+
+	for _, user := range users {
+		subs = append(subs, dto.NewProfileFromUser(user))
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{

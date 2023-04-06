@@ -1,5 +1,10 @@
 package dto
 
+import (
+	"depeche/internal/entities"
+	"strconv"
+)
+
 // [INCOMING]
 
 type SignIn struct {
@@ -33,15 +38,37 @@ type Subscribes struct {
 // [OUTGOING]
 
 type Profile struct {
-	Link      string `json:"link"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Avatar    string `json:"avatar"`
-	Status    string `json:"status"`
-	Bio       string `json:"bio"`
-	BirthDate string `json:"birth_date"`
-	Private   bool   `json:"private"`
-	Sex       string `json:"sex"`
+	Email      string `json:"email"       example:"example@mail.ru"`
+	Link       string `json:"link"        example:"id100500"`
+	FirstName  string `json:"first_name"  example:"Василий"`
+	LastName   string `json:"last_name"   example:"Петров"`
+	Avatar     string `json:"avatar"      example:""`
+	Sex        string `json:"sex"         example:"male"`
+	Status     string `json:"status"      example:"Текст статуса."`
+	Bio        string `json:"bio"         example:"Текст с информацией о себе."`
+	BirthDay   string `json:"birthday"    example:"30.04.2002"`
+	DateJoined string `json:"date_joined" example:"10.02.2023"`
+	LastActive string `json:"last_active" example:""`
+	Private    bool   `json:"private"     example:"false"`
+}
+
+func NewProfileFromUser(user *entities.User) *Profile {
+	// TODO add fields to entity
+	if user.Link == "" {
+		user.Link = "id" + strconv.Itoa(int(user.ID))
+	}
+	return &Profile{
+		Link:       user.Link,
+		FirstName:  user.FirstName,
+		LastName:   user.LastName,
+		Avatar:     user.Avatar,
+		Status:     user.Status,
+		Bio:        user.Bio,
+		BirthDay:   user.BirthDay,
+		Private:    false,
+		Sex:        user.Sex,
+		LastActive: "",
+	}
 }
 
 func (si *SignIn) AuthEmail() string {

@@ -108,7 +108,7 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware) *gi
 				profileEndpoints.PATCH("/edit", handler.EditProfile)
 			}
 			// [FRIENDS]
-			userEndpoints.GET("friends/", handler.Friends)
+			userEndpoints.GET("/friends", handler.Friends)
 
 			// [SUBSCRIBES]
 			userEndpoints.GET("/sub", handler.Subscribes)

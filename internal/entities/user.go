@@ -4,7 +4,7 @@ package entities
 //
 //	@Description	User account information
 type User struct {
-	ID         uint   `json:"id"          db:"id"`
+	ID         uint   `json:"-"           db:"id"`
 	Email      string `json:"email"       db:"email"`
 	Link       string `json:"link"        db:"link"`
 	Password   string `json:"-"           db:"password"`
@@ -16,4 +16,6 @@ type User struct {
 	Bio        string `json:"bio"         db:"bio"`
 	BirthDay   string `json:"birthday"    db:"birthday"`
 	DateJoined string `json:"date_joined" db:"date_joined"`
+	LastActive string `json:"last_active" db:"last_active"`
+	Private    bool   `json:"private"     db:"private"`
 }

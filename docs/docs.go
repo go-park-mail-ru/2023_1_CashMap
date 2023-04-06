@@ -25,7 +25,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "feed"
+                    "Feed"
                 ],
                 "summary": "Get feed part",
                 "parameters": [
@@ -67,19 +67,12 @@ const docTemplate = `{
         },
         "/api/user/friends": {
             "get": {
-                "description": "Get subscribes or subscribers for requested user",
+                "description": "Get friends",
                 "tags": [
                     "Profiles"
                 ],
-                "summary": "Subscribes",
+                "summary": "Friends",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "in/out for subscribers/subscribes",
-                        "name": "type",
-                        "in": "query",
-                        "required": true
-                    },
                     {
                         "type": "string",
                         "description": "link to requested profile",
@@ -323,6 +316,78 @@ const docTemplate = `{
             }
         },
         "/api/user/sub": {
+            "get": {
+                "description": "Get subscribes or subscribers for requested user",
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Subscribes",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "in/out for subscribers/subscribes",
+                        "name": "type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "link to requested profile",
+                        "name": "link",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "amount of profiles",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "number of batch",
+                        "name": "offset",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.Profile"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Subscribe to other user",
                 "tags": [
@@ -531,31 +596,52 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "avatar": {
-                    "type": "string"
+                    "type": "string",
+                    "example": ""
                 },
                 "bio": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Текст с информацией о себе."
                 },
-                "birth_date": {
-                    "type": "string"
+                "birthday": {
+                    "type": "string",
+                    "example": "30.04.2002"
+                },
+                "date_joined": {
+                    "type": "string",
+                    "example": "10.02.2023"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "example@mail.ru"
                 },
                 "first_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Василий"
+                },
+                "last_active": {
+                    "type": "string",
+                    "example": ""
                 },
                 "last_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Петров"
                 },
                 "link": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "id100500"
                 },
                 "private": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 },
                 "sex": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "male"
                 },
                 "status": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Текст статуса."
                 }
             }
         },
