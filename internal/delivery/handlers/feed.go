@@ -20,14 +20,13 @@ func NewFeedHandler(feedService usecase.Feed) *FeedHandler {
 }
 
 // GetFeed godoc
-//
 // @Summary		Get feed part
 // @Description	Get user's new feed part by last post id and batch size.
 // @Tags			Feed
 // @Produce		json
 // @Param			batch_size		query	int		true	"Posts amount"
 // @Param			last_post_date	query	string	false	"Date and time of last post given. If not specified the newest posts will be sent"
-// @Success		200				{object}	PostArray
+// @Success		200				{object}	doc.PostArray
 // @Failure		400 {object} middleware.ErrorResponse
 // @Failure     401 {object} middleware.ErrorResponse
 // @Failure     404 {object} middleware.ErrorResponse
@@ -67,8 +66,4 @@ func (handler *FeedHandler) GetFeed(ctx *gin.Context) {
 			"posts": posts,
 		},
 	})
-}
-
-type PostArray struct {
-	Body []entities.Post `json:"body"`
 }

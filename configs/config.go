@@ -13,6 +13,7 @@ type Config struct {
 	Port           int                      `yaml:"port"`
 	SessionStorage connector.RedisConfig    `yaml:"session"`
 	DB             connector.PostgresConfig `yaml:"db"`
+	DBMSName       string                   `yaml:"dbms_name"`
 }
 
 func InitCfg(config *Config) error {
@@ -43,5 +44,6 @@ func InitCfg(config *Config) error {
 	pgPass := os.Getenv("POSTGRES_PASSWORD")
 	config.DB.User = pgUser
 	config.DB.Password = pgPass
+	config.DBMSName = "postgres"
 	return nil
 }

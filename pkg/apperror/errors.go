@@ -7,6 +7,7 @@ var (
 	BadRequest           = errors.New("bad request")
 	IncorrectCredentials = errors.New("incorrect email or password")
 	Forbidden            = errors.New("credentials are not present")
+	TooLargePayload      = errors.New("file is too large")
 )
 
 var (

@@ -34,7 +34,7 @@ func (feed *FeedService) CollectPosts(user *entities.User, topPostDateTime time.
 	posts = append(posts, groupsPosts...)
 
 	sort.Slice(posts, func(i int, j int) bool {
-		return posts[i].Date.After(posts[j].Date)
+		return posts[i].CreationDate < posts[j].CreationDate
 	})
 
 	if len(posts) >= int(batchSize) {

@@ -122,7 +122,7 @@ func TestMain(m *testing.M) {
 	userHandler := NewUserHandler(userService, authService)
 	feedHandler := NewFeedHandler(feedService)
 
-	handler := NewHandler(userHandler, feedHandler, nil)
+	handler := NewHandler(userHandler, feedHandler, nil, nil)
 
 	router.Use(middleware.ErrorMiddleware())
 	router.Use(func(ctx *gin.Context) {

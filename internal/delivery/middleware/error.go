@@ -52,6 +52,7 @@ var Errors = map[error]ErrorResponse{
 		http.StatusForbidden,
 		"Доступ запрещен.",
 	},
+
 	apperror.InternalServerError: {
 		http.StatusInternalServerError,
 		"Ошибка сервера :(",
@@ -59,5 +60,9 @@ var Errors = map[error]ErrorResponse{
 	apperror.RepeatedSubscribe: {
 		http.StatusConflict,
 		"Повторная подписка.",
+	},
+	apperror.TooLargePayload: {
+		http.StatusRequestEntityTooLarge,
+		"Превышен допустимый размер файла",
 	},
 }

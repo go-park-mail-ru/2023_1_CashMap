@@ -1,0 +1,862 @@
+basePath: /
+definitions:
+  doc.EditProfile:
+    properties:
+      body:
+        $ref: '#/definitions/dto.EditProfile'
+    type: object
+  doc.PostArray:
+    properties:
+      body:
+        items:
+          $ref: '#/definitions/entities.Post'
+        type: array
+    type: object
+  doc.PostDelete:
+    description: All post information
+    properties:
+      body:
+        $ref: '#/definitions/dto.PostDelete'
+    type: object
+  doc.PostResponse:
+    description: All post information
+    properties:
+      body:
+        $ref: '#/definitions/entities.Post'
+    type: object
+  doc.PostsResponse:
+    description: All post information
+    properties:
+      body:
+        items:
+          $ref: '#/definitions/entities.Post'
+        type: array
+    type: object
+  doc.Profile:
+    properties:
+      body:
+        $ref: '#/definitions/dto.Profile'
+    type: object
+  doc.ProfileArray:
+    properties:
+      body:
+        items:
+          $ref: '#/definitions/dto.Profile'
+        type: array
+    type: object
+  doc.SignIn:
+    properties:
+      body:
+        $ref: '#/definitions/dto.SignIn'
+    type: object
+  doc.SignUp:
+    properties:
+      body:
+        $ref: '#/definitions/dto.SignUp'
+    type: object
+  doc.Subscribes:
+    properties:
+      body:
+        $ref: '#/definitions/dto.Subscribes'
+    type: object
+  dto.EditProfile:
+    properties:
+      bio:
+        type: string
+      birthday:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      link:
+        type: string
+      password:
+        type: string
+      sex:
+        type: string
+      status:
+        type: string
+    type: object
+  dto.PostCreate:
+    properties:
+      author_link:
+        type: string
+      community_link:
+        type: string
+      owner_link:
+        type: string
+      show_author:
+        type: boolean
+      text:
+        type: string
+    type: object
+  dto.PostDelete:
+    properties:
+      post_id:
+        type: integer
+    type: object
+  dto.PostUpdate:
+    properties:
+      post_id:
+        type: integer
+      show_author:
+        type: boolean
+      text:
+        type: string
+    type: object
+  dto.Profile:
+    properties:
+      avatar:
+        example: ""
+        type: string
+      bio:
+        example: Текст с информацией о себе.
+        type: string
+      birthday:
+        example: 30.04.2002
+        type: string
+      date_joined:
+        example: 10.02.2023
+        type: string
+      first_name:
+        example: Василий
+        type: string
+      last_active:
+        example: ""
+        type: string
+      last_name:
+        example: Петров
+        type: string
+      link:
+        example: id100500
+        type: string
+      private:
+        example: false
+        type: boolean
+      sex:
+        example: male
+        type: string
+      status:
+        example: Текст статуса.
+        type: string
+    type: object
+  dto.SignIn:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  dto.SignUp:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        type: string
+    type: object
+  dto.Subscribes:
+    properties:
+      link:
+        type: string
+    type: object
+  entities.FileType:
+    enum:
+    - img
+    - doc
+    type: string
+    x-enum-varnames:
+    - IMAGE
+    - DOCUMENT
+  entities.Post:
+    description: All post information
+    properties:
+      attachments:
+        items:
+          type: string
+        type: array
+      author_link:
+        type: string
+      change_date:
+        type: string
+      community_link:
+        type: string
+      creation_date:
+        type: string
+      id:
+        type: integer
+      is_deleted:
+        type: boolean
+      likes_amount:
+        type: integer
+      owner_link:
+        type: string
+      show_author:
+        type: boolean
+      text_content:
+        type: string
+    type: object
+  entities.UserFile:
+    properties:
+      name:
+        type: string
+      type:
+        $ref: '#/definitions/entities.FileType'
+    type: object
+  middleware.ErrorResponse:
+    properties:
+      message:
+        example: Невалидный запрос.
+        type: string
+      status:
+        example: 400
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact:
+    name: CashMap team
+  description: Api for Depeche social network. VK Education project. Spring, 2023
+  title: Depeche API
+  version: "1.0"
+paths:
+  /api/feed:
+    get:
+      description: Get user's new feed part by last post id and batch size.
+      parameters:
+      - description: Posts amount
+        in: query
+        name: batch_size
+        required: true
+        type: integer
+      - description: Date and time of last post given. If not specified the newest
+          posts will be sent
+        in: query
+        name: last_post_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/doc.PostArray'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: Get feed part
+      tags:
+      - Feed
+  /api/posts/community:
+    get:
+      description: User can get community's posts in includes batches older than specified
+        in "last_post_date"
+      parameters:
+      - description: ID of the community on whose wall the post is located
+        in: query
+        name: community_link
+        required: true
+        type: integer
+      - description: Posts amount
+        in: query
+        name: batch_size
+        required: true
+        type: integer
+      - description: Date and time of last post given. If not specified the newest
+          posts will be sent
+        in: query
+        name: last_post_date
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/doc.PostsResponse'
+            type: array
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Get post by community link
+      tags:
+      - Post
+  /api/posts/create:
+    post:
+      description: User can create new post
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/doc.PostsResponse'
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Create new post
+      tags:
+      - Post
+  /api/posts/delete:
+    delete:
+      description: User can delete post
+      parameters:
+      - description: Post to delete info
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/doc.PostDelete'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Delete post by id
+      tags:
+      - Post
+  /api/posts/edit:
+    patch:
+      description: User can edit post
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Edit post by id
+      tags:
+      - Post
+  /api/posts/id:
+    get:
+      description: User can get post by id, returned by server from CreatePost handler
+      parameters:
+      - description: Post ID
+        in: query
+        name: post_id
+        required: true
+        type: integer
+      - description: Posts amount
+        in: query
+        name: batch_size
+        required: true
+        type: integer
+      - description: Date and time of last post given. If not specified the newest
+          posts will be sent
+        in: query
+        name: last_post_date
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/doc.PostResponse'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Get post by id
+      tags:
+      - Post
+  /api/posts/profile:
+    get:
+      description: User can get user's posts in includes batches older than specified
+        in "last_post_date"
+      parameters:
+      - description: ID of the user on whose wall the post is located
+        in: query
+        name: owner_link
+        required: true
+        type: integer
+      - description: Posts amount
+        in: query
+        name: batch_size
+        required: true
+        type: integer
+      - description: Date and time of last post given. If not specified the newest
+          posts will be sent
+        in: query
+        name: last_post_date
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/doc.PostsResponse'
+            type: array
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Get post by user link
+      tags:
+      - Post
+  /api/static/delete:
+    delete:
+      description: Users can delete file on server
+      parameters:
+      - description: File name
+        in: query
+        name: name
+        required: true
+        type: string
+      - description: File type (
+        in: query
+        name: type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Delete file from server
+      tags:
+      - static
+  /api/static/download:
+    get:
+      description: Users can read file on server
+      parameters:
+      - description: File name
+        in: query
+        name: name
+        required: true
+        type: string
+      - description: File type (
+        in: query
+        name: type
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Read file from server
+      tags:
+      - static
+  /api/static/upload:
+    post:
+      description: Users can upload many files using multipart/form-data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entities.UserFile'
+        "400":
+          description: Bad Request
+        "413":
+          description: Request Entity Too Large
+        "500":
+          description: Internal Server Error
+      summary: Load file on server
+      tags:
+      - static
+  /api/user/friends:
+    get:
+      description: Get friends
+      parameters:
+      - description: link to requested profile
+        in: query
+        name: link
+        required: true
+        type: string
+      - description: amount of profiles
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: number of batch
+        in: query
+        name: offset
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/doc.ProfileArray'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: Friends
+      tags:
+      - Profiles
+  /api/user/profile:
+    get:
+      description: Get self profile
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/doc.Profile'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: Self
+      tags:
+      - Profiles
+  /api/user/profile/edit:
+    patch:
+      consumes:
+      - application/json
+      description: Edit profile
+      parameters:
+      - description: Edited fields
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/doc.EditProfile'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: EditProfile
+      tags:
+      - Profiles
+  /api/user/profile/link:
+    get:
+      description: Get profile by link
+      parameters:
+      - description: link to requested profile
+        in: path
+        name: link
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/doc.Profile'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: Profile
+      tags:
+      - Profiles
+  /api/user/reject:
+    post:
+      description: Reject friend request
+      parameters:
+      - description: Link to user to reject friend request.
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/doc.Subscribes'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: Reject
+      tags:
+      - Subscribes
+  /api/user/sub:
+    get:
+      description: Get subscribes or subscribers for requested user
+      parameters:
+      - description: in/out for subscribers/subscribes
+        in: query
+        name: type
+        required: true
+        type: string
+      - description: link to requested profile
+        in: query
+        name: link
+        required: true
+        type: string
+      - description: amount of profiles
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: number of batch
+        in: query
+        name: offset
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/doc.ProfileArray'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: Subscribes
+      tags:
+      - Profiles
+    post:
+      description: Subscribe to other user
+      parameters:
+      - description: Link to user to subscribe.
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/doc.Subscribes'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: Subscribe
+      tags:
+      - Subscribes
+  /api/user/unsub:
+    post:
+      description: Unsubscribe from other user
+      parameters:
+      - description: Link to user to unsubscribe.
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/doc.Subscribes'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: Unsubscribe
+      tags:
+      - Subscribes
+  /auth/logout:
+    post:
+      description: Delete user session and invalidate session cookie
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: Log out
+      tags:
+      - Auth
+  /auth/sign-in:
+    post:
+      consumes:
+      - application/json
+      description: Authorize client with credentials (login and password).
+      parameters:
+      - description: User credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/doc.SignIn'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: Sign in
+      tags:
+      - Auth
+  /auth/sign-up:
+    post:
+      consumes:
+      - application/json
+      description: Register client with credentials and other user info.
+      parameters:
+      - description: Required register fields
+        in: body
+        name: email
+        required: true
+        schema:
+          $ref: '#/definitions/doc.SignUp'
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: Sign up
+      tags:
+      - Auth
+swagger: "2.0"

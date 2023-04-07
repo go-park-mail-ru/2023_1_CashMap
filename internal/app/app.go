@@ -15,6 +15,7 @@ import (
 	"depeche/internal/usecase/service"
 	"depeche/pkg/connector"
 	"fmt"
+	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -27,30 +28,44 @@ func Run() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	postgresDefault, err := connector.GetPostgresConnector(&cfg.DB)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	db := connector.GetSqlxConnector(postgresDefault, cfg.DBMSName)
+	// TODO: как обработать ошибку в дефере нормаль?...
+	defer db.Close()
+
 	client, err := connector.ConnectRedis(&cfg.SessionStorage)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	db, err := connector.ConnectPostgres(&cfg.DB)
-	if err != nil {
-		log.Fatal(err)
-	}
+	//db, err := connector.ConnectPostgres(&cfg.DB)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+
+	sessionStorage := redis.NewRedisStorage(client)
 
 	userStorage := postgres.NewPostgresUserRepo(db)
-	sessionStorage := redis.NewRedisStorage(client)
 	feedStorage := storage.NewFeedStorage()
+	postStorage := postgres.NewPostRepository(db)
 
 	userService := service.NewUserService(userStorage)
 	authService := authService.NewAuthService(sessionStorage)
 	feedService := service.NewFeedService(feedStorage)
 	fileService := staticService.NewFileUsecase()
+	postService := service.NewPostService(postStorage)
 
 	staticHandler := staticDelivery.NewFileHandler(fileService)
 	userHandler := handlers.NewUserHandler(userService, authService)
 	feedHandler := handlers.NewFeedHandler(feedService)
+	postHandler := handlers.NewPostHandler(postService)
 
-	handler := handlers.NewHandler(userHandler, feedHandler, nil, staticHandler)
+	handler := handlers.NewHandler(userHandler, feedHandler, postHandler, staticHandler)
 
 	authMiddleware := middleware.NewAuthMiddleware(authService)
 
@@ -62,6 +77,10 @@ func Run() {
 		fmt.Println(err)
 		return
 	}
+}
+
+func initValidator() {
+	govalidator.SetFieldsRequiredByDefault(true)
 }
 
 func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware) *gin.Engine {
@@ -91,10 +110,20 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware) *gi
 		// [FEED]
 		apiEndpointsGroup.GET("/feed", handler.GetFeed)
 
+		// [POST]
+		apiEndpointsGroup.GET("/posts/id", handler.GetPostsById)
+		apiEndpointsGroup.GET("/posts/community", handler.GetPostsByCommunityLink)
+		apiEndpointsGroup.GET("/posts/profile", handler.GetPostsByUserLink)
+		apiEndpointsGroup.DELETE("/posts/delete", handler.DeletePost)
+		apiEndpointsGroup.POST("/posts/create", handler.CreatePost)
+		apiEndpointsGroup.PATCH("/posts/edit", handler.EditPost)
+
 		// [STATIC]
 		staticEndpointsGroup := apiEndpointsGroup.Group("/static")
 		{
 			staticEndpointsGroup.POST("/upload", handler.LoadFile)
+			staticEndpointsGroup.GET("/download", handler.GetFile)
+			staticEndpointsGroup.DELETE("/remove", handler.DeleteFile)
 		}
 
 		// [USER]
