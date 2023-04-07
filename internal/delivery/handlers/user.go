@@ -45,13 +45,13 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 		Data *dto.SignIn `json:"body"`
 	}{}
 
-	if request.Data == nil {
+	err := ctx.ShouldBindJSON(&request)
+	if err != nil {
 		_ = ctx.Error(apperror.BadRequest)
 		return
 	}
 
-	err := ctx.ShouldBindJSON(&request)
-	if err != nil {
+	if request.Data == nil {
 		_ = ctx.Error(apperror.BadRequest)
 		return
 	}
