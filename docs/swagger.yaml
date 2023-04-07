@@ -1,17 +1,49 @@
 basePath: /
 definitions:
-  entities.Comment:
+  doc.PostDelete:
+    description: All post information
     properties:
-      date:
+      body:
+        $ref: '#/definitions/dto.PostDelete'
+    type: object
+  doc.PostResponse:
+    description: All post information
+    properties:
+      body:
+        $ref: '#/definitions/entities.Post'
+    type: object
+  doc.PostsResponse:
+    description: All post information
+    properties:
+      body:
+        items:
+          $ref: '#/definitions/entities.Post'
+        type: array
+    type: object
+  dto.PostCreate:
+    properties:
+      author_link:
         type: string
-      id:
-        type: integer
+      community_link:
+        type: string
+      owner_link:
+        type: string
+      show_author:
+        type: boolean
+      text:
+        type: string
+    type: object
+  dto.PostDelete:
+    properties:
       post_id:
         type: integer
-      reply_to:
+    type: object
+  dto.PostUpdate:
+    properties:
+      post_id:
         type: integer
-      sender_name:
-        type: string
+      show_author:
+        type: boolean
       text:
         type: string
     type: object
@@ -30,23 +62,25 @@ definitions:
         items:
           type: string
         type: array
-      comments:
-        items:
-          $ref: '#/definitions/entities.Comment'
-        type: array
-      date:
+      author_link:
+        type: string
+      change_date:
+        type: string
+      community_link:
+        type: string
+      creation_date:
         type: string
       id:
         type: integer
-      images:
-        items:
-          type: string
-        type: array
-      likes:
+      is_deleted:
+        type: boolean
+      likes_amount:
         type: integer
-      sender_name:
+      owner_link:
         type: string
-      text:
+      show_author:
+        type: boolean
+      text_content:
         type: string
     type: object
   entities.UserFile:
@@ -96,6 +130,166 @@ paths:
       summary: Get feed part
       tags:
       - feed
+  /api/posts/community:
+    get:
+      description: User can get community's posts in includes batches older than specified
+        in "last_post_date"
+      parameters:
+      - description: ID of the community on whose wall the post is located
+        in: query
+        name: community_link
+        required: true
+        type: integer
+      - description: Posts amount
+        in: query
+        name: batch_size
+        required: true
+        type: integer
+      - description: Date and time of last post given. If not specified the newest
+          posts will be sent
+        in: query
+        name: last_post_date
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/doc.PostsResponse'
+            type: array
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Get post by community link
+      tags:
+      - Post
+  /api/posts/create:
+    post:
+      description: User can create new post
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/doc.PostsResponse'
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Create new post
+      tags:
+      - Post
+  /api/posts/delete:
+    delete:
+      description: User can delete post
+      parameters:
+      - description: Post to delete info
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/doc.PostDelete'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Delete post by id
+      tags:
+      - Post
+  /api/posts/edit:
+    patch:
+      description: User can edit post
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Edit post by id
+      tags:
+      - Post
+  /api/posts/id:
+    get:
+      description: User can get post by id, returned by server from CreatePost handler
+      parameters:
+      - description: Post ID
+        in: query
+        name: post_id
+        required: true
+        type: integer
+      - description: Posts amount
+        in: query
+        name: batch_size
+        required: true
+        type: integer
+      - description: Date and time of last post given. If not specified the newest
+          posts will be sent
+        in: query
+        name: last_post_date
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/doc.PostResponse'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Get post by id
+      tags:
+      - Post
+  /api/posts/profile:
+    get:
+      description: User can get user's posts in includes batches older than specified
+        in "last_post_date"
+      parameters:
+      - description: ID of the user on whose wall the post is located
+        in: query
+        name: owner_link
+        required: true
+        type: integer
+      - description: Posts amount
+        in: query
+        name: batch_size
+        required: true
+        type: integer
+      - description: Date and time of last post given. If not specified the newest
+          posts will be sent
+        in: query
+        name: last_post_date
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/doc.PostsResponse'
+            type: array
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Get post by user link
+      tags:
+      - Post
   /api/static/delete:
     delete:
       description: Users can delete file on server

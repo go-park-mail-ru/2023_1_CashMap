@@ -46,7 +46,6 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 		_ = ctx.Error(apperror.BadRequest)
 		return
 	}
-
 	_, err = uh.service.SignIn(&request.User)
 	if err != nil {
 		_ = ctx.Error(err)

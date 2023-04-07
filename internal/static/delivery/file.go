@@ -38,7 +38,7 @@ func NewFileHandler(fileUsecase service.FileUsecase) *FileHandler {
 //	@Failure		500
 //	@Router			/api/static/upload [post]
 func (fileHandler *FileHandler) LoadFile(ctx *gin.Context) {
-	files, err := ctx.MultipartForm()
+	form, err := ctx.MultipartForm()
 	if err != nil {
 		ctx.Error(apperror.BadRequest)
 		return
@@ -47,13 +47,13 @@ func (fileHandler *FileHandler) LoadFile(ctx *gin.Context) {
 	var inputFilesReadStreams []io.ReadCloser
 
 	var inputFiles []*entities.UserFile
-	if len(files.File["attachments"]) == 0 {
+	if len(form.File["attachments"]) == 0 {
 		fmt.Println(1)
 		ctx.Error(apperror.BadRequest)
 		return
 	}
 
-	for _, file := range files.File["attachments"] {
+	for _, file := range form.File["attachments"] {
 		var userFile = new(entities.UserFile)
 		userFile.Name = file.Filename
 		contentType := file.Header.Get("Content-Type")
@@ -113,7 +113,7 @@ func (fileHandler *FileHandler) LoadFile(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"body": gin.H{
-			"files": outputFiles,
+			"form": outputFiles,
 		},
 		"status": http.StatusOK,
 	})

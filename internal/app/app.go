@@ -6,7 +6,8 @@ import (
 	"depeche/internal/delivery/handlers"
 	"depeche/internal/delivery/middleware"
 	storage "depeche/internal/repository/local_storage"
-	"depeche/internal/repository/pstgrs"
+	"depeche/internal/repository/postgres"
+	postgresStorage "depeche/internal/repository/postgres"
 	httpserver "depeche/internal/server"
 	"depeche/internal/session/repository/redis"
 	authService "depeche/internal/session/service"
@@ -15,6 +16,7 @@ import (
 	"depeche/internal/usecase/service"
 	"depeche/pkg/connector"
 	"fmt"
+	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -47,10 +49,10 @@ func Run() {
 		log.Fatal(err)
 	}
 
-	userStorage := storage.NewUserStorage()
+	userStorage := postgresStorage.NewPostgresUserRepo(sqlxConnector)
 	sessionStorage := redis.NewRedisStorage(client)
 	feedStorage := storage.NewFeedStorage()
-	postStorage := pstgrs.NewPostRepository(sqlxConnector)
+	postStorage := postgres.NewPostRepository(sqlxConnector)
 
 	userService := service.NewUserService(userStorage)
 	authService := authService.NewAuthService(sessionStorage)
@@ -77,6 +79,10 @@ func Run() {
 	}
 }
 
+func initValidator() {
+	govalidator.SetFieldsRequiredByDefault(true)
+}
+
 func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware) *gin.Engine {
 	router := gin.Default()
 	router.Use(middleware.CORS())
@@ -86,10 +92,15 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware) *gi
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// вешаем авторизационную миддлвару на все api
-	//apiEndpointsGroup := router.Group("/api", authMW.Middleware())
-	apiEndpointsGroup := router.Group("/api")
+	apiEndpointsGroup := router.Group("/api", authMW.Middleware())
 
 	apiEndpointsGroup.GET("/feed", handler.GetFeed)
+	apiEndpointsGroup.GET("/posts/id", handler.GetPostsById)
+	apiEndpointsGroup.GET("/posts/community", handler.GetPostsByCommunityLink)
+	apiEndpointsGroup.GET("/posts/profile", handler.GetPostsByUserLink)
+	apiEndpointsGroup.DELETE("/posts/delete", handler.DeletePost)
+	apiEndpointsGroup.POST("/posts/create", handler.CreatePost)
+	apiEndpointsGroup.PATCH("/posts/edit", handler.EditPost)
 
 	staticEndpointsGroup := apiEndpointsGroup.Group("/static")
 	{

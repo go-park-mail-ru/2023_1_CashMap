@@ -1,12 +1,10 @@
 package service
 
 import (
-	"crypto/sha1"
 	"depeche/internal/entities"
 	"depeche/internal/repository"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
-	"fmt"
 )
 
 type UserService struct {
@@ -39,8 +37,9 @@ func (us *UserService) SignUp(user *entities.User) (*entities.User, error) {
 }
 
 func hashPassword(password string) string {
-	hasher := sha1.New()
-	hasher.Write([]byte(password))
-	passwordHash := fmt.Sprintf("%x", hasher.Sum(nil)) // кодируем сырые байты в Base64
-	return passwordHash
+	//hasher := sha1.New()
+	//hasher.Write([]byte(password))
+	//passwordHash := fmt.Sprintf("%x", hasher.Sum(nil)) // кодируем сырые байты в Base64
+	//return passwordHash
+	return password
 }

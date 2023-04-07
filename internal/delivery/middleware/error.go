@@ -15,8 +15,8 @@ func ErrorMiddleware() gin.HandlerFunc {
 		}
 
 		err := ctx.Errors[0].Unwrap()
-		ctx.JSON(err.(*apperror.ServerError).Code, gin.H{
-			"status":  err.(*apperror.ServerError).Code,
+		ctx.JSON(Errors[err].Code, gin.H{
+			"status":  Errors[err].Code,
 			"message": Errors[err].Message,
 		})
 	}

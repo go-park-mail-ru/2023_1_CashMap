@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/jackc/pgx"
+	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
 	"strconv"
 )
@@ -11,7 +12,7 @@ import (
 type PostgresConfig struct {
 	Host     string `yaml:"host"`
 	Port     uint16 `yaml:"port"`
-	Database string `yaml:"database"`
+	Database string `yaml:"db"`
 	User     string `yaml:"user"`
 	Password string `yaml:"-"`
 }
@@ -39,6 +40,8 @@ func GetPostgresConnector(cfg *PostgresConfig) (*sql.DB, error) {
 		cfg.Password,
 		cfg.Host,
 		strconv.FormatUint(uint64(cfg.Port), 10))
+
+	fmt.Println(dsn)
 
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
