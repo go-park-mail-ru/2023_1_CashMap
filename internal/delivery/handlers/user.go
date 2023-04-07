@@ -335,12 +335,12 @@ func (uh *UserHandler) Self(ctx *gin.Context) {
 	}
 	email := stored.Email
 
-	profile, err := uh.service.GetProfileByEmail(email)
+	user, err := uh.service.GetProfileByEmail(email)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
-
+	profile := dto.NewProfileFromUser(user)
 	ctx.JSON(http.StatusOK, gin.H{
 		"body": gin.H{
 			"profile": profile,
