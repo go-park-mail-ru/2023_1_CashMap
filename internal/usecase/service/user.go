@@ -80,6 +80,17 @@ func (us *UserService) GetProfileByLink(email string, link string) (*entities.Us
 }
 
 func (us *UserService) EditProfile(email string, profile *dto.EditProfile) error {
+
+	if profile.NewPassword != nil {
+		user, err := us.repo.GetUserByEmail(email)
+		if err != nil {
+			return err
+		}
+		if user.Password != utils.Hash(*profile.PreviousPassword) {
+			return apperror.Forbidden
+		}
+		*profile.NewPassword = utils.Hash(*profile.NewPassword)
+	}
 	_, err := us.repo.UpdateUser(email, profile)
 	if err != nil {
 		return err

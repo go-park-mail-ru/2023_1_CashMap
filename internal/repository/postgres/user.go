@@ -211,9 +211,9 @@ func (ur *UserRepository) UpdateUser(email string, user *dto.EditProfile) (*enti
 		if !ok {
 			continue
 		}
-		if field != nil {
+		if dbName, exists := mapNames[name]; field != nil && exists {
 			fields = append(fields, *field)
-			query += fmt.Sprintf("%s = $%d, ", mapNames[name], len(fields))
+			query += fmt.Sprintf("%s = $%d, ", dbName, len(fields))
 		}
 	}
 	query = strings.TrimSuffix(query, ", ")
@@ -228,15 +228,15 @@ func (ur *UserRepository) UpdateUser(email string, user *dto.EditProfile) (*enti
 }
 
 var mapNames = map[string]string{
-	"Email":     "email",
-	"Password":  "password",
-	"FirstName": "first_name",
-	"LastName":  "last_name",
-	"Link":      "link",
-	"Sex":       "sex",
-	"Status":    "status",
-	"Bio":       "bio",
-	"Birthday":  "birthday",
+	"Email":       "email",
+	"NewPassword": "password",
+	"FirstName":   "first_name",
+	"LastName":    "last_name",
+	"Link":        "link",
+	"Sex":         "sex",
+	"Status":      "status",
+	"Bio":         "bio",
+	"Birthday":    "birthday",
 }
 
 func (ur *UserRepository) DeleteUser(email string, user *entities.User) error {

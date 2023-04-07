@@ -20,25 +20,26 @@ type SignUp struct {
 }
 
 type EditProfile struct {
-	Email     *string `json:"email"`
-	Password  *string `json:"password"`
-	FirstName *string `json:"first_name"`
-	LastName  *string `json:"last_name"`
-	Link      *string `json:"link"`
-	Sex       *string `json:"sex"`
-	Status    *string `json:"status"`
-	Bio       *string `json:"bio"`
-	Birthday  *string `json:"birthday"`
+	Email            *string `json:"email"`
+	NewPassword      *string `json:"password"`
+	PreviousPassword *string `json:"prev_pass"`
+	FirstName        *string `json:"first_name"`
+	LastName         *string `json:"last_name"`
+	Link             *string `json:"user_link"`
+	Sex              *string `json:"sex"`
+	Status           *string `json:"status"`
+	Bio              *string `json:"bio"`
+	Birthday         *string `json:"birthday"`
 }
 
 type Subscribes struct {
-	Link string `json:"link"`
+	Link string `json:"user_link"`
 }
 
 // [OUTGOING]
 
 type Profile struct {
-	Link       string `json:"link"        example:"id100500"`
+	Link       string `json:"user_link"   example:"id100500"`
 	FirstName  string `json:"first_name"  example:"Василий"`
 	LastName   string `json:"last_name"   example:"Петров"`
 	Avatar     string `json:"avatar"      example:""`
