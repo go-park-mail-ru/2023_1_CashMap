@@ -56,4 +56,8 @@ var Errors = map[error]ErrorResponse{
 		http.StatusInternalServerError,
 		"Ошибка сервера :(",
 	},
+	apperror.RepeatedSubscribe: {
+		http.StatusConflict,
+		"Повторная подписка.",
+	},
 }

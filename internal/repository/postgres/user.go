@@ -7,7 +7,9 @@ import (
 	"depeche/internal/repository"
 	"depeche/pkg/apperror"
 	"fmt"
+	"github.com/jackc/pgerrcode"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	"strings"
 	"time"
 
@@ -130,11 +132,16 @@ func (ur *UserRepository) GetSubscribers(user *entities.User, limit, offset int)
 }
 
 func (ur *UserRepository) Subscribe(subEmail, targetLink, requestTime string) (bool, error) {
-
-	_, err := ur.DB.Queryx(Subscribe, subEmail, targetLink, requestTime)
+	_, err := ur.DB.Exec(Subscribe, subEmail, targetLink, requestTime)
 	if err != nil {
-		fmt.Println(err)
-		// TODO check subscribe conflict (repeated subscribe)
+		if err, ok := err.(*pq.Error); ok {
+			switch err.Code {
+			case pgerrcode.UniqueViolation:
+				return false, apperror.RepeatedSubscribe
+			default:
+				return false, apperror.InternalServerError
+			}
+		}
 		return false, apperror.InternalServerError
 	}
 	return false, nil
@@ -168,8 +175,8 @@ func (ur *UserRepository) CreateUser(user *entities.User) (*entities.User, error
 		fmt.Println(err)
 		// TODO check
 		return nil, apperror.InternalServerError
-
 	}
+
 	var id uint
 	err = tx.QueryRowx(CreateUser, user.Email, user.Password, user.FirstName, user.LastName, time.Now().String()).Scan(&id)
 	if err != nil {

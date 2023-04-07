@@ -3,10 +3,12 @@ package handlers
 import (
 	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
+	_ "depeche/internal/entities/doc"
 	"depeche/internal/session"
 	authService "depeche/internal/session/service"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -31,7 +33,7 @@ func NewUserHandler(userService usecase.User, authService authService.Auth) *Use
 // @Description	Authorize client with credentials (login and password).
 // @Tags		Auth
 // @Accept		json
-// @Param		request	body SignIn true "User credentials"
+// @Param		request	body doc.SignIn true "User credentials"
 // @Success		200
 // @Failure		400 {object} middleware.ErrorResponse
 // @Failure		404 {object} middleware.ErrorResponse
@@ -40,8 +42,13 @@ func NewUserHandler(userService usecase.User, authService authService.Auth) *Use
 // @Router		/auth/sign-in [post]
 func (uh *UserHandler) SignIn(ctx *gin.Context) {
 	var request = struct {
-		Data dto.SignIn `json:"body"`
+		Data *dto.SignIn `json:"body"`
 	}{}
+
+	if request.Data == nil {
+		_ = ctx.Error(apperror.BadRequest)
+		return
+	}
 
 	err := ctx.ShouldBindJSON(&request)
 	if err != nil {
@@ -49,13 +56,13 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 		return
 	}
 
-	_, err = uh.service.SignIn(&request.Data)
+	_, err = uh.service.SignIn(request.Data)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
-	token, err := uh.authService.Authenticate(&request.Data)
+	token, err := uh.authService.Authenticate(request.Data)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -79,7 +86,7 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 // @Description	Register client with credentials and other user info.
 // @Tags		Auth
 // @Accept		json
-// @Param		email body SignUp true "Required register fields"
+// @Param		email body doc.SignUp true "Required register fields"
 // @Failure		400 {object} middleware.ErrorResponse
 // @Failure		401 {object} middleware.ErrorResponse
 // @Failure		404 {object} middleware.ErrorResponse
@@ -87,7 +94,7 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 // @Router		/auth/sign-up [post]
 func (uh *UserHandler) SignUp(ctx *gin.Context) {
 	var request = struct {
-		Data dto.SignUp `json:"body"`
+		Data *dto.SignUp `json:"body"`
 	}{}
 
 	err := ctx.ShouldBindJSON(&request)
@@ -96,13 +103,18 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 		return
 	}
 
-	_, err = uh.service.SignUp(&request.Data)
+	if request.Data == nil {
+		_ = ctx.Error(apperror.BadRequest)
+		return
+	}
+
+	_, err = uh.service.SignUp(request.Data)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
-	token, err := uh.authService.Authenticate(&request.Data)
+	token, err := uh.authService.Authenticate(request.Data)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -176,7 +188,7 @@ func (uh *UserHandler) CheckAuth(ctx *gin.Context) {
 // @Description	Subscribe to other user
 // @Tags		Subscribes
 // @Accepts     json
-// @Param 		request body Subscribes true "Link to user to subscribe."
+// @Param 		request body doc.Subscribes true "Link to user to subscribe."
 // @Success		200
 // @Failure		400 {object} middleware.ErrorResponse
 // @Failure		401 {object} middleware.ErrorResponse
@@ -212,7 +224,7 @@ func (uh *UserHandler) Subscribe(ctx *gin.Context) {
 // @Description	Unsubscribe from other user
 // @Tags		Subscribes
 // @Accepts     json
-// @Param 		request body Subscribes true "Link to user to unsubscribe."
+// @Param 		request body doc.Subscribes true "Link to user to unsubscribe."
 // @Success		200
 // @Failure		400 {object} middleware.ErrorResponse
 // @Failure		401 {object} middleware.ErrorResponse
@@ -248,7 +260,7 @@ func (uh *UserHandler) Unsubscribe(ctx *gin.Context) {
 // @Description	Reject friend request
 // @Tags		Subscribes
 // @Accepts     json
-// @Param 		request body Subscribes true "Link to user to reject friend request."
+// @Param 		request body doc.Subscribes true "Link to user to reject friend request."
 // @Success		200
 // @Failure		400 {object} middleware.ErrorResponse
 // @Failure		401 {object} middleware.ErrorResponse
@@ -284,7 +296,7 @@ func (uh *UserHandler) Reject(ctx *gin.Context) {
 // @Description	Get profile by link
 // @Tags		Profiles
 // @Param 		link path string true "link to requested profile"
-// @Success		200 {object} Profile
+// @Success		200 {object} doc.Profile
 // @Failure		400 {object} middleware.ErrorResponse
 // @Failure     403 {object} middleware.ErrorResponse
 // @Failure     404 {object} middleware.ErrorResponse
@@ -309,7 +321,7 @@ func (uh *UserHandler) Profile(ctx *gin.Context) {
 // @Summary		Self
 // @Description	Get self profile
 // @Tags		Profiles
-// @Success		200 {object} Profile
+// @Success		200 {object} doc.Profile
 // @Failure		400 {object} middleware.ErrorResponse
 // @Failure     403 {object} middleware.ErrorResponse
 // @Failure     404 {object} middleware.ErrorResponse
@@ -341,8 +353,8 @@ func (uh *UserHandler) Self(ctx *gin.Context) {
 // @Description	Edit profile
 // @Tags		Profiles
 // @Accept		json
-// @Param		request body Profile false "Edited fields"
-// @Success		200 {object} Profile
+// @Param		request body doc.EditProfile false "Edited fields"
+// @Success		200
 // @Failure		400 {object} middleware.ErrorResponse
 // @Failure     401 {object} middleware.ErrorResponse
 // @Failure     404 {object} middleware.ErrorResponse
@@ -368,7 +380,7 @@ func (uh *UserHandler) EditProfile(ctx *gin.Context) {
 // @Summary		Friends
 // @Description	Get friends
 // @Tags		Profiles
-// @Success		200 {object} ProfileArray
+// @Success		200 {object} doc.ProfileArray
 // @Param		link query string true "link to requested profile"
 // @Param		limit query int true "amount of profiles"
 // @Param		offset query int true "number of batch"
@@ -408,6 +420,7 @@ func (uh *UserHandler) Friends(ctx *gin.Context) {
 	friends := make([]*dto.Profile, 0, len(users))
 
 	for _, user := range users {
+		fmt.Println(user)
 		friends = append(friends, dto.NewProfileFromUser(user))
 	}
 
@@ -422,7 +435,7 @@ func (uh *UserHandler) Friends(ctx *gin.Context) {
 // @Summary		Subscribes
 // @Description	Get subscribes or subscribers for requested user
 // @Tags		Profiles
-// @Success		200 {object} ProfileArray
+// @Success		200 {object} doc.ProfileArray
 // @Param 		type query string true "in/out for subscribers/subscribes"
 // @Param		link query string true "link to requested profile"
 // @Param		limit query int true "amount of profiles"
@@ -500,28 +513,4 @@ func (uh *UserHandler) getSession(ctx *gin.Context) (*session.Session, error) {
 		return nil, err
 	}
 	return stored, nil
-}
-
-type Profile struct {
-	Body dto.Profile `json:"body"`
-}
-
-type SignIn struct {
-	Body dto.SignIn `json:"body"`
-}
-
-type SignUp struct {
-	Body dto.SignUp `json:"body"`
-}
-
-type EditProfile struct {
-	Body dto.EditProfile `json:"body"`
-}
-
-type Subscribes struct {
-	Body dto.Subscribes `json:"body"`
-}
-
-type ProfileArray struct {
-	Body []dto.Profile `json:"body"`
 }

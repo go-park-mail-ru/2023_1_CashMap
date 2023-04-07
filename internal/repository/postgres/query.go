@@ -3,12 +3,10 @@ package postgres
 // TODO sink fields with entities
 var (
 	UserById = `
-	select  u.id, u.email, 
-	    case when 
-	    	u.link is null then '' else 
-	    	u.link end link,
-		u.password, u.sex,
-		u.bio, u.birthday,
+	select  u.id, u.link, u.email,
+	    u.first_name, u.last_name, 
+		u.sex, u.bio, u.status,
+		u.birthday, u.last_active, 
 		case when p.url is null 
 			then ''
 			else p.url end avatar
@@ -17,8 +15,10 @@ var (
 	where u.id = $1
 	`
 	UserByEmail = `
-	select u.id, u.email, u.link, u.password, u.sex,
-       u.bio, u.birthday,
+	select u.id, u.link, u.email,
+	    u.first_name, u.last_name, 
+		u.sex, u.bio, u.status,
+		u.birthday, u.last_active, 
        case when p.url is null 
            then ''
            else p.url end avatar
@@ -28,11 +28,10 @@ var (
 	`
 
 	UserByLink = `
-	select u.id, u.email, 
-			case when 
-			u.link is null then '' else 
-	    	u.link end link, u.password, u.sex,
-       u.bio, u.birthday,
+	select u.id, u.link, u.email,
+	    u.first_name, u.last_name, 
+		u.sex, u.bio, u.status,
+		u.birthday, u.last_active, 
        case when p.url is null 
            then ''
            else p.url end avatar
@@ -42,11 +41,10 @@ var (
 	`
 
 	FriendsById = `
-	select u.id, 
-		case when 
-	    	u.link is null then '' else 
-	    	u.link end link, 
-		u.sex, u.bio, u.birthday, 
+	select u.id, u.link, u.email,
+	    u.first_name, u.last_name, 
+		u.sex, u.bio, u.status,
+		u.birthday, u.last_active, 
 	  case when p.url is null
 	      then '' 
 	      else p.url end avatar from
@@ -64,11 +62,10 @@ var (
 	`
 
 	SubscribesById = `
-	select u.id, u.email, 
-		case when 
-	    	u.link is null then '' else 
-	    	u.link end link, 
-	    u.sex, u.bio, u.birthday,
+	select u.id, u.link, u.email,
+	    u.first_name, u.last_name, 
+		u.sex, u.bio, u.status,
+		u.birthday, u.last_active, 
 		case when p.url is null
             then ''
         	else p.url
@@ -91,11 +88,10 @@ var (
 	`
 
 	SubscribersById = `
-	select u.id, u.email, 
-	       case when 
-			u.link is null then '' else 
-	    	u.link end link, 
-	    u.sex, u.bio, u.birthday,
+	select u.id, u.link, u.email,
+	    u.first_name, u.last_name, 
+		u.sex, u.bio, u.status,
+		u.birthday, u.last_active, 
 		case when p.url is null
             then ''
         	else p.url
@@ -118,11 +114,10 @@ var (
 	`
 
 	PendingFriendRequestsById = `
-	select u.id, u.email, 
-		case when 
-	    	u.link is null then '' else 
-	    	u.link end link, 
-	    u.sex, u.bio, u.birthday,
+	select u.id, u.link, u.email,
+	    u.first_name, u.last_name, 
+		u.sex, u.bio, u.status,
+		u.birthday, u.last_active, 
 		case when p.url is null
                 then ''
             else p.url

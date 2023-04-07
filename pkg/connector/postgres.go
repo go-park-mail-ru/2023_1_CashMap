@@ -2,7 +2,6 @@ package connector
 
 import (
 	"fmt"
-	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
@@ -17,7 +16,8 @@ type PostgresConfig struct {
 
 func ConnectPostgres(cfg *PostgresConfig) (*sqlx.DB, error) {
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.Database)
-	db, err := sqlx.Connect("pgx", connStr)
+	db, err := sqlx.Connect("postgres", connStr)
+
 	if err != nil {
 		return nil, fmt.Errorf("postgres error: %w", err)
 	}

@@ -38,7 +38,6 @@ type Subscribes struct {
 // [OUTGOING]
 
 type Profile struct {
-	Email      string `json:"email"       example:"example@mail.ru"`
 	Link       string `json:"link"        example:"id100500"`
 	FirstName  string `json:"first_name"  example:"Василий"`
 	LastName   string `json:"last_name"   example:"Петров"`
@@ -67,7 +66,7 @@ func NewProfileFromUser(user *entities.User) *Profile {
 		BirthDay:   user.BirthDay,
 		Private:    false,
 		Sex:        user.Sex,
-		LastActive: "",
+		LastActive: user.LastActive,
 	}
 }
 
