@@ -1,6 +1,9 @@
 package apperror
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 var (
 	NoAuth               = errors.New("user is not authenticated")
@@ -22,3 +25,23 @@ var (
 var (
 	InternalServerError = errors.New("internal server error")
 )
+
+type ServerError struct {
+	UserErr     error
+	internalErr error
+}
+
+func NewServerError(userErr error, internalErr error) *ServerError {
+	return &ServerError{
+		UserErr:     userErr,
+		internalErr: internalErr,
+	}
+}
+
+func (se *ServerError) Unwrap() error {
+	return se.internalErr
+}
+
+func (se *ServerError) Error() string {
+	return fmt.Sprintf("error [%s] internal error:  %s", se.UserErr, se.internalErr)
+}
