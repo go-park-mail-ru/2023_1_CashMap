@@ -29,17 +29,17 @@ func NewUserHandler(userService usecase.User, authService authService.Auth) *Use
 }
 
 // SignIn godoc
-// @Summary		Sign in
-// @Description	Authorize client with credentials (login and password).
-// @Tags		Auth
-// @Accept		json
-// @Param		request	body doc.SignIn true "User credentials"
-// @Success		200
-// @Failure		400 {object} middleware.ErrorResponse
-// @Failure		404 {object} middleware.ErrorResponse
-// @Failure		409 {object} middleware.ErrorResponse
-// @Failure		500 {object} middleware.ErrorResponse
-// @Router		/auth/sign-in [post]
+//	@Summary		Sign in
+//	@Description	Authorize client with credentials (login and password).
+//	@Tags			Auth
+//	@Accept			json
+//	@Param			request	body	doc.SignIn	true	"User credentials"
+//	@Success		200
+//	@Failure		400	{object}	middleware.ErrorResponse
+//	@Failure		404	{object}	middleware.ErrorResponse
+//	@Failure		409	{object}	middleware.ErrorResponse
+//	@Failure		500	{object}	middleware.ErrorResponse
+//	@Router			/auth/sign-in [post]
 func (uh *UserHandler) SignIn(ctx *gin.Context) {
 	var request = struct {
 		Data *dto.SignIn `json:"body"`
@@ -82,16 +82,16 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 }
 
 // SignUp godoc
-// @Summary		Sign up
-// @Description	Register client with credentials and other user info.
-// @Tags		Auth
-// @Accept		json
-// @Param		email body doc.SignUp true "Required register fields"
-// @Failure		400 {object} middleware.ErrorResponse
-// @Failure		401 {object} middleware.ErrorResponse
-// @Failure		404 {object} middleware.ErrorResponse
-// @Failure		500 {object} middleware.ErrorResponse
-// @Router		/auth/sign-up [post]
+//	@Summary		Sign up
+//	@Description	Register client with credentials and other user info.
+//	@Tags			Auth
+//	@Accept			json
+//	@Param			email	body		doc.SignUp	true	"Required register fields"
+//	@Failure		400		{object}	middleware.ErrorResponse
+//	@Failure		401		{object}	middleware.ErrorResponse
+//	@Failure		404		{object}	middleware.ErrorResponse
+//	@Failure		500		{object}	middleware.ErrorResponse
+//	@Router			/auth/sign-up [post]
 func (uh *UserHandler) SignUp(ctx *gin.Context) {
 	var request = struct {
 		Data *dto.SignUp `json:"body"`
@@ -135,13 +135,13 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 }
 
 // LogOut godoc
-// @Summary		Log out
-// @Description	Delete user session and invalidate session cookie
-// @Tags		Auth
-// @Success		200
-// @Failure		401 {object} middleware.ErrorResponse
-// @Failure		404 {object} middleware.ErrorResponse
-// @Router		/auth/logout [post]
+//	@Summary		Log out
+//	@Description	Delete user session and invalidate session cookie
+//	@Tags			Auth
+//	@Success		200
+//	@Failure		401	{object}	middleware.ErrorResponse
+//	@Failure		404	{object}	middleware.ErrorResponse
+//	@Router			/auth/logout [post]
 func (uh *UserHandler) LogOut(ctx *gin.Context) {
 	token, err := ctx.Cookie("session_id")
 	if err != nil {
@@ -184,17 +184,17 @@ func (uh *UserHandler) CheckAuth(ctx *gin.Context) {
 }
 
 // Subscribe godoc
-// @Summary		Subscribe
-// @Description	Subscribe to other user
-// @Tags		Subscribes
-// @Accepts     json
-// @Param 		request body doc.Subscribes true "Link to user to subscribe."
-// @Success		200
-// @Failure		400 {object} middleware.ErrorResponse
-// @Failure		401 {object} middleware.ErrorResponse
-// @Failure		409 {object} middleware.ErrorResponse
-// @Failure		500 {object} middleware.ErrorResponse
-// @Router		/api/user/sub [post]
+//	@Summary		Subscribe
+//	@Description	Subscribe to other user
+//	@Tags			Subscribes
+//	@Accepts		json
+//	@Param			request	body	doc.Subscribes	true	"Link to user to subscribe."
+//	@Success		200
+//	@Failure		400	{object}	middleware.ErrorResponse
+//	@Failure		401	{object}	middleware.ErrorResponse
+//	@Failure		409	{object}	middleware.ErrorResponse
+//	@Failure		500	{object}	middleware.ErrorResponse
+//	@Router			/api/user/sub [post]
 func (uh *UserHandler) Subscribe(ctx *gin.Context) {
 	stored, err := uh.getSession(ctx)
 	if err != nil {
@@ -220,17 +220,17 @@ func (uh *UserHandler) Subscribe(ctx *gin.Context) {
 }
 
 // Unsubscribe godoc
-// @Summary		Unsubscribe
-// @Description	Unsubscribe from other user
-// @Tags		Subscribes
-// @Accepts     json
-// @Param 		request body doc.Subscribes true "Link to user to unsubscribe."
-// @Success		200
-// @Failure		400 {object} middleware.ErrorResponse
-// @Failure		401 {object} middleware.ErrorResponse
-// @Failure		409 {object} middleware.ErrorResponse
-// @Failure		500 {object} middleware.ErrorResponse
-// @Router		/api/user/unsub [post]
+//	@Summary		Unsubscribe
+//	@Description	Unsubscribe from other user
+//	@Tags			Subscribes
+//	@Accepts		json
+//	@Param			request	body	doc.Subscribes	true	"Link to user to unsubscribe."
+//	@Success		200
+//	@Failure		400	{object}	middleware.ErrorResponse
+//	@Failure		401	{object}	middleware.ErrorResponse
+//	@Failure		409	{object}	middleware.ErrorResponse
+//	@Failure		500	{object}	middleware.ErrorResponse
+//	@Router			/api/user/unsub [post]
 func (uh *UserHandler) Unsubscribe(ctx *gin.Context) {
 	stored, err := uh.getSession(ctx)
 	if err != nil {
@@ -256,17 +256,17 @@ func (uh *UserHandler) Unsubscribe(ctx *gin.Context) {
 }
 
 // Reject godoc
-// @Summary		Reject
-// @Description	Reject friend request
-// @Tags		Subscribes
-// @Accepts     json
-// @Param 		request body doc.Subscribes true "Link to user to reject friend request."
-// @Success		200
-// @Failure		400 {object} middleware.ErrorResponse
-// @Failure		401 {object} middleware.ErrorResponse
-// @Failure		409 {object} middleware.ErrorResponse
-// @Failure		500 {object} middleware.ErrorResponse
-// @Router		/api/user/reject [post]
+//	@Summary		Reject
+//	@Description	Reject friend request
+//	@Tags			Subscribes
+//	@Accepts		json
+//	@Param			request	body	doc.Subscribes	true	"Link to user to reject friend request."
+//	@Success		200
+//	@Failure		400	{object}	middleware.ErrorResponse
+//	@Failure		401	{object}	middleware.ErrorResponse
+//	@Failure		409	{object}	middleware.ErrorResponse
+//	@Failure		500	{object}	middleware.ErrorResponse
+//	@Router			/api/user/reject [post]
 func (uh *UserHandler) Reject(ctx *gin.Context) {
 	stored, err := uh.getSession(ctx)
 	if err != nil {
@@ -292,16 +292,16 @@ func (uh *UserHandler) Reject(ctx *gin.Context) {
 }
 
 // Profile godoc
-// @Summary		Profile
-// @Description	Get profile by link
-// @Tags		Profiles
-// @Param 		link path string true "link to requested profile"
-// @Success		200 {object} doc.Profile
-// @Failure		400 {object} middleware.ErrorResponse
-// @Failure     403 {object} middleware.ErrorResponse
-// @Failure     404 {object} middleware.ErrorResponse
-// @Failure		500 {object} middleware.ErrorResponse
-// @Router		/api/user/profile/link [get]
+//	@Summary		Profile
+//	@Description	Get profile by link
+//	@Tags			Profiles
+//	@Param			link	path		string	true	"link to requested profile"
+//	@Success		200		{object}	doc.Profile
+//	@Failure		400		{object}	middleware.ErrorResponse
+//	@Failure		403		{object}	middleware.ErrorResponse
+//	@Failure		404		{object}	middleware.ErrorResponse
+//	@Failure		500		{object}	middleware.ErrorResponse
+//	@Router			/api/user/profile/link [get]
 func (uh *UserHandler) Profile(ctx *gin.Context) {
 	link := ctx.Param("link")
 
@@ -318,15 +318,15 @@ func (uh *UserHandler) Profile(ctx *gin.Context) {
 }
 
 // Self godoc
-// @Summary		Self
-// @Description	Get self profile
-// @Tags		Profiles
-// @Success		200 {object} doc.Profile
-// @Failure		400 {object} middleware.ErrorResponse
-// @Failure     403 {object} middleware.ErrorResponse
-// @Failure     404 {object} middleware.ErrorResponse
-// @Failure		500 {object} middleware.ErrorResponse
-// @Router		/api/user/profile [get]
+//	@Summary		Self
+//	@Description	Get self profile
+//	@Tags			Profiles
+//	@Success		200	{object}	doc.Profile
+//	@Failure		400	{object}	middleware.ErrorResponse
+//	@Failure		403	{object}	middleware.ErrorResponse
+//	@Failure		404	{object}	middleware.ErrorResponse
+//	@Failure		500	{object}	middleware.ErrorResponse
+//	@Router			/api/user/profile [get]
 func (uh *UserHandler) Self(ctx *gin.Context) {
 	stored, err := uh.getSession(ctx)
 	if err != nil {
@@ -349,17 +349,17 @@ func (uh *UserHandler) Self(ctx *gin.Context) {
 }
 
 // EditProfile godoc
-// @Summary		EditProfile
-// @Description	Edit profile
-// @Tags		Profiles
-// @Accept		json
-// @Param		request body doc.EditProfile false "Edited fields"
-// @Success		200
-// @Failure		400 {object} middleware.ErrorResponse
-// @Failure     401 {object} middleware.ErrorResponse
-// @Failure     404 {object} middleware.ErrorResponse
-// @Failure		500 {object} middleware.ErrorResponse
-// @Router		/api/user/profile/edit [patch]
+//	@Summary		EditProfile
+//	@Description	Edit profile
+//	@Tags			Profiles
+//	@Accept			json
+//	@Param			request	body	doc.EditProfile	false	"Edited fields"
+//	@Success		200
+//	@Failure		400	{object}	middleware.ErrorResponse
+//	@Failure		401	{object}	middleware.ErrorResponse
+//	@Failure		404	{object}	middleware.ErrorResponse
+//	@Failure		500	{object}	middleware.ErrorResponse
+//	@Router			/api/user/profile/edit [patch]
 func (uh *UserHandler) EditProfile(ctx *gin.Context) {
 	stored, err := uh.getSession(ctx)
 	if err != nil {
@@ -377,18 +377,18 @@ func (uh *UserHandler) EditProfile(ctx *gin.Context) {
 }
 
 // Friends godoc
-// @Summary		Friends
-// @Description	Get friends
-// @Tags		Profiles
-// @Success		200 {object} doc.ProfileArray
-// @Param		link query string true "link to requested profile"
-// @Param		limit query int true "amount of profiles"
-// @Param		offset query int true "number of batch"
-// @Failure		400 {object} middleware.ErrorResponse
-// @Failure     401 {object} middleware.ErrorResponse
-// @Failure     404 {object} middleware.ErrorResponse
-// @Failure		500 {object} middleware.ErrorResponse
-// @Router		/api/user/friends [get]
+//	@Summary		Friends
+//	@Description	Get friends
+//	@Tags			Profiles
+//	@Success		200		{object}	doc.ProfileArray
+//	@Param			link	query		string	true	"link to requested profile"
+//	@Param			limit	query		int		true	"amount of profiles"
+//	@Param			offset	query		int		true	"number of batch"
+//	@Failure		400		{object}	middleware.ErrorResponse
+//	@Failure		401		{object}	middleware.ErrorResponse
+//	@Failure		404		{object}	middleware.ErrorResponse
+//	@Failure		500		{object}	middleware.ErrorResponse
+//	@Router			/api/user/friends [get]
 func (uh *UserHandler) Friends(ctx *gin.Context) {
 	link := ctx.Query("link")
 	stored, err := uh.getSession(ctx)
@@ -432,19 +432,19 @@ func (uh *UserHandler) Friends(ctx *gin.Context) {
 }
 
 // Subscribes godoc
-// @Summary		Subscribes
-// @Description	Get subscribes or subscribers for requested user
-// @Tags		Profiles
-// @Success		200 {object} doc.ProfileArray
-// @Param 		type query string true "in/out for subscribers/subscribes"
-// @Param		link query string true "link to requested profile"
-// @Param		limit query int true "amount of profiles"
-// @Param		offset query int true "number of batch"
-// @Failure		400 {object} middleware.ErrorResponse
-// @Failure     401 {object} middleware.ErrorResponse
-// @Failure     404 {object} middleware.ErrorResponse
-// @Failure		500 {object} middleware.ErrorResponse
-// @Router		/api/user/sub [get]
+//	@Summary		Subscribes
+//	@Description	Get subscribes or subscribers for requested user
+//	@Tags			Profiles
+//	@Success		200		{object}	doc.ProfileArray
+//	@Param			type	query		string	true	"in/out for subscribers/subscribes"
+//	@Param			link	query		string	true	"link to requested profile"
+//	@Param			limit	query		int		true	"amount of profiles"
+//	@Param			offset	query		int		true	"number of batch"
+//	@Failure		400		{object}	middleware.ErrorResponse
+//	@Failure		401		{object}	middleware.ErrorResponse
+//	@Failure		404		{object}	middleware.ErrorResponse
+//	@Failure		500		{object}	middleware.ErrorResponse
+//	@Router			/api/user/sub [get]
 func (uh *UserHandler) Subscribes(ctx *gin.Context) {
 	subType := ctx.Query("type")
 	link := ctx.Query("link")

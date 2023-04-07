@@ -80,32 +80,10 @@ definitions:
       status:
         type: string
     type: object
-  dto.PostCreate:
-    properties:
-      author_link:
-        type: string
-      community_link:
-        type: string
-      owner_link:
-        type: string
-      show_author:
-        type: boolean
-      text:
-        type: string
-    type: object
   dto.PostDelete:
     properties:
       post_id:
         type: integer
-    type: object
-  dto.PostUpdate:
-    properties:
-      post_id:
-        type: integer
-      show_author:
-        type: boolean
-      text:
-        type: string
     type: object
   dto.Profile:
     properties:
@@ -305,6 +283,22 @@ paths:
   /api/posts/create:
     post:
       description: User can create new post
+      parameters:
+      - in: formData
+        name: author_link
+        type: string
+      - in: formData
+        name: community_link
+        type: string
+      - in: formData
+        name: owner_link
+        type: string
+      - in: formData
+        name: show_author
+        type: boolean
+      - in: formData
+        name: text
+        type: string
       produces:
       - application/json
       responses:
@@ -343,6 +337,16 @@ paths:
   /api/posts/edit:
     patch:
       description: User can edit post
+      parameters:
+      - in: formData
+        name: post_id
+        type: integer
+      - in: formData
+        name: show_author
+        type: boolean
+      - in: formData
+        name: text
+        type: string
       produces:
       - application/json
       responses:
