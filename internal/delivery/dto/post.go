@@ -1,8 +1,6 @@
 package dto
 
-import (
-	"io"
-)
+import "io"
 
 type PostGetByID struct {
 	PostID uint `form:"post_id" json:"post_id"`

@@ -138,6 +138,33 @@ const docTemplate = `{
                     "Post"
                 ],
                 "summary": "Create new post",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "author_link",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "name": "community_link",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "name": "owner_link",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "boolean",
+                        "name": "show_author",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "name": "text",
+                        "in": "formData"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -197,6 +224,23 @@ const docTemplate = `{
                     "Post"
                 ],
                 "summary": "Edit post by id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "post_id",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "boolean",
+                        "name": "show_author",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "name": "text",
+                        "in": "formData"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK"
@@ -1094,45 +1138,11 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.PostCreate": {
-            "type": "object",
-            "properties": {
-                "author_link": {
-                    "type": "string"
-                },
-                "community_link": {
-                    "type": "string"
-                },
-                "owner_link": {
-                    "type": "string"
-                },
-                "show_author": {
-                    "type": "boolean"
-                },
-                "text": {
-                    "type": "string"
-                }
-            }
-        },
         "dto.PostDelete": {
             "type": "object",
             "properties": {
                 "post_id": {
                     "type": "integer"
-                }
-            }
-        },
-        "dto.PostUpdate": {
-            "type": "object",
-            "properties": {
-                "post_id": {
-                    "type": "integer"
-                },
-                "show_author": {
-                    "type": "boolean"
-                },
-                "text": {
-                    "type": "string"
                 }
             }
         },

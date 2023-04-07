@@ -158,7 +158,7 @@ func (handler *PostHandler) GetPostsById(ctx *gin.Context) {
 //	@Description	User can create new post
 //	@Tags			Post
 //	@Produce		json
-//	@Param			request	formData	doc.PostCreateRequest	true	"New post info"
+//	@Param			request	formData	dto.PostCreate	true	"New post info"
 //	@Success		200		{object}	doc.PostsResponse
 //	@Failure		401
 //	@Failure		500
@@ -238,7 +238,7 @@ func (handler *PostHandler) DeletePost(ctx *gin.Context) {
 //	@Summary		Edit post by id
 //	@Description	User can edit post
 //	@Tags			Post
-//	@Param			request	formData	doc.PostUpdateRequest	false	"Post to update data"
+//	@Param			request	formData	dto.PostUpdate	false	"Post to update data"
 //	@Produce		json
 //	@Success		200
 //	@Failure		400
