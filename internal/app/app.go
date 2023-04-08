@@ -62,7 +62,7 @@ func Run() {
 	feedService := service.NewFeedService(feedStorage)
 	fileService := staticService.NewFileUsecase()
 	postService := service.NewPostService(postStorage)
-	msgService := service.NewMessageService(msgStorage)
+	msgService := service.NewMessageService(msgStorage, userStorage)
 
 	staticHandler := staticDelivery.NewFileHandler(fileService)
 	userHandler := handlers.NewUserHandler(userService, authService)

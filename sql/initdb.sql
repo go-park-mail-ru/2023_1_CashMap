@@ -20,7 +20,7 @@ CREATE TABLE userprofile (
      status     text DEFAULT '',
      birthday   text DEFAULT '',
      avatar_id  int REFERENCES Photo(id) ON DELETE SET NULL,
-     last_active text,
+     last_active text DEFAULT '',
      is_deleted      boolean  NOT NULL                                 DEFAULT false,
      dying_time      interval NOT NULL                                 DEFAULT INTERVAL '6 months',
      access_to_posts text     NOT NULL                                 DEFAULT 'all',

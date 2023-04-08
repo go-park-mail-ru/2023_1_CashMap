@@ -14,13 +14,8 @@ func ErrorMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		err, ok := ctx.Errors[0].Unwrap().(*apperror.ServerError)
-		if !ok {
-			// TODO internal error
-			return
-		}
-		//TODO log err.Unwrap
-		ctx.JSON(Errors[err.UserErr].Code, gin.H{
+		err := ctx.Errors[0].Unwrap()
+		ctx.JSON(Errors[err].Code, gin.H{
 			"status":  Errors[err].Code,
 			"message": Errors[err].Message,
 		})

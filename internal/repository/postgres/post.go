@@ -5,10 +5,10 @@ import (
 	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
 	"depeche/internal/repository"
+	"depeche/internal/utils"
 	"errors"
 	"fmt"
 	"github.com/jmoiron/sqlx"
-	"time"
 )
 
 type PostStorage struct {
@@ -116,7 +116,7 @@ func (storage *PostStorage) CheckWriteAccess(senderEmail string, dto *dto.PostCr
 }
 
 func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) (uint, error) {
-	currentTime := time.Now().String()
+	currentTime := utils.CurrentTimeString()
 
 	tx, err := storage.db.Beginx()
 	if err != nil {
@@ -201,7 +201,7 @@ func (storage *PostStorage) UpdatePost(senderEmail string, dto *dto.PostUpdate) 
 		"ShouldShowAuthor": "show_author",
 		"ChangeDate":       "change_date",
 	}
-	dto.ChangeDate = time.Now().String()
+	dto.ChangeDate = utils.CurrentTimeString()
 	err = repository.UpdateTable(storage.db, "Post", "id", *dto.PostID, dtoToDB, dto)
 	if err != nil {
 		return err

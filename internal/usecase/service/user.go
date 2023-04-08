@@ -9,7 +9,6 @@ import (
 	"depeche/pkg/apperror"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type UserService struct {
@@ -99,7 +98,7 @@ func (us *UserService) EditProfile(email string, profile *dto.EditProfile) error
 }
 
 func (us *UserService) Subscribe(subEmail, followLink string) error {
-	reqTime := time.Now().String()
+	reqTime := utils.CurrentTimeString()
 	_, err := us.repo.Subscribe(subEmail, followLink, reqTime)
 	if err != nil {
 		// проверить на повторную подписку

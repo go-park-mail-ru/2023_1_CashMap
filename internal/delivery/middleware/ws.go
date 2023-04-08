@@ -37,7 +37,7 @@ func (wm *WsMiddleware) SendMsg(ctx *gin.Context) {
 	if !ok {
 		_ = ctx.Error(apperror.BadRequest)
 	}
-	msg, ok := msgRaw.(entities.Message)
+	msg, ok := msgRaw.(*entities.Message)
 	if !ok {
 		_ = ctx.Error(apperror.BadRequest)
 	}

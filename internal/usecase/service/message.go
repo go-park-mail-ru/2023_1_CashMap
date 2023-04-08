@@ -12,9 +12,10 @@ type Message struct {
 	userRepo repository.UserRepository
 }
 
-func NewMessageService(repo repository.Message) usecase.Message {
+func NewMessageService(repo repository.Message, userRepo repository.UserRepository) usecase.Message {
 	return &Message{
-		repo: repo,
+		repo:     repo,
+		userRepo: userRepo,
 	}
 }
 

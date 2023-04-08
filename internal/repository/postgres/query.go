@@ -217,11 +217,16 @@ var (
 	(user_id, chat_id, message_content_type, text_content, creation_date, reply_to)
 	values 
 	($1,$2,$3,$4,$5,$6)
-	returning (id, user_id, 
+	returning (id)
+	`
+
+	MessageById = `
+	select id, user_id, 
 	           chat_id, message_content_type, 
 	           text_content, creation_date, 
-	           reply_to, is_deleted)
-	`
+	           reply_to, is_deleted
+	from message where id = $1
+`
 
 	GetMembersByChatId = `
 	select u.id, u.link, u.email,

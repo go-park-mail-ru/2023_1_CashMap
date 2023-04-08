@@ -4,9 +4,10 @@ import (
 	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
 	"depeche/internal/repository"
+	"depeche/internal/utils"
 	"depeche/pkg/apperror"
+	"fmt"
 	"github.com/jmoiron/sqlx"
-	"time"
 )
 
 type MessageRepo struct {
@@ -22,10 +23,18 @@ func (m *MessageRepo) SaveMsg(message *dto.NewMessage) (*entities.Message, error
 	err := m.DB.QueryRowx(CreateMessage,
 		message.UserId, message.ChatId,
 		message.ContentType,
-		time.Now().String(),
-		message.Text, message.ReplyTo).StructScan(msg)
+		message.Text,
+		utils.CurrentTimeString(),
+		message.ReplyTo).Scan(&msg.Id)
 
 	if err != nil {
+		fmt.Println(err)
+		return nil, apperror.BadRequest
+	}
+
+	err = m.DB.QueryRowx(MessageById, msg.Id).StructScan(msg)
+	if err != nil {
+		fmt.Println(err)
 		return nil, apperror.BadRequest
 	}
 	msg.Link = message.Link

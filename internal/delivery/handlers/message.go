@@ -37,6 +37,6 @@ func (mh *MessageHandler) Send(ctx *gin.Context) {
 	if err != nil {
 		_ = ctx.Error(err)
 	}
-	
+
 	ctx.Set("message", msg)
 }
