@@ -1,6 +1,8 @@
 package postgres
 
 import (
+	"context"
+	"database/sql"
 	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
 	"depeche/internal/repository"
@@ -19,9 +21,9 @@ func NewMessageRepository(DB *sqlx.DB) repository.MessageRepository {
 	return &MessageStorage{DB}
 }
 
-func (m *MessageStorage) SaveMsg(message *dto.NewMessage) (*entities.Message, error) {
+func (storage *MessageStorage) SaveMsg(message *dto.NewMessage) (*entities.Message, error) {
 	msg := &entities.Message{}
-	err := m.db.QueryRowx(CreateMessage,
+	err := storage.db.QueryRowx(CreateMessage,
 		message.UserId, message.ChatId,
 		message.ContentType,
 		message.Text,
@@ -33,7 +35,7 @@ func (m *MessageStorage) SaveMsg(message *dto.NewMessage) (*entities.Message, er
 		return nil, apperror.BadRequest
 	}
 
-	err = m.db.QueryRowx(MessageById, msg.Id).StructScan(msg)
+	err = storage.db.QueryRowx(MessageById, msg.Id).StructScan(msg)
 	if err != nil {
 		fmt.Println(err)
 		return nil, apperror.BadRequest
@@ -42,9 +44,9 @@ func (m *MessageStorage) SaveMsg(message *dto.NewMessage) (*entities.Message, er
 	return msg, nil
 }
 
-func (m *MessageStorage) GetMembersByChatId(chatId uint) ([]*entities.User, error) {
+func (storage *MessageStorage) GetMembersByChatId(chatId uint) ([]*entities.User, error) {
 	var users []*entities.User
-	rows, err := m.db.Queryx(GetMembersByChatId, chatId)
+	rows, err := storage.db.Queryx(GetMembersByChatId, chatId)
 	if err != nil {
 		return nil, apperror.BadRequest
 	}
@@ -116,7 +118,7 @@ func (storage *MessageStorage) SelectChats(senderEmail string, dto *dto.GetChats
 }
 
 func (storage *MessageStorage) CreateChat(senderEmail string, dto *dto.CreateChatDTO) (uint, error) {
-	var chatID uint
+	var chatID int
 	switch len(dto.UserLinks) {
 	case 0:
 		return 0, errors.New("empty list of users")
@@ -129,13 +131,29 @@ func (storage *MessageStorage) CreateChat(senderEmail string, dto *dto.CreateCha
 			return 0, errors.New("chat already exists")
 		}
 
-		execExpression, err := storage.db.PrepareNamed("INSERT INTO Chat (id) VALUES (DEFAULT) RETURNING id")
+		tx, err := storage.db.Beginx()
 		if err != nil {
 			return 0, err
 		}
-		err = execExpression.Get(&chatID, nil)
 
-		err = storage.addChatMembers(senderEmail, dto.UserLinks, chatID)
+		query := "INSERT INTO Chat (id, members_number) VALUES (DEFAULT, $1) RETURNING id"
+		err = tx.GetContext(context.Background(), &chatID, query, len(dto.UserLinks)+1)
+		if err != nil {
+			if err := tx.Rollback(); err != nil {
+				return 0, err
+			}
+			return 0, err
+		}
+
+		err = storage.addChatMembers(senderEmail, dto.UserLinks, uint(chatID), tx)
+		if err != nil {
+			if err := tx.Rollback(); err != nil {
+				return 0, err
+			}
+			return 0, err
+		}
+
+		err = tx.Commit()
 		if err != nil {
 			return 0, err
 		}
@@ -145,7 +163,7 @@ func (storage *MessageStorage) CreateChat(senderEmail string, dto *dto.CreateCha
 		// TODO: реализовать групповые чаты
 	}
 
-	return chatID, nil
+	return uint(chatID), nil
 }
 
 func (storage *MessageStorage) HasDialog(senderEmail string, dto *dto.HasDialogDTO) (bool, error) {
@@ -168,15 +186,14 @@ func (storage *MessageStorage) isPersonalChatExists(email string, userLink strin
 		"SELECT true as exists FROM Chat as chat JOIN CommonChats as common ON common.chat_id = chat.id WHERE chat.members_number = 2",
 		userLink,
 		email)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
 	if err != nil {
 		return true, err
 	}
 
-	if exists {
-		return true, nil
-	}
-
-	return false, nil
+	return true, nil
 }
 
 func (storage *MessageStorage) isChatMember(email string, chatID uint) (bool, error) {
@@ -196,46 +213,30 @@ func (storage *MessageStorage) isChatMember(email string, chatID uint) (bool, er
 	return true, nil
 }
 
-func (storage *MessageStorage) addChatMembers(senderEmail string, userLinks []string, chatID uint) error {
-	tx, err := storage.db.Beginx()
-	if err != nil {
-		return err
-	}
-
+func (storage *MessageStorage) addChatMembers(senderEmail string, userLinks []string, chatID uint, tx *sqlx.Tx) error {
 	var senderLink string
-	err = storage.db.Get(&senderLink, "SELECT link FROM UserProfile WHERE email = $1", senderEmail)
+	err := tx.Get(&senderLink, "SELECT link FROM UserProfile WHERE email = $1", senderEmail)
 	if err != nil {
-		err := tx.Rollback()
-		if err != nil {
-			return err
-		}
 		return err
 	}
 	userLinks = append(userLinks, senderLink)
-
-	for i := 1; i < len(userLinks); i++ {
+	for i := 0; i < len(userLinks); i++ {
 		var userID uint
 		err = tx.Get(&userID, "SELECT id FROM UserProfile WHERE link = $1", userLinks[i])
 		if err != nil {
 			return err
 		}
 
-		_, err := tx.NamedExec("INSERT INTO ChatMember (chat_id, user_id, role) VALUES (:chat_id, :user_id)",
-			map[string]uint{
+		_, err := tx.NamedExec("INSERT INTO ChatMember (chat_id, user_id, role) VALUES (:chat_id, :user_id, DEFAULT)",
+			map[string]interface{}{
 				"chat_id": chatID,
 				"user_id": userID,
 			})
 		if err != nil {
-			err := tx.Rollback()
-			if err != nil {
-				return err
-			}
 			return err
 		}
 
 	}
-
-	err = tx.Commit()
 	if err != nil {
 		return err
 	}

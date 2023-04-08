@@ -133,8 +133,7 @@ func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) 
 		}
 		// Неизвестый link сообщества
 		if communityID == nil {
-			err := tx.Rollback()
-			if err != nil {
+			if err := tx.Rollback(); err != nil {
 				return 0, err
 			}
 			return 0, errors.New("unknown community link")
@@ -147,8 +146,7 @@ func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) 
 		}
 		// Неизвестый link юзера
 		if dto.OwnerLink != nil && dto.CommunityLink == nil && ownerID == nil {
-			err := tx.Rollback()
-			if err != nil {
+			if err := tx.Rollback(); err != nil {
 				return 0, err
 			}
 			return 0, errors.New("unknown profile link")
@@ -158,8 +156,7 @@ func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) 
 	query, err := tx.PrepareNamed("INSERT INTO Post (community_id, author_id, owner_id, show_author, text_content, creation_date, change_date) " +
 		"VALUES (:community_id, (SELECT id FROM UserProfile WHERE email = :sender_email), :owner_id, :show_author, :text, :init_time, :change_time) RETURNING id")
 	if err != nil {
-		err := tx.Rollback()
-		if err != nil {
+		if err := tx.Rollback(); err != nil {
 			return 0, err
 		}
 		return 0, err
