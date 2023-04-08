@@ -1,9 +1,52 @@
 basePath: /
 definitions:
+  doc.Chat:
+    description: All post information
+    properties:
+      chat:
+        $ref: '#/definitions/entities.Chat'
+    type: object
+  doc.ChatCreateRequest:
+    description: All post information
+    properties:
+      body:
+        $ref: '#/definitions/dto.CreateChatDTO'
+    type: object
+  doc.ChatCreateResponse:
+    description: All post information
+    properties:
+      body:
+        $ref: '#/definitions/doc.Chat'
+    type: object
   doc.EditProfile:
     properties:
       body:
         $ref: '#/definitions/dto.EditProfile'
+    type: object
+  doc.Exists:
+    properties:
+      has_dialog:
+        type: boolean
+    type: object
+  doc.HasDialogResponse:
+    description: All post information
+    properties:
+      body:
+        $ref: '#/definitions/doc.Exists'
+    type: object
+  doc.Messages:
+    description: All post information
+    properties:
+      messages:
+        items:
+          $ref: '#/definitions/entities.Message'
+        type: array
+    type: object
+  doc.MessagesListResponse:
+    description: All post information
+    properties:
+      body:
+        $ref: '#/definitions/doc.Messages'
     type: object
   doc.PostArray:
     properties:
@@ -44,6 +87,12 @@ definitions:
           $ref: '#/definitions/dto.Profile'
         type: array
     type: object
+  doc.SendMessageResponse:
+    description: All post information
+    properties:
+      body:
+        $ref: '#/definitions/dto.NewMessage'
+    type: object
   doc.SignIn:
     properties:
       body:
@@ -59,6 +108,13 @@ definitions:
       body:
         $ref: '#/definitions/dto.Subscribes'
     type: object
+  dto.CreateChatDTO:
+    properties:
+      user_links:
+        items:
+          type: string
+        type: array
+    type: object
   dto.EditProfile:
     properties:
       bio:
@@ -71,13 +127,35 @@ definitions:
         type: string
       last_name:
         type: string
-      link:
-        type: string
       password:
+        type: string
+      prev_pass:
         type: string
       sex:
         type: string
       status:
+        type: string
+      user_link:
+        type: string
+    type: object
+  dto.GetChatsDTO:
+    properties:
+      batch_size:
+        type: integer
+      offset:
+        type: integer
+    type: object
+  dto.NewMessage:
+    properties:
+      chat_id:
+        type: integer
+      message_content_type:
+        type: string
+      reply_to:
+        type: integer
+      text_content:
+        type: string
+      user_link:
         type: string
     type: object
   dto.PostDelete:
@@ -108,9 +186,6 @@ definitions:
       last_name:
         example: Петров
         type: string
-      link:
-        example: id100500
-        type: string
       private:
         example: false
         type: boolean
@@ -119,6 +194,9 @@ definitions:
         type: string
       status:
         example: Текст статуса.
+        type: string
+      user_link:
+        example: id100500
         type: string
     type: object
   dto.SignIn:
@@ -141,8 +219,17 @@ definitions:
     type: object
   dto.Subscribes:
     properties:
-      link:
+      user_link:
         type: string
+    type: object
+  entities.Chat:
+    properties:
+      chat_id:
+        type: integer
+      user_links:
+        items:
+          type: string
+        type: array
     type: object
   entities.FileType:
     enum:
@@ -152,13 +239,30 @@ definitions:
     x-enum-varnames:
     - IMAGE
     - DOCUMENT
+  entities.Message:
+    properties:
+      change_date:
+        type: string
+      chat_id:
+        type: integer
+      creation_date:
+        type: string
+      id:
+        type: integer
+      is_deleted:
+        type: boolean
+      message_content_type:
+        type: string
+      reply_to:
+        type: integer
+      text_content:
+        type: string
+      user_link:
+        type: string
+    type: object
   entities.Post:
     description: All post information
     properties:
-      attachments:
-        items:
-          type: string
-        type: array
       author_link:
         type: string
       change_date:
@@ -244,6 +348,102 @@ paths:
       summary: Get feed part
       tags:
       - Feed
+  /api/im/chat/check:
+    get:
+      description: User can check if chat with that user_link exists
+      parameters:
+      - description: User link
+        in: query
+        name: user_link
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/doc.HasDialogResponse'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Check if dialog exists
+      tags:
+      - Message
+  /api/im/chat/create:
+    post:
+      description: Create new chat with user
+      parameters:
+      - description: Chat info
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/doc.ChatCreateRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/doc.ChatCreateResponse'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Create chat
+      tags:
+      - Message
+  /api/im/messages:
+    get:
+      description: Get messages batch by chatID sorted by date
+      parameters:
+      - description: Chat id
+        in: query
+        name: chat_id
+        type: integer
+      - description: Batch size
+        in: query
+        name: batch_size
+        type: integer
+      - description: Last post date
+        in: query
+        name: last_post_date
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/doc.MessagesListResponse'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Get messages
+      tags:
+      - Message
+  /api/im/send:
+    post:
+      description: Add message to db and send it to listeners
+      parameters:
+      - description: Message info
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/doc.SendMessageResponse'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Send message
+      tags:
+      - Message
   /api/posts/community:
     get:
       description: User can get community's posts in includes batches older than specified

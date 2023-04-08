@@ -17,7 +17,18 @@ func NewMessageHandler(service usecase.MessageUsecase) *MessageHandler {
 	return &MessageHandler{service}
 }
 
-func (mh *MessageHandler) Send(ctx *gin.Context) {
+// Send godoc
+//
+//	@Summary		Send message
+//	@Description	Add message to db and send it to listeners
+//	@Tags			Message
+//	@Param			request	body	doc.SendMessageResponse	false	"Message info"
+//	@Success		200
+//	@Failure		400
+//	@Failure		401
+//	@Failure		500
+//	@Router			/api/im/send [post]
+func (handler *MessageHandler) Send(ctx *gin.Context) {
 	var request = struct {
 		Data *dto.NewMessage `json:"body"`
 	}{}
@@ -33,7 +44,7 @@ func (mh *MessageHandler) Send(ctx *gin.Context) {
 		return
 	}
 
-	msg, err := mh.MessageUsecase.Send(request.Data)
+	msg, err := handler.MessageUsecase.Send(request.Data)
 	if err != nil {
 		_ = ctx.Error(err)
 	}
@@ -41,6 +52,17 @@ func (mh *MessageHandler) Send(ctx *gin.Context) {
 	ctx.Set("message", msg)
 }
 
+// NewChat godoc
+//
+//	@Summary		Create chat
+//	@Description	Create new chat with user
+//	@Tags			Message
+//	@Param			request	body		doc.ChatCreateRequest	false	"Chat info"
+//	@Success		200		{object}	doc.ChatCreateResponse
+//	@Failure		400
+//	@Failure		401
+//	@Failure		500
+//	@Router			/api/im/chat/create [post]
 func (handler *MessageHandler) NewChat(ctx *gin.Context) {
 	var request = struct {
 		dto.CreateChatDTO `json:"body"`
@@ -73,6 +95,18 @@ func (handler *MessageHandler) NewChat(ctx *gin.Context) {
 
 }
 
+// GetChats godoc
+//
+//	@Summary		Get chats
+//	@Description	Get chats list
+//	@Tags			Message
+//	@Param			batch_size	query	uint	false	"Batch size"
+//	@Param			offset		query	uint	false	"offset"
+//	@Success		200			{array}	dto.GetChatsDTO
+//	@Failure		400
+//	@Failure		401
+//	@Failure		500
+//	@Router			/api/im/messages [get]
 func (handler *MessageHandler) GetChats(ctx *gin.Context) {
 	getChatsDTO := dto.GetChatsDTO{}
 	err := ctx.ShouldBind(&getChatsDTO)
@@ -101,6 +135,19 @@ func (handler *MessageHandler) GetChats(ctx *gin.Context) {
 	})
 }
 
+// GetMessagesByChatID godoc
+//
+//	@Summary		Get messages
+//	@Description	Get messages batch by chatID sorted by date
+//	@Tags			Message
+//	@Param			chat_id			query		uint	false	"Chat id"
+//	@Param			batch_size		query		uint	false	"Batch size"
+//	@Param			last_post_date	query		uint	false	"Last post date"
+//	@Success		200				{object}	doc.MessagesListResponse
+//	@Failure		400
+//	@Failure		401
+//	@Failure		500
+//	@Router			/api/im/messages [get]
 func (handler *MessageHandler) GetMessagesByChatID(ctx *gin.Context) {
 	getMsgDTO := dto.GetMessagesDTO{}
 	err := ctx.ShouldBind(&getMsgDTO)
@@ -129,6 +176,17 @@ func (handler *MessageHandler) GetMessagesByChatID(ctx *gin.Context) {
 	})
 }
 
+// HasDialog godoc
+//
+//	@Summary		Check if dialog exists
+//	@Description	User can check if chat with that user_link exists
+//	@Tags			Message
+//	@Param			user_link	query		string	false	"User link"
+//	@Success		200			{object}	doc.HasDialogResponse
+//	@Failure		400
+//	@Failure		401
+//	@Failure		500
+//	@Router			/api/im/chat/check [get]
 func (handler *MessageHandler) HasDialog(ctx *gin.Context) {
 	hasDialogDTO := dto.HasDialogDTO{}
 	err := ctx.ShouldBind(&hasDialogDTO)

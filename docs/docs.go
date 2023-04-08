@@ -77,6 +77,155 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/im/chat/check": {
+            "get": {
+                "description": "User can check if chat with that user_link exists",
+                "tags": [
+                    "Message"
+                ],
+                "summary": "Check if dialog exists",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User link",
+                        "name": "user_link",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/doc.HasDialogResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/im/chat/create": {
+            "post": {
+                "description": "Create new chat with user",
+                "tags": [
+                    "Message"
+                ],
+                "summary": "Create chat",
+                "parameters": [
+                    {
+                        "description": "Chat info",
+                        "name": "request",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/doc.ChatCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/doc.ChatCreateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/im/messages": {
+            "get": {
+                "description": "Get messages batch by chatID sorted by date",
+                "tags": [
+                    "Message"
+                ],
+                "summary": "Get messages",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Chat id",
+                        "name": "chat_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Batch size",
+                        "name": "batch_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Last post date",
+                        "name": "last_post_date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/doc.MessagesListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/im/send": {
+            "post": {
+                "description": "Add message to db and send it to listeners",
+                "tags": [
+                    "Message"
+                ],
+                "summary": "Send message",
+                "parameters": [
+                    {
+                        "description": "Message info",
+                        "name": "request",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/doc.SendMessageResponse"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/api/posts/community": {
             "get": {
                 "description": "User can get community's posts in includes batches older than specified in \"last_post_date\"",
@@ -1014,11 +1163,76 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "doc.Chat": {
+            "description": "All post information",
+            "type": "object",
+            "properties": {
+                "chat": {
+                    "$ref": "#/definitions/entities.Chat"
+                }
+            }
+        },
+        "doc.ChatCreateRequest": {
+            "description": "All post information",
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/dto.CreateChatDTO"
+                }
+            }
+        },
+        "doc.ChatCreateResponse": {
+            "description": "All post information",
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/doc.Chat"
+                }
+            }
+        },
         "doc.EditProfile": {
             "type": "object",
             "properties": {
                 "body": {
                     "$ref": "#/definitions/dto.EditProfile"
+                }
+            }
+        },
+        "doc.Exists": {
+            "type": "object",
+            "properties": {
+                "has_dialog": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "doc.HasDialogResponse": {
+            "description": "All post information",
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/doc.Exists"
+                }
+            }
+        },
+        "doc.Messages": {
+            "description": "All post information",
+            "type": "object",
+            "properties": {
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entities.Message"
+                    }
+                }
+            }
+        },
+        "doc.MessagesListResponse": {
+            "description": "All post information",
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/doc.Messages"
                 }
             }
         },
@@ -1082,6 +1296,15 @@ const docTemplate = `{
                 }
             }
         },
+        "doc.SendMessageResponse": {
+            "description": "All post information",
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/dto.NewMessage"
+                }
+            }
+        },
         "doc.SignIn": {
             "type": "object",
             "properties": {
@@ -1106,6 +1329,17 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CreateChatDTO": {
+            "type": "object",
+            "properties": {
+                "user_links": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "dto.EditProfile": {
             "type": "object",
             "properties": {
@@ -1124,16 +1358,50 @@ const docTemplate = `{
                 "last_name": {
                     "type": "string"
                 },
-                "link": {
+                "password": {
                     "type": "string"
                 },
-                "password": {
+                "prev_pass": {
                     "type": "string"
                 },
                 "sex": {
                     "type": "string"
                 },
                 "status": {
+                    "type": "string"
+                },
+                "user_link": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GetChatsDTO": {
+            "type": "object",
+            "properties": {
+                "batch_size": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.NewMessage": {
+            "type": "object",
+            "properties": {
+                "chat_id": {
+                    "type": "integer"
+                },
+                "message_content_type": {
+                    "type": "string"
+                },
+                "reply_to": {
+                    "type": "integer"
+                },
+                "text_content": {
+                    "type": "string"
+                },
+                "user_link": {
                     "type": "string"
                 }
             }
@@ -1177,10 +1445,6 @@ const docTemplate = `{
                     "type": "string",
                     "example": "Петров"
                 },
-                "link": {
-                    "type": "string",
-                    "example": "id100500"
-                },
                 "private": {
                     "type": "boolean",
                     "example": false
@@ -1192,6 +1456,10 @@ const docTemplate = `{
                 "status": {
                     "type": "string",
                     "example": "Текст статуса."
+                },
+                "user_link": {
+                    "type": "string",
+                    "example": "id100500"
                 }
             }
         },
@@ -1226,8 +1494,22 @@ const docTemplate = `{
         "dto.Subscribes": {
             "type": "object",
             "properties": {
-                "link": {
+                "user_link": {
                     "type": "string"
+                }
+            }
+        },
+        "entities.Chat": {
+            "type": "object",
+            "properties": {
+                "chat_id": {
+                    "type": "integer"
+                },
+                "user_links": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -1242,16 +1524,42 @@ const docTemplate = `{
                 "DOCUMENT"
             ]
         },
+        "entities.Message": {
+            "type": "object",
+            "properties": {
+                "change_date": {
+                    "type": "string"
+                },
+                "chat_id": {
+                    "type": "integer"
+                },
+                "creation_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "message_content_type": {
+                    "type": "string"
+                },
+                "reply_to": {
+                    "type": "integer"
+                },
+                "text_content": {
+                    "type": "string"
+                },
+                "user_link": {
+                    "type": "string"
+                }
+            }
+        },
         "entities.Post": {
             "description": "All post information",
             "type": "object",
             "properties": {
-                "attachments": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "author_link": {
                     "type": "string"
                 },

@@ -125,6 +125,7 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 			messageEndpointsGroup.GET("/messages", handler.GetMessagesByChatID)
 			messageEndpointsGroup.POST("/chat/create", handler.NewChat)
 			messageEndpointsGroup.GET("/chat/check", handler.HasDialog)
+			messageEndpointsGroup.POST("/send", handler.Send, wsMiddleware.SendMsg)
 		}
 
 		// [POST]
@@ -172,12 +173,6 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 
 			// [REJECT]
 			userEndpoints.POST("/reject", handler.Reject)
-		}
-
-		// [MESSAGE]
-		messageEndpoints := apiEndpointsGroup.Group("/im")
-		{
-			messageEndpoints.POST("/send", handler.Send, wsMiddleware.SendMsg)
 		}
 
 		//[WS]
