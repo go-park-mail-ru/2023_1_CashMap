@@ -29,6 +29,7 @@ func NewUserHandler(userService usecase.User, authService authService.Auth) *Use
 }
 
 // SignIn godoc
+//
 //	@Summary		Sign in
 //	@Description	Authorize client with credentials (login and password).
 //	@Tags			Auth
@@ -82,6 +83,7 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 }
 
 // SignUp godoc
+//
 //	@Summary		Sign up
 //	@Description	Register client with credentials and other user info.
 //	@Tags			Auth
@@ -135,6 +137,7 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 }
 
 // LogOut godoc
+//
 //	@Summary		Log out
 //	@Description	Delete user session and invalidate session cookie
 //	@Tags			Auth
@@ -184,6 +187,7 @@ func (uh *UserHandler) CheckAuth(ctx *gin.Context) {
 }
 
 // Subscribe godoc
+//
 //	@Summary		Subscribe
 //	@Description	Subscribe to other user
 //	@Tags			Subscribes
@@ -220,6 +224,7 @@ func (uh *UserHandler) Subscribe(ctx *gin.Context) {
 }
 
 // Unsubscribe godoc
+//
 //	@Summary		Unsubscribe
 //	@Description	Unsubscribe from other user
 //	@Tags			Subscribes
@@ -256,6 +261,7 @@ func (uh *UserHandler) Unsubscribe(ctx *gin.Context) {
 }
 
 // Reject godoc
+//
 //	@Summary		Reject
 //	@Description	Reject friend request
 //	@Tags			Subscribes
@@ -292,6 +298,7 @@ func (uh *UserHandler) Reject(ctx *gin.Context) {
 }
 
 // Profile godoc
+//
 //	@Summary		Profile
 //	@Description	Get profile by link
 //	@Tags			Profiles
@@ -318,6 +325,7 @@ func (uh *UserHandler) Profile(ctx *gin.Context) {
 }
 
 // Self godoc
+//
 //	@Summary		Self
 //	@Description	Get self profile
 //	@Tags			Profiles
@@ -349,6 +357,7 @@ func (uh *UserHandler) Self(ctx *gin.Context) {
 }
 
 // EditProfile godoc
+//
 //	@Summary		EditProfile
 //	@Description	Edit profile
 //	@Tags			Profiles
@@ -377,6 +386,7 @@ func (uh *UserHandler) EditProfile(ctx *gin.Context) {
 }
 
 // Friends godoc
+//
 //	@Summary		Friends
 //	@Description	Get friends
 //	@Tags			Profiles
@@ -432,6 +442,7 @@ func (uh *UserHandler) Friends(ctx *gin.Context) {
 }
 
 // Subscribes godoc
+//
 //	@Summary		Subscribes
 //	@Description	Get subscribes or subscribers for requested user
 //	@Tags			Profiles
