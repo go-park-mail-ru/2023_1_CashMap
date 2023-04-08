@@ -6,14 +6,17 @@ type Handler struct {
 	*UserHandler
 	*FeedHandler
 	*PostHandler
+	*MessageHandler
 	*staticDelivery.FileHandler
 }
 
-func NewHandler(userHandler *UserHandler, feedHandler *FeedHandler, postHandler *PostHandler, staticHandler *staticDelivery.FileHandler) Handler {
+func NewHandler(userHandler *UserHandler, feedHandler *FeedHandler, postHandler *PostHandler,
+	messageHandler *MessageHandler, staticHandler *staticDelivery.FileHandler) Handler {
 	return Handler{
 		userHandler,
 		feedHandler,
 		postHandler,
+		messageHandler,
 		staticHandler,
 	}
 }

@@ -8,23 +8,24 @@ CREATE TABLE Photo
 
 
 
-CREATE TABLE userprofile (
-     id         serial,
-     email      text NOT NULL UNIQUE,
-     link       text UNIQUE,
-     first_name text DEFAULT '',
-     last_name  text DEFAULT '',
-     password   text NOT NULL,
-     sex        text DEFAULT '',
-     bio        text DEFAULT '',
-     status     text DEFAULT '',
-     birthday   text DEFAULT '',
-     avatar_id  int REFERENCES Photo(id) ON DELETE SET NULL,
-     last_active text,
-     is_deleted      boolean  NOT NULL                                 DEFAULT false,
-     dying_time      interval NOT NULL                                 DEFAULT INTERVAL '6 months',
-     access_to_posts text     NOT NULL                                 DEFAULT 'all',
-     PRIMARY KEY (id)
+CREATE TABLE userprofile
+(
+    id              serial,
+    email           text     NOT NULL UNIQUE,
+    link            text UNIQUE,
+    first_name      text              DEFAULT '',
+    last_name       text              DEFAULT '',
+    password        text     NOT NULL,
+    sex             text              DEFAULT '',
+    bio             text              DEFAULT '',
+    status          text              DEFAULT '',
+    birthday        text              DEFAULT '',
+    avatar_id       int      REFERENCES Photo (id) ON DELETE SET NULL,
+    last_active     text,
+    is_deleted      boolean  NOT NULL DEFAULT false,
+    dying_time      interval NOT NULL DEFAULT INTERVAL '6 months',
+    access_to_posts text     NOT NULL DEFAULT 'all',
+    PRIMARY KEY (id)
 );
 
 
@@ -154,7 +155,8 @@ CREATE TABLE Folder
 
 CREATE TABLE Chat
 (
-    id serial,
+    id             serial,
+    members_number int NOT NULL ,
     PRIMARY KEY (id)
 );
 
@@ -176,7 +178,7 @@ CREATE TABLE ChatMember
 (
     chat_id int REFERENCES Chat (id),
     user_id int REFERENCES UserProfile (id),
-    role    text
+    role    text DEFAULT 'member' CHECK ( role in ('member', 'admin') )
 );
 
 
@@ -226,11 +228,12 @@ CREATE TABLE Sticker
 );
 
 
-CREATE TABLE FriendRequests (
-    subscriber serial references userprofile(id),
-    subscribed serial references userprofile(id),
+CREATE TABLE FriendRequests
+(
+    subscriber   serial references userprofile (id),
+    subscribed   serial references userprofile (id),
     request_time text,
-    rejected boolean default false,
+    rejected     boolean default false,
     unique (subscriber, subscribed)
 )
 
