@@ -187,8 +187,8 @@ CREATE TABLE Message
     chat_id              int REFERENCES Chat (id),
     message_content_type text,
     text_content         text,
-    creation_date        date,
-    change_date          date,
+    creation_date        text,
+    change_date          text,
     reply_to             int REFERENCES Message (id),
 
     is_deleted           boolean NOT NULL DEFAULT false,

@@ -5,6 +5,7 @@ import (
 	"depeche/docs"
 	"depeche/internal/delivery/handlers"
 	"depeche/internal/delivery/middleware"
+	"depeche/internal/delivery/wsPool"
 	storage "depeche/internal/repository/local_storage"
 	"depeche/internal/repository/postgres"
 	httpserver "depeche/internal/server"
@@ -54,22 +55,30 @@ func Run() {
 	feedStorage := storage.NewFeedStorage()
 	postStorage := postgres.NewPostRepository(db)
 
+	msgStorage := postgres.NewMessageRepo(db)
+
 	userService := service.NewUserService(userStorage)
 	authService := authService.NewAuthService(sessionStorage)
 	feedService := service.NewFeedService(feedStorage)
 	fileService := staticService.NewFileUsecase()
 	postService := service.NewPostService(postStorage)
+	msgService := service.NewMessageService(msgStorage)
 
 	staticHandler := staticDelivery.NewFileHandler(fileService)
 	userHandler := handlers.NewUserHandler(userService, authService)
 	feedHandler := handlers.NewFeedHandler(feedService)
 	postHandler := handlers.NewPostHandler(postService)
+	msgHandler := handlers.NewMessageHandler(msgService)
 
-	handler := handlers.NewHandler(userHandler, feedHandler, postHandler, staticHandler)
+	handler := handlers.NewHandler(userHandler, feedHandler, postHandler, staticHandler, msgHandler)
 
 	authMiddleware := middleware.NewAuthMiddleware(authService)
 
-	router := initRouter(handler, authMiddleware)
+	pool := wsPool.NewConnectionPool()
+
+	wsMiddleware := middleware.NewWsMiddleware(pool, msgService)
+
+	router := initRouter(handler, authMiddleware, pool, wsMiddleware)
 	server := httpserver.NewServer(router)
 
 	err = server.ListenAndServe()
@@ -83,7 +92,7 @@ func initValidator() {
 	govalidator.SetFieldsRequiredByDefault(true)
 }
 
-func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware) *gin.Engine {
+func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, pool *wsPool.ConnectionPool, wsMiddleware *middleware.WsMiddleware) *gin.Engine {
 	router := gin.Default()
 	// [MIDDLEWARE]
 	router.Use(middleware.CORS())
@@ -151,6 +160,15 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware) *gi
 			// [REJECT]
 			userEndpoints.POST("/reject", handler.Reject)
 		}
+
+		// [MESSAGE]
+		messageEndpoints := apiEndpointsGroup.Group("/im")
+		{
+			messageEndpoints.POST("/send", handler.Send, wsMiddleware.SendMsg)
+		}
+
+		//[WS]
+		apiEndpointsGroup.GET("/ws", pool.Connect)
 
 	}
 	return router

@@ -210,3 +210,31 @@ var (
 		id = $2
 	`
 )
+
+var (
+	CreateMessage = `
+	insert into message
+	(user_id, chat_id, message_content_type, text_content, creation_date, reply_to)
+	values 
+	($1,$2,$3,$4,$5,$6)
+	returning (id, user_id, 
+	           chat_id, message_content_type, 
+	           text_content, creation_date, 
+	           reply_to, is_deleted)
+	`
+
+	GetMembersByChatId = `
+	select u.id, u.link, u.email,
+	    u.first_name, u.last_name, 
+		u.sex, u.bio, u.status,
+		u.birthday, u.last_active,
+		case when p.url is null
+                then ''
+            else p.url
+	end avatar
+	from chatmember cm join 
+	    userprofile u on cm.user_id = u.id
+	left join photo p on u.avatar_id = p.id
+	where cm.chat_id = $1
+	`
+)

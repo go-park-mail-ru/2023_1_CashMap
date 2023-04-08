@@ -7,13 +7,15 @@ type Handler struct {
 	*FeedHandler
 	*PostHandler
 	*staticDelivery.FileHandler
+	*MessageHandler
 }
 
-func NewHandler(userHandler *UserHandler, feedHandler *FeedHandler, postHandler *PostHandler, staticHandler *staticDelivery.FileHandler) Handler {
+func NewHandler(userHandler *UserHandler, feedHandler *FeedHandler, postHandler *PostHandler, staticHandler *staticDelivery.FileHandler, msgHandler *MessageHandler) Handler {
 	return Handler{
 		userHandler,
 		feedHandler,
 		postHandler,
 		staticHandler,
+		msgHandler,
 	}
 }
