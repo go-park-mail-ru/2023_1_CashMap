@@ -131,6 +131,22 @@ func (ur *UserRepository) GetSubscribers(user *entities.User, limit, offset int)
 	return users, nil
 }
 
+func (ur *UserRepository) GetUsers(limit, offset int) ([]*entities.User, error) {
+	var users []*entities.User
+	rows, err := ur.DB.Queryx(AllUsers, limit, offset)
+	if err != nil {
+		return nil, apperror.InternalServerError
+	}
+	for rows.Next() {
+		var user = &entities.User{}
+		if err := rows.StructScan(user); err != nil {
+			return nil, apperror.InternalServerError
+		}
+		users = append(users, user)
+	}
+	return users, nil
+}
+
 func (ur *UserRepository) Subscribe(subEmail, targetLink, requestTime string) (bool, error) {
 	_, err := ur.DB.Exec(Subscribe, subEmail, targetLink, requestTime)
 	if err != nil {

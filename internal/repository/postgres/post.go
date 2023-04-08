@@ -243,6 +243,5 @@ func getSliceFromRows[T any](rows *sqlx.Rows, size uint) ([]*T, error) {
 		it++
 		items = append(items, item)
 	}
-
 	return items, nil
 }

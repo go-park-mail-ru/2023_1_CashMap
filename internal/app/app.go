@@ -144,6 +144,7 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 				profileEndpoints.GET("", handler.Self)
 				profileEndpoints.GET("/:link", handler.Profile)
 				profileEndpoints.PATCH("/edit", handler.EditProfile)
+				profileEndpoints.GET("/all", handler.AllUsers)
 			}
 			// [FRIENDS]
 			userEndpoints.GET("/friends", handler.Friends)

@@ -21,6 +21,7 @@ type UserRepository interface {
 	GetSubscribes(user *entities.User, limit, offset int) ([]*entities.User, error)
 	GetSubscribers(user *entities.User, limit, offset int) ([]*entities.User, error)
 	GetPendingFriendRequests(user *entities.User, limit, offset int) ([]*dto.Profile, error)
+	GetUsers(limit, offset int) ([]*entities.User, error)
 
 	Subscribe(subEmail, targetLink, requestTime string) (bool, error)
 	Unsubscribe(userEmail, targetLink string) (bool, error)

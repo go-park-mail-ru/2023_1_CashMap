@@ -209,6 +209,20 @@ var (
 	where 
 		id = $2
 	`
+
+	AllUsers = `
+	select u.id, u.link, u.email,
+	    u.first_name, u.last_name, 
+		u.sex, u.bio, u.status,
+		u.birthday, u.last_active, 
+		case when p.url is null
+                then ''
+            else p.url
+           end avatar
+	from userprofile u 
+	left join photo p on u.avatar_id = p.id
+	limit $1 offset $2
+`
 )
 
 var (
