@@ -28,7 +28,6 @@ func (storage *MessageStorage) SaveMsg(message *dto.NewMessage) (*entities.Messa
 		message.ContentType,
 		message.Text,
 		utils.CurrentTimeString(),
-		utils.CurrentTimeString(),
 		message.ReplyTo).Scan(&msg.Id)
 
 	if err != nil {

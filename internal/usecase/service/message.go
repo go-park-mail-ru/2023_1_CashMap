@@ -28,7 +28,7 @@ func (service *MessageService) Send(email string, message *dto.NewMessage) (*ent
 	if err != nil {
 		return nil, err
 	}
-	*msg.Link = user.Link
+	msg.Link = &user.Link
 	return msg, nil
 }
 
