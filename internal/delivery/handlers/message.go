@@ -43,8 +43,18 @@ func (handler *MessageHandler) Send(ctx *gin.Context) {
 		_ = ctx.Error(apperror.BadRequest)
 		return
 	}
+	email, ok := ctx.Get("email")
+	if !ok {
+		_ = ctx.Error(apperror.NoAuth)
+		return
+	}
 
-	msg, err := handler.MessageUsecase.Send(request.Data)
+	e, ok := email.(string)
+	if !ok {
+		_ = ctx.Error(apperror.BadRequest)
+		return
+	}
+	msg, err := handler.MessageUsecase.Send(e, request.Data)
 	if err != nil {
 		_ = ctx.Error(err)
 	}

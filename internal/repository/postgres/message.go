@@ -41,7 +41,6 @@ func (storage *MessageStorage) SaveMsg(message *dto.NewMessage) (*entities.Messa
 		fmt.Println(err)
 		return nil, apperror.BadRequest
 	}
-	msg.Link = &message.Link
 	return msg, nil
 }
 

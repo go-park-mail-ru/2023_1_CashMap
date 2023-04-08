@@ -18,13 +18,18 @@ func NewMessageService(repo repository.MessageRepository, userRepo repository.Us
 	return &MessageService{repo, userRepo}
 }
 
-func (service *MessageService) Send(message *dto.NewMessage) (*entities.Message, error) {
-	user, err := service.UserRepository.GetUserByLink(message.Link)
+func (service *MessageService) Send(email string, message *dto.NewMessage) (*entities.Message, error) {
+	user, err := service.UserRepository.GetUserByEmail(email)
 	if err != nil {
 		return nil, err
 	}
 	message.UserId = user.ID
-	return service.MessageRepository.SaveMsg(message)
+	msg, err := service.MessageRepository.SaveMsg(message)
+	if err != nil {
+		return nil, err
+	}
+	*msg.Link = user.Link
+	return msg, nil
 }
 
 func (service *MessageService) GetMembersByChatId(chatId uint) ([]*entities.User, error) {

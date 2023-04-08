@@ -10,6 +10,6 @@ type MessageUsecase interface {
 	GetChatsList(senderEmail string, dto *dto.GetChatsDTO) ([]*entities.Chat, error)
 	CreateChat(senderEmail string, dto *dto.CreateChatDTO) (*entities.Chat, error)
 	HasDialog(senderEmail string, dto *dto.HasDialogDTO) (bool, error)
-	Send(message *dto.NewMessage) (*entities.Message, error)
+	Send(email string, message *dto.NewMessage) (*entities.Message, error)
 	GetMembersByChatId(chatId uint) ([]*entities.User, error)
 }
