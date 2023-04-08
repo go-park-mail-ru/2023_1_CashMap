@@ -5,7 +5,11 @@ import (
 	"depeche/internal/entities"
 )
 
-type Message interface {
+type MessageRepository interface {
+	SelectMessagesByChatID(senderEmail string, dto *dto.GetMessagesDTO) ([]*entities.Message, error)
+	SelectChats(senderEmail string, dto *dto.GetChatsDTO) ([]*entities.Chat, error)
+	CreateChat(senderEmail string, dto *dto.CreateChatDTO) (uint, error)
+	HasDialog(senderEmail string, dto *dto.HasDialogDTO) (bool, error)
 	SaveMsg(message *dto.NewMessage) (*entities.Message, error)
 	GetMembersByChatId(chatId uint) ([]*entities.User, error)
 }

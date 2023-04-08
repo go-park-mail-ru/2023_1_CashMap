@@ -6,8 +6,8 @@ type Handler struct {
 	*UserHandler
 	*FeedHandler
 	*PostHandler
-	*staticDelivery.FileHandler
 	*MessageHandler
+	*staticDelivery.FileHandler
 }
 
 func NewHandler(userHandler *UserHandler, feedHandler *FeedHandler, postHandler *PostHandler, staticHandler *staticDelivery.FileHandler, msgHandler *MessageHandler) Handler {
@@ -15,7 +15,7 @@ func NewHandler(userHandler *UserHandler, feedHandler *FeedHandler, postHandler 
 		userHandler,
 		feedHandler,
 		postHandler,
-		staticHandler,
 		msgHandler,
+		staticHandler,
 	}
 }

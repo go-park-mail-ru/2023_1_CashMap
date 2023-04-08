@@ -5,6 +5,6 @@ import (
 )
 
 func CurrentTimeString() string {
-	currentTime := time.Now().String()
+	currentTime := time.Now().Format(time.RFC3339)
 	return currentTime
 }

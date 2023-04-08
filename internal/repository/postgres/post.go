@@ -154,7 +154,8 @@ func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) 
 			return 0, errors.New("unknown profile link")
 		}
 	}
-	query, err := tx.PrepareNamed("INSERT INTO Post (community_id, author_id, owner_id, show_author, text_content, creation_date, change_date )" +
+
+	query, err := tx.PrepareNamed("INSERT INTO Post (community_id, author_id, owner_id, show_author, text_content, creation_date, change_date) " +
 		"VALUES (:community_id, (SELECT id FROM UserProfile WHERE email = :sender_email), :owner_id, :show_author, :text, :init_time, :change_time) RETURNING id")
 	if err != nil {
 		err := tx.Rollback()
@@ -165,7 +166,7 @@ func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) 
 	}
 
 	var postID uint
-	query.Get(&postID, map[string]interface{}{
+	err = query.Get(&postID, map[string]interface{}{
 		"owner_id":     ownerID,
 		"sender_email": senderEmail,
 		"community_id": communityID,
@@ -174,6 +175,9 @@ func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) 
 		"init_time":    currentTime,
 		"change_time":  currentTime,
 	})
+	if err != nil {
+		return 0, err
+	}
 
 	err = tx.Commit()
 	if err != nil {

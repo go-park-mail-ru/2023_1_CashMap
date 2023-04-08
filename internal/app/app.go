@@ -16,7 +16,6 @@ import (
 	"depeche/internal/usecase/service"
 	"depeche/pkg/connector"
 	"fmt"
-	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -44,33 +43,29 @@ func Run() {
 		log.Fatal(err)
 	}
 
-	//db, err := connector.ConnectPostgres(&cfg.DB)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-
 	sessionStorage := redis.NewRedisStorage(client)
 
 	userStorage := postgres.NewPostgresUserRepo(db)
 	feedStorage := storage.NewFeedStorage()
 	postStorage := postgres.NewPostRepository(db)
-
-	msgStorage := postgres.NewMessageRepo(db)
+	messageStorage := postgres.NewMessageRepository(db)
 
 	userService := service.NewUserService(userStorage)
 	authService := authService.NewAuthService(sessionStorage)
 	feedService := service.NewFeedService(feedStorage)
 	fileService := staticService.NewFileUsecase()
 	postService := service.NewPostService(postStorage)
-	msgService := service.NewMessageService(msgStorage, userStorage)
+
+	msgService := service.NewMessageService(messageStorage, userStorage)
 
 	staticHandler := staticDelivery.NewFileHandler(fileService)
 	userHandler := handlers.NewUserHandler(userService, authService)
 	feedHandler := handlers.NewFeedHandler(feedService)
 	postHandler := handlers.NewPostHandler(postService)
-	msgHandler := handlers.NewMessageHandler(msgService)
 
-	handler := handlers.NewHandler(userHandler, feedHandler, postHandler, staticHandler, msgHandler)
+	messageHandler := handlers.NewMessageHandler(msgService)
+
+	handler := handlers.NewHandler(userHandler, feedHandler, postHandler, staticHandler, messageHandler)
 
 	authMiddleware := middleware.NewAuthMiddleware(authService)
 
@@ -79,8 +74,10 @@ func Run() {
 	wsMiddleware := middleware.NewWsMiddleware(pool, msgService)
 
 	router := initRouter(handler, authMiddleware, pool, wsMiddleware)
-	server := httpserver.NewServer(router)
 
+	initValidator()
+
+	server := httpserver.NewServer(router)
 	err = server.ListenAndServe()
 	if err != nil {
 		fmt.Println(err)
@@ -89,7 +86,9 @@ func Run() {
 }
 
 func initValidator() {
-	govalidator.SetFieldsRequiredByDefault(true)
+	//govalidator.TagMap["required"] = govalidator.CustomTypeValidator(func(value interface{}, ctx interface{}) bool {
+	//	return repository.IsNil(value)
+	//})
 }
 
 func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, pool *wsPool.ConnectionPool, wsMiddleware *middleware.WsMiddleware) *gin.Engine {
@@ -119,13 +118,25 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 		// [FEED]
 		apiEndpointsGroup.GET("/feed", handler.GetFeed)
 
+		// [MESSAGE]
+		messageEndpointsGroup := apiEndpointsGroup.Group("/im")
+		{
+			messageEndpointsGroup.GET("/chats", handler.GetChats)
+			messageEndpointsGroup.GET("/messages", handler.GetMessagesByChatID)
+			messageEndpointsGroup.POST("/chat/create", handler.NewChat)
+			messageEndpointsGroup.GET("/chat/check", handler.HasDialog)
+		}
+
 		// [POST]
-		apiEndpointsGroup.GET("/posts/id", handler.GetPostsById)
-		apiEndpointsGroup.GET("/posts/community", handler.GetPostsByCommunityLink)
-		apiEndpointsGroup.GET("/posts/profile", handler.GetPostsByUserLink)
-		apiEndpointsGroup.DELETE("/posts/delete", handler.DeletePost)
-		apiEndpointsGroup.POST("/posts/create", handler.CreatePost)
-		apiEndpointsGroup.PATCH("/posts/edit", handler.EditPost)
+		postEndpoints := apiEndpointsGroup.Group("/posts")
+		{
+			postEndpoints.GET("/id", handler.GetPostsById)
+			postEndpoints.GET("/community", handler.GetPostsByCommunityLink)
+			postEndpoints.GET("/profile", handler.GetPostsByUserLink)
+			postEndpoints.DELETE("/delete", handler.DeletePost)
+			postEndpoints.POST("/create", handler.CreatePost)
+			postEndpoints.PATCH("/edit", handler.EditPost)
+		}
 
 		// [STATIC]
 		staticEndpointsGroup := apiEndpointsGroup.Group("/static")

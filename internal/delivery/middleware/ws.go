@@ -11,10 +11,10 @@ import (
 
 type WsMiddleware struct {
 	pool       *wsPool.ConnectionPool
-	msgService usecase.Message
+	msgService usecase.MessageUsecase
 }
 
-func NewWsMiddleware(pool *wsPool.ConnectionPool, msgService usecase.Message) *WsMiddleware {
+func NewWsMiddleware(pool *wsPool.ConnectionPool, msgService usecase.MessageUsecase) *WsMiddleware {
 	return &WsMiddleware{
 		pool:       pool,
 		msgService: msgService,
