@@ -147,6 +147,49 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/im/chats": {
+            "get": {
+                "description": "Get chats list",
+                "tags": [
+                    "Message"
+                ],
+                "summary": "Get chats",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Batch size",
+                        "name": "batch_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.GetChatsDTO"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/api/im/messages": {
             "get": {
                 "description": "Get messages batch by chatID sorted by date",
@@ -1542,6 +1585,9 @@ const docTemplate = `{
                 "is_deleted": {
                     "type": "boolean"
                 },
+                "link": {
+                    "type": "string"
+                },
                 "message_content_type": {
                     "type": "string"
                 },
@@ -1550,9 +1596,6 @@ const docTemplate = `{
                 },
                 "text_content": {
                     "type": "string"
-                },
-                "user_link": {
-                    "type": "string"
                 }
             }
         },
@@ -1560,6 +1603,12 @@ const docTemplate = `{
             "description": "All post information",
             "type": "object",
             "properties": {
+                "attachments": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "author_link": {
                     "type": "string"
                 },

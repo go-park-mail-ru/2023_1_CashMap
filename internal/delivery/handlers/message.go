@@ -106,7 +106,7 @@ func (handler *MessageHandler) NewChat(ctx *gin.Context) {
 //	@Failure		400
 //	@Failure		401
 //	@Failure		500
-//	@Router			/api/im/messages [get]
+//	@Router			/api/im/chats [get]
 func (handler *MessageHandler) GetChats(ctx *gin.Context) {
 	getChatsDTO := dto.GetChatsDTO{}
 	err := ctx.ShouldBind(&getChatsDTO)

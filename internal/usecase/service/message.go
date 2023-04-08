@@ -40,6 +40,11 @@ func (service *MessageService) GetMessagesByChatID(senderEmail string, dto *dto.
 		return nil, errors.New("invalid struct")
 	}
 
+	if dto.LastMessageDate == nil {
+		dto.LastMessageDate = new(string)
+		*dto.LastMessageDate = "0"
+	}
+
 	return service.MessageRepository.SelectMessagesByChatID(senderEmail, dto)
 }
 

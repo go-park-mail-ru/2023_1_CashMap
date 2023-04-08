@@ -28,6 +28,7 @@ func (storage *MessageStorage) SaveMsg(message *dto.NewMessage) (*entities.Messa
 		message.ContentType,
 		message.Text,
 		utils.CurrentTimeString(),
+		utils.CurrentTimeString(),
 		message.ReplyTo).Scan(&msg.Id)
 
 	if err != nil {
@@ -40,7 +41,7 @@ func (storage *MessageStorage) SaveMsg(message *dto.NewMessage) (*entities.Messa
 		fmt.Println(err)
 		return nil, apperror.BadRequest
 	}
-	msg.Link = message.Link
+	msg.Link = &message.Link
 	return msg, nil
 }
 
@@ -74,7 +75,7 @@ func (storage *MessageStorage) SelectMessagesByChatID(senderEmail string, dto *d
 		"FROM Message AS msg JOIN UserProfile AS author ON msg.user_id = author.id "+
 		"WHERE msg.chat_id = (SELECT id FROM Chat WHERE id = $1) AND msg.creation_date > $2 AND msg.is_deleted = false ORDER BY msg.creation_date DESC LIMIT $3",
 		dto.ChatID,
-		dto.LastPostDate,
+		dto.LastMessageDate,
 		dto.BatchSize)
 
 	if err != nil {

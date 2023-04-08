@@ -47,7 +47,7 @@ func (wm *WsMiddleware) SendMsg(ctx *gin.Context) {
 		_ = ctx.Error(apperror.BadRequest)
 	}
 
-	users, err := wm.msgService.GetMembersByChatId(msg.ChatId)
+	users, err := wm.msgService.GetMembersByChatId(*msg.ChatId)
 	if err != nil {
 		_ = ctx.Error(err)
 		return

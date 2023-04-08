@@ -10,9 +10,9 @@ type NewMessage struct {
 }
 
 type GetMessagesDTO struct {
-	ChatID       *uint   `form:"chat_id" json:"chat_id" valid:"required"`
-	BatchSize    *uint   `form:"batch_size" json:"batch_size"`
-	LastPostDate *string `form:"last_post_date" json:"last_post_date"`
+	ChatID          *uint   `form:"chat_id" json:"chat_id" valid:"required"`
+	BatchSize       *uint   `form:"batch_size" json:"batch_size"`
+	LastMessageDate *string `form:"last_msg_date" json:"last_msg_date"`
 }
 
 type CreateChatDTO struct {

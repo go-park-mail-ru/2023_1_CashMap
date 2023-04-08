@@ -228,7 +228,7 @@ var (
 var (
 	CreateMessage = `
 	insert into message
-	(user_id, chat_id, message_content_type, text_content, creation_date, reply_to)
+	(user_id, chat_id, message_content_type, text_content, creation_date, change_date, reply_to)
 	values 
 	($1,$2,$3,$4,$5,$6)
 	returning (id)
