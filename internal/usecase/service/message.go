@@ -102,14 +102,13 @@ func (service *MessageService) CreateChat(senderEmail string, dto *dto.CreateCha
 	}, err
 }
 
-func (service *MessageService) HasDialog(senderEmail string, dto *dto.HasDialogDTO) (bool, error) {
+func (service *MessageService) HasDialog(senderEmail string, dto *dto.HasDialogDTO) (*int, error) {
 	isValid, err := govalidator.ValidateStruct(dto)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 	if !isValid {
-		return false, errors.New("invalid struct")
+		return nil, errors.New("invalid struct")
 	}
-
 	return service.MessageRepository.HasDialog(senderEmail, dto)
 }

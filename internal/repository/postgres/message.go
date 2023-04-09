@@ -134,7 +134,7 @@ func (storage *MessageStorage) CreateChat(senderEmail string, dto *dto.CreateCha
 		if err != nil {
 			return 0, err
 		}
-		if exists {
+		if exists != nil {
 			return 0, errors.New("chat already exists")
 		}
 
@@ -173,17 +173,17 @@ func (storage *MessageStorage) CreateChat(senderEmail string, dto *dto.CreateCha
 	return uint(chatID), nil
 }
 
-func (storage *MessageStorage) HasDialog(senderEmail string, dto *dto.HasDialogDTO) (bool, error) {
-	exists, err := storage.isPersonalChatExists(senderEmail, *dto.UserLink)
+func (storage *MessageStorage) HasDialog(senderEmail string, dto *dto.HasDialogDTO) (*int, error) {
+	chatId, err := storage.isPersonalChatExists(senderEmail, *dto.UserLink)
 	if err != nil {
-		return false, nil
+		return nil, nil
 	}
 
-	if exists {
-		return true, nil
+	if chatId != nil {
+		return chatId, nil
 	}
 
-	return false, nil
+	return nil, nil
 }
 
 func (storage *MessageStorage) GetUsersInfoByChatID(chatID uint) ([]*entities.UserInfo, error) {
@@ -209,21 +209,21 @@ func (storage *MessageStorage) GetUserInfoByMessageId(messageID uint) (*entities
 	return senderInfo, nil
 }
 
-func (storage *MessageStorage) isPersonalChatExists(email string, userLink string) (bool, error) {
-	var exists bool
-	err := storage.db.Get(&exists, "WITH CommonChats AS (SELECT DISTINCT first.chat_id as chat_id FROM ChatMember first JOIN ChatMember second ON first.chat_id = second.chat_id "+
+func (storage *MessageStorage) isPersonalChatExists(email string, userLink string) (*int, error) {
+	var chatId *int
+	err := storage.db.Get(chatId, "WITH CommonChats AS (SELECT DISTINCT first.chat_id as chat_id FROM ChatMember first JOIN ChatMember second ON first.chat_id = second.chat_id "+
 		"WHERE first.user_id = (SELECT id FROM UserProfile WHERE link = $1) AND second.user_id = (SELECT id FROM UserProfile WHERE email = $2)) "+
-		"SELECT true as exists FROM Chat as chat JOIN CommonChats as common ON common.chat_id = chat.id WHERE chat.members_number = 2",
+		"SELECT chat.id as exists FROM Chat as chat JOIN CommonChats as common ON common.chat_id = chat.id WHERE chat.members_number = 2",
 		userLink,
 		email)
 	if err == sql.ErrNoRows {
-		return false, nil
+		return nil, nil
 	}
 	if err != nil {
-		return true, err
+		return nil, err
 	}
 
-	return true, nil
+	return chatId, nil
 }
 
 func (storage *MessageStorage) isChatMember(email string, chatID uint) (bool, error) {

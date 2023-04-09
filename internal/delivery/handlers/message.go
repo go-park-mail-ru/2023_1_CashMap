@@ -210,16 +210,25 @@ func (handler *MessageHandler) HasDialog(ctx *gin.Context) {
 		return
 	}
 
-	hasDialog, err := handler.MessageUsecase.HasDialog(email.(string), &hasDialogDTO)
+	chatId, err := handler.MessageUsecase.HasDialog(email.(string), &hasDialogDTO)
 	if err != nil {
 		fmt.Println(err)
 		_ = ctx.Error(apperror.InternalServerError)
 		return
 	}
-
+	if chatId != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"body": gin.H{
+				"has_dialog": true,
+				"chat_id":    *chatId,
+			},
+		})
+		return
+	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"body": gin.H{
-			"has_dialog": hasDialog,
+			"has_dialog": false,
 		},
 	})
+
 }
