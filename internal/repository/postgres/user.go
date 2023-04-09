@@ -221,6 +221,7 @@ func (ur *UserRepository) CreateUser(user *entities.User) (*entities.User, error
 
 func (ur *UserRepository) UpdateUser(email string, user *dto.EditProfile) (*entities.User, error) {
 	query := "update userprofile set "
+	// TODO: поправиить sql запрос
 	var fields []interface{}
 	for name, el := range structs.Map(user) {
 		field, ok := el.(*string)

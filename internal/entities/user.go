@@ -6,7 +6,7 @@ package entities
 type User struct {
 	ID         uint   `json:"-"           db:"id"`
 	Email      string `json:"email"       db:"email"`
-	Link       string `json:"user_link"        db:"link"`
+	Link       string `json:"user_link"   db:"link"`
 	Password   string `json:"-"           db:"password"`
 	FirstName  string `json:"first_name"  db:"first_name"`
 	LastName   string `json:"last_name"   db:"last_name"`

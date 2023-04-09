@@ -6,7 +6,6 @@ import (
 	"depeche/internal/repository"
 	"depeche/internal/usecase"
 	"errors"
-	"time"
 )
 
 type PostService struct {
@@ -34,6 +33,14 @@ func (service *PostService) GetPostById(email string, postDTO *dto.PostGetByID) 
 		return nil, err
 	}
 
+	owner, community, err := service.PostRepository.GetPostSenderInfo(post.OwnerLink, post.CommunityLink)
+	if err != nil {
+		return nil, err
+	}
+
+	post.OwnerInfo = owner
+	post.CommunityInfo = community
+
 	return post, nil
 }
 
@@ -52,6 +59,16 @@ func (service *PostService) GetPostsByCommunityLink(email string, dto *dto.Posts
 		return nil, err
 	}
 
+	for _, post := range posts {
+		owner, community, err := service.PostRepository.GetPostSenderInfo(post.OwnerLink, post.CommunityLink)
+		if err != nil {
+			return nil, err
+		}
+
+		post.OwnerInfo = owner
+		post.CommunityInfo = community
+	}
+
 	return posts, nil
 }
 
@@ -66,12 +83,22 @@ func (service *PostService) GetPostsByUserLink(email string, dto *dto.PostsGetBy
 	}
 
 	if dto.LastPostDate == "" {
-		dto.LastPostDate = time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC).String()
+		dto.LastPostDate = "0"
 	}
 
 	posts, err := service.PostRepository.SelectPostsByUserLink(dto)
 	if err != nil {
 		return nil, err
+	}
+
+	for _, post := range posts {
+		owner, community, err := service.PostRepository.GetPostSenderInfo(post.OwnerLink, post.CommunityLink)
+		if err != nil {
+			return nil, err
+		}
+
+		post.OwnerInfo = owner
+		post.CommunityInfo = community
 	}
 
 	return posts, nil

@@ -21,10 +21,31 @@ func NewPostRepository(db *sqlx.DB) repository.PostRepository {
 	}
 }
 
+func (storage *PostStorage) GetPostSenderInfo(ownerLink *string, communityLink *string) (*entities.OwnerInfo, *entities.CommunityInfo, error) {
+	var owner *entities.OwnerInfo
+	var community *entities.CommunityInfo
+	if ownerLink != nil {
+		owner = new(entities.OwnerInfo)
+		err := storage.db.Get(owner, "SELECT first_name, last_name, url"+
+			" FROM UserProfile as profile LEFT JOIN Photo as photo ON profile.avatar_id = photo.id WHERE profile.link = $1", ownerLink)
+		if err != nil {
+			return nil, nil, err
+		}
+	} else if communityLink != nil {
+		community = new(entities.CommunityInfo)
+		err := storage.db.Get(owner, "SELECT title, url FROM Community LEFT JOIN Photo as photo ON avatar_id = photo.id WHERE link = $1", communityLink)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	return owner, community, nil
+}
+
 func (storage *PostStorage) SelectPostById(postId uint) (*entities.Post, error) {
 	post := &entities.Post{}
-	tx, err := storage.db.Beginx()
-	err = tx.Get(post, "SELECT post.id, text_content, author.link as author_link, community.link as community_link, owner.link as owner_link, post.likes_amount, post.show_author, post.creation_date"+
+
+	err := storage.db.Get(post, "SELECT post.id, text_content, author.link as author_link, community.link as community_link, owner.link as owner_link, post.likes_amount, post.show_author, post.creation_date"+
 		" FROM Post AS post JOIN UserProfile AS author ON post.author_id = author.id"+
 		" LEFT JOIN Community as community on post.community_id = community.id"+
 		" LEFT JOIN UserProfile as owner ON post.owner_id = owner.id"+
@@ -42,7 +63,7 @@ func (storage *PostStorage) SelectPostById(postId uint) (*entities.Post, error) 
 func (storage *PostStorage) SelectPostsByCommunityLink(info *dto.PostsGetByLink) ([]*entities.Post, error) {
 	// больше тот, кто запощен позже
 	//TODO: NamedQueryx
-	rows, err := storage.db.Queryx("SELECT post.id, text_content, author.link as author_link, community.link as community_link, post.likes_amount, post.show_author, post.creation_date, post.change_date "+
+	rows, err := storage.db.Queryx("SELECT post.id, text_content, author.link as author_link, community.link as community_link, owner.link as owner_link, post.likes_amount, post.show_author, post.creation_date, post.change_date "+
 		"FROM Post AS post JOIN UserProfile AS author ON post.author_id = author.id "+
 		"LEFT JOIN Community as community on post.community_id = community.id "+
 		"WHERE post.community_id = (SELECT id FROM Community WHERE link = $1) AND post.creation_date > $2 AND post.is_deleted = false ORDER BY post.creation_date DESC LIMIT $3",

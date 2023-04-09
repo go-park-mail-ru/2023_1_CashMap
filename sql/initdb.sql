@@ -7,23 +7,24 @@ CREATE TABLE Photo
 );
 
 
-CREATE TABLE userprofile (
-     id         serial,
-     email      text NOT NULL UNIQUE,
-     link       text UNIQUE,
-     first_name text DEFAULT '',
-     last_name  text DEFAULT '',
-     password   text NOT NULL,
-     sex        text DEFAULT '',
-     bio        text DEFAULT '',
-     status     text DEFAULT '',
-     birthday   text DEFAULT '',
-     avatar_id  int REFERENCES Photo(id) ON DELETE SET NULL,
-     last_active text DEFAULT '',
-     is_deleted      boolean  NOT NULL                                 DEFAULT false,
-     dying_time      interval NOT NULL                                 DEFAULT INTERVAL '6 months',
-     access_to_posts text     NOT NULL                                 DEFAULT 'all',
-     PRIMARY KEY (id)
+CREATE TABLE userprofile
+(
+    id              serial,
+    email           text     NOT NULL UNIQUE,
+    link            text UNIQUE,
+    first_name      text              DEFAULT '',
+    last_name       text              DEFAULT '',
+    password        text     NOT NULL,
+    sex             text              DEFAULT '',
+    bio             text              DEFAULT '',
+    status          text              DEFAULT '',
+    birthday        text              DEFAULT '',
+    avatar_id       int      REFERENCES Photo (id) ON DELETE SET NULL,
+    last_active     text              DEFAULT '',
+    is_deleted      boolean  NOT NULL DEFAULT false,
+    dying_time      interval NOT NULL DEFAULT INTERVAL '6 months',
+    access_to_posts text     NOT NULL DEFAULT 'all',
+    PRIMARY KEY (id)
 
 );
 
@@ -48,6 +49,7 @@ CREATE TABLE Community
     id            serial,
     title         text    NOT NULL,
     link          text    NOT NULL UNIQUE,
+    avatar_id     int REFERENCES Photo (id),
     bio           text,
     privacy       text    NOT NULL DEFAULT 'open' CHECK ( privacy IN ('open', 'default', 'close') ),
     creation_date text    NOT NULL,
@@ -155,7 +157,7 @@ CREATE TABLE Folder
 CREATE TABLE Chat
 (
     id             serial,
-    members_number int NOT NULL ,
+    members_number int NOT NULL,
     PRIMARY KEY (id)
 );
 
@@ -175,7 +177,7 @@ CREATE TABLE GroupChat
 
 CREATE TABLE ChatMember
 (
-    chat_id int REFERENCES Chat (id) ON DELETE CASCADE ,
+    chat_id int REFERENCES Chat (id) ON DELETE CASCADE,
     user_id int REFERENCES UserProfile (id),
     role    text DEFAULT 'member' CHECK ( role in ('member', 'admin') )
 );
