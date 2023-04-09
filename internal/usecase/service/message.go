@@ -28,7 +28,14 @@ func (service *MessageService) Send(email string, message *dto.NewMessage) (*ent
 	if err != nil {
 		return nil, err
 	}
-	msg.Link = &user.Link
+
+	info, err := service.MessageRepository.GetUserInfoByMessageId(*msg.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	msg.SenderInfo = info
+
 	return msg, nil
 }
 
@@ -85,8 +92,13 @@ func (service *MessageService) CreateChat(senderEmail string, dto *dto.CreateCha
 	}
 
 	//TODO: доделать репу на запрос учатсников чата по id
+	usersInfo, err := service.MessageRepository.GetUsersInfoByChatID(chatID)
+	if err != nil {
+		return nil, err
+	}
 	return &entities.Chat{
 		ChatID: chatID,
+		Users:  usersInfo,
 	}, err
 }
 

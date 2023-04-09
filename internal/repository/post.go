@@ -10,7 +10,7 @@ type PostRepository interface {
 	SelectPostsByCommunityLink(info *dto.PostsGetByLink) ([]*entities.Post, error)
 	SelectPostsByUserLink(info *dto.PostsGetByLink) ([]*entities.Post, error)
 
-	GetPostSenderInfo(postID uint) (*entities.OwnerInfo, *entities.CommunityInfo, error)
+	GetPostSenderInfo(postID uint) (*entities.UserInfo, *entities.CommunityInfo, error)
 
 	CheckReadAccess(senderEmail string) (bool, error)
 	CheckWriteAccess(senderEmail string, info *dto.PostCreate) (bool, error)

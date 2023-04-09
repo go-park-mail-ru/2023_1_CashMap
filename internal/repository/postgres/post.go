@@ -21,8 +21,8 @@ func NewPostRepository(db *sqlx.DB) repository.PostRepository {
 	}
 }
 
-func (storage *PostStorage) GetPostSenderInfo(postID uint) (*entities.OwnerInfo, *entities.CommunityInfo, error) {
-	owner := &entities.OwnerInfo{}
+func (storage *PostStorage) GetPostSenderInfo(postID uint) (*entities.UserInfo, *entities.CommunityInfo, error) {
+	owner := &entities.UserInfo{}
 	err := storage.db.Get(owner, "SELECT first_name, last_name, url, link FROM Post as post"+
 		" JOIN UserProfile as profile ON post.author_id = profile.id"+
 		" LEFT JOIN Photo as photo ON profile.avatar_id = photo.id WHERE post.id = $1", postID)
