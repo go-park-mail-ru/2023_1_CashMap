@@ -71,7 +71,7 @@ func (storage *MessageStorage) SelectMessagesByChatID(senderEmail string, dto *d
 
 	rows, err := storage.db.Queryx("SELECT msg.id, msg.chat_id, text_content, author.link as link, msg.creation_date, msg.change_date, msg.reply_to, msg.is_deleted "+
 		"FROM Message AS msg JOIN UserProfile AS author ON msg.user_id = author.id "+
-		"WHERE msg.chat_id = (SELECT id FROM Chat WHERE id = $1) AND msg.creation_date > $2 AND msg.is_deleted = false ORDER BY msg.creation_date DESC LIMIT $3",
+		"WHERE msg.chat_id = (SELECT id FROM Chat WHERE id = $1) AND msg.creation_date > $2 AND msg.is_deleted = false ORDER BY msg.creation_date LIMIT $3",
 		dto.ChatID,
 		dto.LastMessageDate,
 		dto.BatchSize)

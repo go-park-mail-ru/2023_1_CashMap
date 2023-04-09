@@ -1443,9 +1443,6 @@ const docTemplate = `{
                 },
                 "text_content": {
                     "type": "string"
-                },
-                "user_link": {
-                    "type": "string"
                 }
             }
         },
@@ -1556,6 +1553,17 @@ const docTemplate = `{
                 }
             }
         },
+        "entities.CommunityInfo": {
+            "type": "object",
+            "properties": {
+                "title": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
         "entities.FileType": {
             "type": "string",
             "enum": [
@@ -1599,24 +1607,32 @@ const docTemplate = `{
                 }
             }
         },
+        "entities.OwnerInfo": {
+            "type": "object",
+            "properties": {
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
         "entities.Post": {
             "description": "All post information",
             "type": "object",
             "properties": {
-                "attachments": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "author_link": {
                     "type": "string"
                 },
                 "change_date": {
                     "type": "string"
                 },
-                "community_link": {
-                    "type": "string"
+                "community_info": {
+                    "$ref": "#/definitions/entities.CommunityInfo"
                 },
                 "creation_date": {
                     "type": "string"
@@ -1630,8 +1646,8 @@ const docTemplate = `{
                 "likes_amount": {
                     "type": "integer"
                 },
-                "owner_link": {
-                    "type": "string"
+                "owner_info": {
+                    "$ref": "#/definitions/entities.OwnerInfo"
                 },
                 "show_author": {
                     "type": "boolean"

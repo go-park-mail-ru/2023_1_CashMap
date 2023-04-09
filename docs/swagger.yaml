@@ -155,8 +155,6 @@ definitions:
         type: integer
       text_content:
         type: string
-      user_link:
-        type: string
     type: object
   dto.PostDelete:
     properties:
@@ -231,6 +229,13 @@ definitions:
           type: string
         type: array
     type: object
+  entities.CommunityInfo:
+    properties:
+      title:
+        type: string
+      url:
+        type: string
+    type: object
   entities.FileType:
     enum:
     - img
@@ -260,19 +265,24 @@ definitions:
       text_content:
         type: string
     type: object
+  entities.OwnerInfo:
+    properties:
+      first_name:
+        type: string
+      last_name:
+        type: string
+      url:
+        type: string
+    type: object
   entities.Post:
     description: All post information
     properties:
-      attachments:
-        items:
-          type: string
-        type: array
       author_link:
         type: string
       change_date:
         type: string
-      community_link:
-        type: string
+      community_info:
+        $ref: '#/definitions/entities.CommunityInfo'
       creation_date:
         type: string
       id:
@@ -281,8 +291,8 @@ definitions:
         type: boolean
       likes_amount:
         type: integer
-      owner_link:
-        type: string
+      owner_info:
+        $ref: '#/definitions/entities.OwnerInfo'
       show_author:
         type: boolean
       text_content:
