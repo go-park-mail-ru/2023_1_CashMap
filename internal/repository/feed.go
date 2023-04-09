@@ -1,11 +1,11 @@
 package repository
 
 import (
+	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
-	"time"
 )
 
 type FeedRepository interface {
-	GetFriendsPosts(user *entities.User, filterDateTime time.Time, postsNumber uint) ([]entities.Post, error)
-	GetGroupsPosts(user *entities.User, filterDateTime time.Time, postsNumber uint) ([]entities.Post, error)
+	GetFriendsPosts(email string, feedDTO *dto.FeedDTO) ([]*entities.Post, error)
+	GetGroupsPosts(email string, feedDTO *dto.FeedDTO) ([]*entities.Post, error)
 }
