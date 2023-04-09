@@ -148,6 +148,7 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 		}
 
 		// [USER]
+
 		userEndpoints := apiEndpointsGroup.Group("/user")
 		{
 			// [PROFILE]
@@ -158,12 +159,13 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 				profileEndpoints.PATCH("/edit", handler.EditProfile)
 
 			}
+			userEndpoints.GET("/rand", handler.RandomUsers)
 			// [FRIENDS]
-			userEndpoints.GET("/all", handler.AllUsers)
 			userEndpoints.GET("/friends", handler.Friends)
 
 			// [SUBSCRIBES]
 			userEndpoints.GET("/sub", handler.Subscribes)
+			userEndpoints.GET("/pending", handler.PendingRequests)
 
 			// [SUBSCRIBE]
 			userEndpoints.POST("/sub", handler.Subscribe)

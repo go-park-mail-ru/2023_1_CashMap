@@ -550,7 +550,7 @@ func (uh *UserHandler) Subscribes(ctx *gin.Context) {
 	})
 }
 
-func (uh *UserHandler) AllUsers(ctx *gin.Context) {
+func (uh *UserHandler) RandomUsers(ctx *gin.Context) {
 	limitQ := ctx.Query("limit")
 	offsetQ := ctx.Query("offset")
 
@@ -577,6 +577,49 @@ func (uh *UserHandler) AllUsers(ctx *gin.Context) {
 	}
 
 	users, err := uh.service.GetAllUsers(email, limit, offset)
+
+	profiles := make([]*dto.Profile, 0, len(users))
+
+	for _, user := range users {
+		profiles = append(profiles, dto.NewProfileFromUser(user))
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"body": gin.H{
+			"profiles": profiles,
+		},
+	})
+}
+
+func (uh *UserHandler) PendingRequests(ctx *gin.Context) {
+	limitQ := ctx.Query("limit")
+	offsetQ := ctx.Query("offset")
+
+	limit, err := strconv.Atoi(limitQ)
+	if err != nil {
+		_ = ctx.Error(apperror.BadRequest)
+		return
+	}
+	offset, err := strconv.Atoi(offsetQ)
+	if err != nil {
+		_ = ctx.Error(apperror.BadRequest)
+		return
+	}
+	e, ok := ctx.Get("email")
+	if !ok {
+		_ = ctx.Error(apperror.NoAuth)
+		return
+	}
+	email, ok := e.(string)
+	if !ok {
+		_ = ctx.Error(apperror.BadRequest)
+		return
+	}
+
+	users, err := uh.service.GetPendingRequestsByEmail(email, limit, offset)
+	if err != nil {
+		return
+	}
 
 	profiles := make([]*dto.Profile, 0, len(users))
 

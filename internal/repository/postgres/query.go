@@ -59,7 +59,8 @@ var (
 	  u.avatar_id = p.id
 	where
 	   f1.subscriber = $1
-	limit $2 offset $3
+	and u.id > $2
+	limit $3
 	`
 
 	SubscribesById = `
@@ -85,7 +86,8 @@ var (
             on u.avatar_id = p.id
 	where
     	f1 is null and f3.subscriber = $1
-	limit $2 offset $3
+	and u.id > $2
+	limit $3
 	`
 
 	SubscribersById = `
@@ -111,7 +113,9 @@ var (
             on u.avatar_id = p.id
 	where
     	f1 is null and f3.subscribed = $1
-	limit $2 offset $3
+	and u.id > $2
+	order by u.id
+	limit $3
 	`
 
 	PendingFriendRequestsById = `
@@ -137,7 +141,9 @@ var (
                   on u.avatar_id = p.id
 	where
     f1 is null and f3.subscribed = $1 and f3.rejected = false
-	limit $2 offset $3
+	and u.id > $2
+	order by u.id
+	limit $3
 	`
 
 	Subscribe = `
@@ -210,27 +216,82 @@ var (
 		id = $2
 	`
 
-	AllUsers = `
-	select u.id, u.link, u.email,
+	DeleteUser = `
+	update userprofile 
+	set is_deleted = true
+	where email = $1
+    returning id
+    `
+
+	RandomUsers = `
+	with subs as (
+    	select f.subscriber, f.subscribed
+    		from userprofile u
+        join friendrequests f
+            on u.id = f.subscribed or u.id = f.subscriber
+    	where u.email = $1
+	)
+	select
+       u.id, u.link, u.email,
        u.first_name, u.last_name,
        u.sex, u.bio, u.status,
        u.birthday, u.last_active,
-       case when p.url is null
-                then ''
-            else p.url
-           end avatar
-from userprofile u
-
-         left join photo p on u.avatar_id = p.id
-
-where u.id not in (select f1.subscribed id from friendrequests f1
-                                                    join friendrequests f2 on
+       case when
+           p.url is null
+       then
+           ''
+       else
+           p.url
+       end avatar
+	from userprofile u
+		left join photo p
+    		on u.avatar_id = p.id
+		left join subs s
+			on u.id = s.subscriber or u.id = s.subscribed
+	where
+    	s is null and
+    	u.id > $2
+	order by u.id
+	limit $3;
+`
+	// IsFriend returns true when $1 is subscribed on $2 and vice versa
+	IsFriend = `
+	select exists(select * from friendrequests f1
+    join friendrequests f2 on
             f1.subscribed = f2.subscriber and
             f2.subscribed = f1.subscriber
-                                                    join userprofile u3
-                                                         on f1.subscriber = u3.id where u3.email = $1)
-limit $2 offset $3;
+where f1.subscriber = $1 and f1.subscribed = $2)
+	`
+
+	// IsSubscriber returns true when $1 is subscribed on $2
+	IsSubscriber = `
+select exists(select * from friendrequests f1
+    left join friendrequests f2 on
+            f1.subscribed = f2.subscriber and
+            f2.subscribed = f1.subscriber
+where f1.subscriber = $1 and f1.subscribed = $2 and 
+      f2 is null)`
+
+	// IsSubscribed returns true when $2 is subscribed on $1 (rejected request)
+	IsSubscribed = `
+	select exists(select * from friendrequests f1
+    left join friendrequests f2 on
+            f1.subscribed = f2.subscriber and
+            f2.subscribed = f1.subscriber
+	where f1.subscriber = $2 and f1.subscribed = $1 and 
+	      f2 is null and
+	      f1.rejected)
 `
+	// HasPendingRequest returns true when $2 is subscribed on $1 (unseen yet request)
+	HasPendingRequest = `
+	select exists(select * from friendrequests f1
+    left join friendrequests f2 on
+            f1.subscribed = f2.subscriber and
+            f2.subscribed = f1.subscriber
+	where f1.subscriber = $2 and f1.subscribed = $1 and 
+	      f2 is null and
+	      not f1.rejected)
+	`
 )
 
 var (

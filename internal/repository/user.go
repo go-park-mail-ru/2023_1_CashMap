@@ -12,15 +12,10 @@ type UserRepository interface {
 	GetUserByLink(link string) (*entities.User, error)
 	GetUserByEmail(email string) (*entities.User, error)
 
-	GetAllFriends(user *entities.User) ([]*dto.Profile, error)
-	GetAllSubscribes(user *entities.User) ([]*dto.Profile, error)
-	GetAllSubscribers(user *entities.User) ([]*dto.Profile, error)
-	GetAllPendingFriendRequests(user *entities.User) ([]*dto.Profile, error)
-
 	GetFriends(user *entities.User, limit, offset int) ([]*entities.User, error)
 	GetSubscribes(user *entities.User, limit, offset int) ([]*entities.User, error)
 	GetSubscribers(user *entities.User, limit, offset int) ([]*entities.User, error)
-	GetPendingFriendRequests(user *entities.User, limit, offset int) ([]*dto.Profile, error)
+	GetPendingFriendRequests(user *entities.User, limit, offset int) ([]*entities.User, error)
 	GetUsers(email string, limit, offset int) ([]*entities.User, error)
 
 	Subscribe(subEmail, targetLink, requestTime string) (bool, error)
@@ -33,5 +28,5 @@ type UserRepository interface {
 
 	CreateUser(user *entities.User) (*entities.User, error)
 	UpdateUser(email string, user *dto.EditProfile) (*entities.User, error)
-	DeleteUser(email string, user *entities.User) error
+	DeleteUser(email string) error
 }

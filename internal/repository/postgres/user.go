@@ -85,7 +85,7 @@ func (ur *UserRepository) GetUserByEmail(email string) (*entities.User, error) {
 
 func (ur *UserRepository) GetFriends(user *entities.User, limit, offset int) ([]*entities.User, error) {
 	var users []*entities.User
-	rows, err := ur.DB.Queryx(FriendsById, user.ID, limit, offset)
+	rows, err := ur.DB.Queryx(FriendsById, user.ID, offset, limit)
 	if err != nil {
 		return nil, apperror.InternalServerError
 	}
@@ -101,7 +101,7 @@ func (ur *UserRepository) GetFriends(user *entities.User, limit, offset int) ([]
 
 func (ur *UserRepository) GetSubscribes(user *entities.User, limit, offset int) ([]*entities.User, error) {
 	var users []*entities.User
-	rows, err := ur.DB.Queryx(SubscribesById, user.ID, limit, offset)
+	rows, err := ur.DB.Queryx(SubscribesById, user.ID, offset, limit)
 	if err != nil {
 		return nil, apperror.InternalServerError
 	}
@@ -117,7 +117,7 @@ func (ur *UserRepository) GetSubscribes(user *entities.User, limit, offset int) 
 
 func (ur *UserRepository) GetSubscribers(user *entities.User, limit, offset int) ([]*entities.User, error) {
 	var users []*entities.User
-	rows, err := ur.DB.Queryx(SubscribersById, user.ID, limit, offset)
+	rows, err := ur.DB.Queryx(SubscribersById, user.ID, offset, limit)
 	if err != nil {
 		return nil, apperror.InternalServerError
 	}
@@ -133,7 +133,7 @@ func (ur *UserRepository) GetSubscribers(user *entities.User, limit, offset int)
 
 func (ur *UserRepository) GetUsers(email string, limit, offset int) ([]*entities.User, error) {
 	var users []*entities.User
-	rows, err := ur.DB.Queryx(AllUsers, email, limit, offset)
+	rows, err := ur.DB.Queryx(RandomUsers, email, offset, limit)
 	if err != nil {
 		return nil, apperror.InternalServerError
 	}
@@ -256,47 +256,73 @@ var mapNames = map[string]string{
 	"Birthday":    "birthday",
 }
 
-func (ur *UserRepository) DeleteUser(email string, user *entities.User) error {
-	//TODO implement me
-	panic("implement me")
+func (ur *UserRepository) DeleteUser(email string) error {
+	var id int
+	err := ur.DB.QueryRowx(DeleteUser, email).Scan(&id)
+	if err != nil {
+		return apperror.InternalServerError
+	}
+	return nil
 }
 
-func (ur *UserRepository) GetPendingFriendRequests(user *entities.User, limit, offset int) ([]*dto.Profile, error) {
-	//TODO implement me
-	panic("implement me")
+func (ur *UserRepository) GetPendingFriendRequests(user *entities.User, limit, offset int) ([]*entities.User, error) {
+	rows, err := ur.DB.Queryx(PendingFriendRequestsById, user.ID, offset, limit)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, apperror.InternalServerError
+	}
+
+	var profiles []*entities.User
+	for rows.Next() {
+		profile := &entities.User{}
+		err := rows.StructScan(profile)
+		if err != nil {
+			return nil, apperror.InternalServerError
+		}
+		profiles = append(profiles, profile)
+	}
+	return profiles, nil
+
 }
 
+// IsFriend returns true when user is subscribed on target and vice versa
 func (ur *UserRepository) IsFriend(user, target *entities.User) (bool, error) {
-	//TODO implement me
-	panic("implement me")
+	var isFriend bool
+	err := ur.DB.QueryRowx(IsFriend, user.ID, target.ID).Scan(&isFriend)
+	if err != nil {
+		return false, apperror.InternalServerError
+	}
+	return isFriend, nil
 }
 
+// IsSubscriber returns true when user is subscribed on target
 func (ur *UserRepository) IsSubscriber(user, target *entities.User) (bool, error) {
-	//TODO implement me
-	panic("implement me")
+	var isSub bool
+	err := ur.DB.QueryRowx(IsSubscriber, user.ID, target.ID).Scan(&isSub)
+	if err != nil {
+		return false, apperror.InternalServerError
+	}
+	return isSub, nil
 }
 
+// IsSubscribed returns true when target is subscribed on user (rejected request)
+func (ur *UserRepository) IsSubscribed(user, target *entities.User) (bool, error) {
+	var isSub bool
+	err := ur.DB.QueryRowx(IsSubscribed, user.ID, target.ID).Scan(&isSub)
+	if err != nil {
+		return false, apperror.InternalServerError
+	}
+	return isSub, nil
+}
+
+// HasPendingRequest returns true when target is subscribed on user (unseen yet request)
 func (ur *UserRepository) HasPendingRequest(user, target *entities.User) (bool, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (ur *UserRepository) GetAllFriends(user *entities.User) ([]*dto.Profile, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (ur *UserRepository) GetAllSubscribes(user *entities.User) ([]*dto.Profile, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (ur *UserRepository) GetAllSubscribers(user *entities.User) ([]*dto.Profile, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (ur *UserRepository) GetAllPendingFriendRequests(user *entities.User) ([]*dto.Profile, error) {
-	//TODO implement me
-	panic("implement me")
+	var pending bool
+	err := ur.DB.QueryRowx(HasPendingRequest, user.ID, target.ID).Scan(&pending)
+	if err != nil {
+		return false, apperror.InternalServerError
+	}
+	return pending, nil
 }

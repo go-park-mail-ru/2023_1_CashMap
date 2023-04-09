@@ -170,6 +170,19 @@ func (us *UserService) GetSubscribersByEmail(email string, limit, offset int) ([
 	return users, nil
 }
 
+func (us *UserService) GetPendingRequestsByEmail(email string, limit, offset int) ([]*entities.User, error) {
+	user, err := us.repo.GetUserByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+	users, err := us.repo.GetPendingFriendRequests(user, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
 func (us *UserService) GetFriendsByLink(requestEmail, targetLink string, limit, offset int) ([]*entities.User, error) {
 	user, err := us.getUser(targetLink)
 

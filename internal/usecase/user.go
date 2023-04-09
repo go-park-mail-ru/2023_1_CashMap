@@ -22,6 +22,7 @@ type User interface {
 	GetFriendsByEmail(email string, limit, offset int) ([]*entities.User, error)
 	GetSubscribesByEmail(email string, limit, offset int) ([]*entities.User, error)
 	GetSubscribersByEmail(email string, limit, offset int) ([]*entities.User, error)
+	GetPendingRequestsByEmail(email string, limit, offset int) ([]*entities.User, error)
 
 	GetFriendsByLink(requestEmail, targetLink string, limit, offset int) ([]*entities.User, error)
 	GetSubscribesByLink(requestEmail, targetLink string, limit, offset int) ([]*entities.User, error)
