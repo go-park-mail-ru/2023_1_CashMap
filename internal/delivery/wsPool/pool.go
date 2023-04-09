@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"net/http"
 	"sync"
 )
 
@@ -20,7 +21,11 @@ func NewConnectionPool() *ConnectionPool {
 		conns: make(map[string][]*websocket.Conn),
 		mx:    &sync.RWMutex{},
 		// TODO configure upgrader
-		upgrader: websocket.Upgrader{},
+		upgrader: websocket.Upgrader{
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+		},
 	}
 }
 
@@ -39,6 +44,16 @@ func (cp *ConnectionPool) Connect(ctx *gin.Context) {
 		return
 	}
 	cp.NewConnection(email, conn)
+
+	defer func(conn *websocket.Conn) {
+		err := conn.Close()
+		err = cp.RemoveConn(email, conn)
+		if err != nil {
+			_ = ctx.Error(err)
+			return
+		}
+	}(conn)
+
 	for {
 		fmt.Println("CONNECTED")
 		// TODO add read, set offline etc handling
@@ -56,12 +71,7 @@ func (cp *ConnectionPool) Connect(ctx *gin.Context) {
 			break
 		}
 	}
-	err = conn.Close()
-	err = cp.RemoveConn(email, conn)
-	if err != nil {
-		_ = ctx.Error(err)
-		return
-	}
+
 }
 
 func (cp *ConnectionPool) NewConnection(email string, conn *websocket.Conn) {
