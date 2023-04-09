@@ -18,24 +18,40 @@ func NewFeedStorage(db *sqlx.DB) repository.FeedRepository {
 }
 
 func (storage FeedStorage) GetFriendsPosts(email string, feedDTO *dto.FeedDTO) ([]*entities.Post, error) {
-	friendsQuery := `SELECT * FROM Post WHERE owner_id IN (select u.id from
+	friendsQuery := `SELECT  post.id, text_content, author.link as author_link, post.likes_amount, 
+        case when post.show_author is null then true else post.show_author end show_author, post.creation_date FROM Post post 
+                                                                join userprofile author on author.id = post.author_id  
+                                                                                                                   WHERE owner_id IN (select u.id from
     friendrequests f1
         join friendrequests f2 on
                 f1.subscribed = f2.subscriber and
                 f2.subscribed = f1.subscriber
         join userprofile u on
-            f1.subscribed = u.id
+            f1.subscribed = u.id                                                                                                                                                                                        
         where
-        f1.subscriber = (SELECT id FROM UserProfile WHERE email = $1))
+        f1.subscriber = (SELECT id FROM UserProfile WHERE email = $1)) and
+                       creation_date > $3
         order by creation_date desc
-        LIMIT $2 OFFSET $3`
+        LIMIT $2`
 
 	var posts []*entities.Post
-	err := storage.db.Select(posts, friendsQuery, email, feedDTO.BatchSize, feedDTO.LastPostDate)
+	rows, err := storage.db.Queryx(friendsQuery, email, feedDTO.BatchSize, feedDTO.LastPostDate)
 	if err != nil {
 		return nil, err
 	}
-
+	//for rows.Next() {
+	//	var post = &entities.Post{}
+	//	err := rows.StructScan(post)
+	//	if err != nil {
+	//		return nil, apperror.InternalServerError
+	//	}
+	//	fmt.Println(*post)
+	//	posts = append(posts, post)
+	//}
+	posts, err = getSliceFromRows[entities.Post](rows, feedDTO.BatchSize)
+	if err != nil {
+		return nil, err
+	}
 	return posts, err
 }
 

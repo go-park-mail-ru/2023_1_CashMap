@@ -5,6 +5,8 @@ import (
 	"depeche/internal/entities"
 	"depeche/internal/repository"
 	"depeche/internal/usecase"
+	"depeche/pkg/apperror"
+	"fmt"
 	"sort"
 )
 
@@ -19,6 +21,13 @@ func NewFeedService(feedRepository repository.FeedRepository) usecase.Feed {
 }
 
 func (feed *FeedService) CollectPosts(email string, dto *dto.FeedDTO) ([]*entities.Post, error) {
+	if dto.LastPostDate == "" {
+		dto.LastPostDate = "0"
+	}
+	fmt.Println(dto.BatchSize)
+	if dto.BatchSize == 0 {
+		return nil, apperror.BadRequest
+	}
 	friendsPosts, err := feed.repository.GetFriendsPosts(email, dto)
 	if err != nil {
 		return nil, err
