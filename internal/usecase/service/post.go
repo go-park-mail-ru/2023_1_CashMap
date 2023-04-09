@@ -33,7 +33,7 @@ func (service *PostService) GetPostById(email string, postDTO *dto.PostGetByID) 
 		return nil, err
 	}
 
-	owner, community, err := service.PostRepository.GetPostSenderInfo(post.OwnerLink, post.CommunityLink)
+	owner, community, err := service.PostRepository.GetPostSenderInfo(post.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (service *PostService) GetPostsByCommunityLink(email string, dto *dto.Posts
 	}
 
 	for _, post := range posts {
-		owner, community, err := service.PostRepository.GetPostSenderInfo(post.OwnerLink, post.CommunityLink)
+		owner, community, err := service.PostRepository.GetPostSenderInfo(post.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -92,7 +92,7 @@ func (service *PostService) GetPostsByUserLink(email string, dto *dto.PostsGetBy
 	}
 
 	for _, post := range posts {
-		owner, community, err := service.PostRepository.GetPostSenderInfo(post.OwnerLink, post.CommunityLink)
+		owner, community, err := service.PostRepository.GetPostSenderInfo(post.ID)
 		if err != nil {
 			return nil, err
 		}

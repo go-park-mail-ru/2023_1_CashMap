@@ -6,8 +6,6 @@ package entities
 type Post struct {
 	ID               uint           `db:"id" json:"id"`
 	AuthorLink       string         `db:"author_link" json:"author_link"`
-	CommunityLink    *string        `db:"community_link" json:"-"`
-	OwnerLink        *string        `db:"owner_link" json:"-"`
 	CommunityInfo    *CommunityInfo `db:"community_info" json:"community_info"`
 	OwnerInfo        *OwnerInfo     `db:"owner_info" json:"owner_info"`
 	ShouldShowAuthor bool           `db:"show_author" json:"show_author"`
@@ -23,9 +21,11 @@ type OwnerInfo struct {
 	FirstName *string `db:"first_name" json:"first_name"`
 	LastName  *string `db:"last_name" json:"last_name"`
 	AvatarUrl *string `db:"url" json:"url"`
+	Link      *string `db:"link" json:"link"`
 }
 
 type CommunityInfo struct {
 	Title     *string `db:"title" json:"title"`
 	AvatarUrl *string `db:"url" json:"url"`
+	Link      *string `db:"link" json:"link"`
 }
