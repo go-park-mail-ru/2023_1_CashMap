@@ -48,7 +48,6 @@ func (handler *MessageHandler) Send(ctx *gin.Context) {
 		_ = ctx.Error(apperror.NoAuth)
 		return
 	}
-
 	e, ok := email.(string)
 	if !ok {
 		_ = ctx.Error(apperror.BadRequest)
