@@ -5,13 +5,13 @@ import (
 	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
 	"depeche/internal/repository"
+	"depeche/internal/utils"
 	"depeche/pkg/apperror"
 	"fmt"
 	"github.com/jackc/pgerrcode"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"strings"
-	"time"
 
 	"github.com/fatih/structs"
 )
@@ -194,7 +194,7 @@ func (ur *UserRepository) CreateUser(user *entities.User) (*entities.User, error
 	}
 
 	var id uint
-	err = tx.QueryRowx(CreateUser, user.Email, user.Password, user.FirstName, user.LastName, time.Now().String()).Scan(&id)
+	err = tx.QueryRowx(CreateUser, user.Email, user.Password, user.FirstName, user.LastName, utils.CurrentTimeString()).Scan(&id)
 	if err != nil {
 		fmt.Println(err)
 		// TODO check
