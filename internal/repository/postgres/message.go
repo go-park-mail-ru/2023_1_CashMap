@@ -210,10 +210,10 @@ func (storage *MessageStorage) GetUserInfoByMessageId(messageID uint) (*entities
 }
 
 func (storage *MessageStorage) isPersonalChatExists(email string, userLink string) (*int, error) {
-	var chatId *int
-	err := storage.db.Get(chatId, "WITH CommonChats AS (SELECT DISTINCT first.chat_id as chat_id FROM ChatMember first JOIN ChatMember second ON first.chat_id = second.chat_id "+
-		"WHERE first.user_id = (SELECT id FROM UserProfile WHERE link = $1) AND second.user_id = (SELECT id FROM UserProfile WHERE email = $2)) "+
-		"SELECT chat.id as exists FROM Chat as chat JOIN CommonChats as common ON common.chat_id = chat.id WHERE chat.members_number = 2",
+	var chatId int
+	err := storage.db.Get(&chatId, `WITH CommonChats AS (SELECT DISTINCT first.chat_id as chat_id FROM ChatMember first JOIN ChatMember second ON first.chat_id = second.chat_id
+		WHERE first.user_id = (SELECT id FROM UserProfile WHERE link = $1) AND second.user_id = (SELECT id FROM UserProfile WHERE email = $2))
+		SELECT chat.id as chat_id FROM Chat as chat JOIN CommonChats as common ON common.chat_id = chat.id WHERE chat.members_number = 2`,
 		userLink,
 		email)
 	if err == sql.ErrNoRows {
@@ -223,7 +223,7 @@ func (storage *MessageStorage) isPersonalChatExists(email string, userLink strin
 		return nil, err
 	}
 
-	return chatId, nil
+	return &chatId, nil
 }
 
 func (storage *MessageStorage) isChatMember(email string, chatID uint) (bool, error) {
