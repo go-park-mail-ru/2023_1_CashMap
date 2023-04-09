@@ -6,7 +6,6 @@ import (
 	"depeche/internal/delivery/handlers"
 	"depeche/internal/delivery/middleware"
 	"depeche/internal/delivery/wsPool"
-	storage "depeche/internal/repository/local_storage"
 	"depeche/internal/repository/postgres"
 	httpserver "depeche/internal/server"
 	"depeche/internal/session/repository/redis"
@@ -46,7 +45,7 @@ func Run() {
 	sessionStorage := redis.NewRedisStorage(client)
 
 	userStorage := postgres.NewPostgresUserRepo(db)
-	feedStorage := storage.NewFeedStorage()
+	feedStorage := postgres.NewFeedStorage(db)
 	postStorage := postgres.NewPostRepository(db)
 	messageStorage := postgres.NewMessageRepository(db)
 
@@ -86,9 +85,9 @@ func Run() {
 }
 
 func initValidator() {
-	//govalidator.TagMap["required"] = govalidator.CustomTypeValidator(func(value interface{}, ctx interface{}) bool {
+	// govalidator.TagMap["required"] = govalidator.CustomTypeValidator(func(value interface{}, ctx interface{}) bool {
 	//	return repository.IsNil(value)
-	//})
+	// })
 }
 
 func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, pool *wsPool.ConnectionPool, wsMiddleware *middleware.WsMiddleware) *gin.Engine {
@@ -177,7 +176,7 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 			userEndpoints.POST("/reject", handler.Reject)
 		}
 
-		//[WS]
+		// [WS]
 		apiEndpointsGroup.GET("/ws", pool.Connect)
 
 	}

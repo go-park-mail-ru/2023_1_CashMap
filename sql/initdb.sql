@@ -229,7 +229,7 @@ CREATE TABLE Sticker
 );
 
 
-CREATE TABLE FriendRequests
+    CREATE TABLE FriendRequests
 (
     subscriber   serial references userprofile (id),
     subscribed   serial references userprofile (id),

@@ -1,12 +1,11 @@
 package handlers
 
 import (
-	"depeche/internal/entities"
+	"depeche/internal/delivery/dto"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"time"
 )
 
 type FeedHandler struct {
@@ -40,22 +39,14 @@ func (handler *FeedHandler) GetFeed(ctx *gin.Context) {
 		return
 	}
 
-	feedRequest := struct {
-		BatchSize    uint      `form:"batch_size"`
-		LastPostDate time.Time `form:"last_post_id"`
-	}{}
-
+	feedRequest := &dto.FeedDTO{}
 	err := ctx.ShouldBind(&feedRequest)
 	if err != nil {
 		_ = ctx.Error(apperror.BadRequest)
 		return
 	}
 
-	user := &entities.User{
-		Email: email.(string),
-	}
-
-	posts, err := handler.service.CollectPosts(user, feedRequest.LastPostDate, feedRequest.BatchSize)
+	posts, err := handler.service.CollectPosts(email.(string), feedRequest)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
