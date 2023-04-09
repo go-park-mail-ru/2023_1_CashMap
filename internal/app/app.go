@@ -51,7 +51,7 @@ func Run() {
 
 	userService := service.NewUserService(userStorage)
 	authService := authService.NewAuthService(sessionStorage)
-	feedService := service.NewFeedService(feedStorage)
+	feedService := service.NewFeedService(feedStorage, postStorage)
 	fileService := staticService.NewFileUsecase()
 	postService := service.NewPostService(postStorage)
 
