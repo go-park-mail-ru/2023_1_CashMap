@@ -565,7 +565,18 @@ func (uh *UserHandler) AllUsers(ctx *gin.Context) {
 		return
 	}
 
-	users, err := uh.service.GetAllUsers(limit, offset)
+	e, ok := ctx.Get("email")
+	if !ok {
+		_ = ctx.Error(apperror.NoAuth)
+		return
+	}
+	email, ok := e.(string)
+	if !ok {
+		_ = ctx.Error(apperror.BadRequest)
+		return
+	}
+
+	users, err := uh.service.GetAllUsers(email, limit, offset)
 
 	profiles := make([]*dto.Profile, 0, len(users))
 

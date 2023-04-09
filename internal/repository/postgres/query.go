@@ -212,16 +212,24 @@ var (
 
 	AllUsers = `
 	select u.id, u.link, u.email,
-	    u.first_name, u.last_name, 
-		u.sex, u.bio, u.status,
-		u.birthday, u.last_active, 
-		case when p.url is null
+       u.first_name, u.last_name,
+       u.sex, u.bio, u.status,
+       u.birthday, u.last_active,
+       case when p.url is null
                 then ''
             else p.url
            end avatar
-	from userprofile u 
-	left join photo p on u.avatar_id = p.id
-	limit $1 offset $2
+from userprofile u
+
+         left join photo p on u.avatar_id = p.id
+
+where u.id not in (select f1.subscribed id from friendrequests f1
+                                                    join friendrequests f2 on
+            f1.subscribed = f2.subscriber and
+            f2.subscribed = f1.subscriber
+                                                    join userprofile u3
+                                                         on f1.subscriber = u3.id where u3.email = $1)
+limit $2 offset $3;
 `
 )
 

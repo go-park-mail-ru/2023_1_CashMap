@@ -131,9 +131,9 @@ func (ur *UserRepository) GetSubscribers(user *entities.User, limit, offset int)
 	return users, nil
 }
 
-func (ur *UserRepository) GetUsers(limit, offset int) ([]*entities.User, error) {
+func (ur *UserRepository) GetUsers(email string, limit, offset int) ([]*entities.User, error) {
 	var users []*entities.User
-	rows, err := ur.DB.Queryx(AllUsers, limit, offset)
+	rows, err := ur.DB.Queryx(AllUsers, email, limit, offset)
 	if err != nil {
 		return nil, apperror.InternalServerError
 	}

@@ -32,9 +32,9 @@ func (storage *PostStorage) GetPostSenderInfo(postID uint) (*entities.UserInfo, 
 
 	// TODO: Может не работать
 	community := &entities.CommunityInfo{}
-	err = storage.db.Get(community, "SELECT title, url, link FROM Post as post"+
+	err = storage.db.Get(community, "SELECT community.title, community.link FROM Post as post"+
 		" JOIN Community as community ON post.community_id = community.id"+
-		" LEFT JOIN Photo as photo ON community.avatar_id = photo.id WHERE post.id = $1", postID)
+		"  WHERE post.id = $1", postID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			community = nil

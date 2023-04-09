@@ -11,7 +11,7 @@ type User interface {
 
 	GetProfileByEmail(email string) (*entities.User, error)
 	GetProfileByLink(email string, link string) (*entities.User, error)
-	GetAllUsers(limit, offset int) ([]*entities.User, error)
+	GetAllUsers(email string, limit, offset int) ([]*entities.User, error)
 
 	EditProfile(email string, profile *dto.EditProfile) error
 

@@ -78,8 +78,8 @@ func (us *UserService) GetProfileByLink(email string, link string) (*entities.Us
 	return user, nil
 }
 
-func (us *UserService) GetAllUsers(limit, offset int) ([]*entities.User, error) {
-	users, err := us.repo.GetUsers(limit, offset)
+func (us *UserService) GetAllUsers(email string, limit, offset int) ([]*entities.User, error) {
+	users, err := us.repo.GetUsers("", limit, offset)
 	if err != nil {
 		return nil, err
 	}
