@@ -251,6 +251,7 @@ var (
 	where
     	s is null and
     	u.id > $2
+		and u.email <> $1
 	order by u.id
 	limit $3;
 `
