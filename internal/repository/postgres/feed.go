@@ -30,7 +30,7 @@ func (storage FeedStorage) GetFriendsPosts(email string, feedDTO *dto.FeedDTO) (
             f1.subscribed = u.id                                                                                                                                                                                        
         where
         f1.subscriber = (SELECT id FROM UserProfile WHERE email = $1)) and
-                       creation_date > $3
+                       creation_date > $3 AND post.is_deleted = false
         order by creation_date desc
         LIMIT $2`
 
