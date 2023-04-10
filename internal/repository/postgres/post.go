@@ -214,6 +214,7 @@ func (storage *PostStorage) UpdatePost(senderEmail string, dto *dto.PostUpdate) 
 	var isAuthor bool
 	tx, err := storage.db.Beginx()
 	err = tx.Get(&isAuthor, "SELECT true FROM UserProfile AS profile JOIN Post as post ON profile.id = post.author_id WHERE post.id = $1 AND email = $2", dto.PostID, senderEmail)
+	fmt.Println(isAuthor)
 	if err != nil {
 		return err
 	}
