@@ -10,4 +10,5 @@ COPY --from=builder ./depeche-backend .
 
 EXPOSE 8080
 
+
 ENTRYPOINT ["./main"]
