@@ -1,4 +1,4 @@
-FROM golang:alpine AS builder
+pFROM golang:alpine AS builder
 WORKDIR /depeche-backend
 COPY . .
 

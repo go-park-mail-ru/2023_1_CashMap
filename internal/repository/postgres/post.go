@@ -213,7 +213,7 @@ func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) 
 func (storage *PostStorage) UpdatePost(senderEmail string, dto *dto.PostUpdate) error {
 	var isAuthor bool
 	tx, err := storage.db.Beginx()
-	err = tx.Get(&isAuthor, "SELECT true FROM UserProfile WHERE email = $1", senderEmail)
+	err = tx.Get(&isAuthor, "SELECT true FROM UserProfile AS profile JOIN Post as post ON profile.id = post.author_id WHERE post.id = $1 AND email = $2", dto.PostID, senderEmail)
 	if err != nil {
 		return err
 	}
