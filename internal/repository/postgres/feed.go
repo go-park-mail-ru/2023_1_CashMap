@@ -31,7 +31,7 @@ func (storage FeedStorage) GetFriendsPosts(email string, feedDTO *dto.FeedDTO) (
         where
         f1.subscriber = (SELECT id FROM UserProfile WHERE email = $1)) and
                        creation_date > $3
-        order by creation_date desc
+        order by creation_date
         LIMIT $2`
 
 	var posts []*entities.Post
