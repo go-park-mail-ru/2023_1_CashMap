@@ -50,8 +50,10 @@ func (cp *ConnectionPool) Connect(ctx *gin.Context) {
 		err = cp.RemoveConn(email, conn)
 		if err != nil {
 			//_ = ctx.Error(err)
+			ctx.Abort()
 			return
 		}
+		ctx.Abort()
 	}(conn)
 
 	for {
