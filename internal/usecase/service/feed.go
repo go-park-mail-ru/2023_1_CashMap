@@ -54,7 +54,7 @@ func (feed *FeedService) CollectPosts(email string, dto *dto.FeedDTO) ([]*entiti
 		}
 	}
 	sort.Slice(posts, func(i int, j int) bool {
-		return posts[i].CreationDate < posts[j].CreationDate
+		return posts[j].CreationDate < posts[i].CreationDate
 	})
 
 	if len(posts) >= int(dto.BatchSize) {
