@@ -49,7 +49,7 @@ func (cp *ConnectionPool) Connect(ctx *gin.Context) {
 		err := conn.Close()
 		err = cp.RemoveConn(email, conn)
 		if err != nil {
-			_ = ctx.Error(err)
+			//_ = ctx.Error(err)
 			return
 		}
 	}(conn)
@@ -61,11 +61,11 @@ func (cp *ConnectionPool) Connect(ctx *gin.Context) {
 		if err != nil {
 			err, ok := err.(*websocket.CloseError)
 			if !ok {
-				_ = ctx.Error(err)
+				//_ = ctx.Error(err)
 				return
 			}
 			if err.Code != websocket.CloseNormalClosure {
-				_ = ctx.Error(err)
+				//_ = ctx.Error(err)
 				return
 			}
 			break
