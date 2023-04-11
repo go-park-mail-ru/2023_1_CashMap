@@ -147,6 +147,24 @@ func (ur *UserRepository) GetUsers(email string, limit, offset int) ([]*entities
 	return users, nil
 }
 
+func (ur *UserRepository) UpdateAvatar(email string, url string) error {
+	err := ur.DB.QueryRowx(UpdateAvatar, url, email).Scan()
+	if err != nil {
+		return apperror.InternalServerError
+	}
+	return nil
+}
+
+func (ur *UserRepository) CheckLinkExists(link string) (bool, error) {
+	var exists bool
+	err := ur.DB.QueryRowx(CheckLink, link).Scan(&exists)
+	if err != nil {
+		return false, apperror.InternalServerError
+	}
+
+	return exists, nil
+}
+
 func (ur *UserRepository) Subscribe(subEmail, targetLink, requestTime string) (bool, error) {
 	_, err := ur.DB.Exec(Subscribe, subEmail, targetLink, requestTime)
 	if err != nil {

@@ -25,6 +25,7 @@ type EditProfile struct {
 	PreviousPassword *string `json:"prev_pass"`
 	FirstName        *string `json:"first_name"`
 	LastName         *string `json:"last_name"`
+	Avatar           *string `json:"avatar"`
 	Link             *string `json:"user_link"`
 	Sex              *string `json:"sex"`
 	Status           *string `json:"status"`

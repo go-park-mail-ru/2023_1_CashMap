@@ -5,6 +5,7 @@ import (
 	"depeche/internal/entities"
 	"depeche/internal/repository"
 	"depeche/internal/usecase"
+	"depeche/internal/utils"
 	"errors"
 )
 
@@ -123,6 +124,7 @@ func (service *PostService) CreatePost(email string, dto *dto.PostCreate) (*enti
 	if !hasAccess {
 		return nil, errors.New("access to posts denied")
 	}
+	dto = utils.Escaping(dto)
 	postID, err := service.PostRepository.CreatePost(email, dto)
 	if err != nil {
 		return nil, err

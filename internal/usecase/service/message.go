@@ -5,6 +5,7 @@ import (
 	"depeche/internal/entities"
 	"depeche/internal/repository"
 	"depeche/internal/usecase"
+	"depeche/internal/utils"
 	"errors"
 	"github.com/asaskevich/govalidator"
 )
@@ -24,16 +25,15 @@ func (service *MessageService) Send(email string, message *dto.NewMessage) (*ent
 		return nil, err
 	}
 	message.UserId = user.ID
+	message = utils.Escaping(message)
 	msg, err := service.MessageRepository.SaveMsg(message)
 	if err != nil {
 		return nil, err
 	}
-
 	info, err := service.MessageRepository.GetUserInfoByMessageId(*msg.Id)
 	if err != nil {
 		return nil, err
 	}
-
 	msg.SenderInfo = info
 
 	return msg, nil

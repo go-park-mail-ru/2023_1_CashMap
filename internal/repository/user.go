@@ -18,6 +18,10 @@ type UserRepository interface {
 	GetPendingFriendRequests(user *entities.User, limit, offset int) ([]*entities.User, error)
 	GetUsers(email string, limit, offset int) ([]*entities.User, error)
 
+	UpdateAvatar(email string, url string) error
+
+	CheckLinkExists(link string) (bool, error)
+
 	Subscribe(subEmail, targetLink, requestTime string) (bool, error)
 	Unsubscribe(userEmail, targetLink string) (bool, error)
 	RejectFriendRequest(userEmail, targetLink string) error

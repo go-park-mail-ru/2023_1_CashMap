@@ -255,6 +255,20 @@ var (
 	order by u.id
 	limit $3;
 `
+
+	CheckLink = `
+	select exists(select * from userprofile where link = $1 ) ex
+	`
+
+	UpdateAvatar = `
+	with inserted as (
+    insert into photo (url) values ($1)
+           returning id p_id
+	)
+	update userprofile u1
+	set avatar_id = av.p_id
+	from inserted av where u1.email = $2
+	`
 	// IsFriend returns true when $1 is subscribed on $2 and vice versa
 	IsFriend = `
 	select exists(select * from friendrequests f1
