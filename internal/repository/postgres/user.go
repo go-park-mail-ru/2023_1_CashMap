@@ -164,22 +164,31 @@ func (ur *UserRepository) Subscribe(subEmail, targetLink, requestTime string) (b
 }
 
 func (ur *UserRepository) Unsubscribe(userEmail, targetLink string) (bool, error) {
-	_, err := ur.DB.Queryx(Unsubscribe, userEmail, targetLink)
+	rows, err := ur.DB.Queryx(Unsubscribe, userEmail, targetLink)
+
 	if err != nil {
 		fmt.Println(err)
 		// TODO check subscribe conflict (repeated unsubscribe)
 		return false, apperror.InternalServerError
 	}
+	err = rows.Close()
+	if err != nil {
+		return false, err
+	}
 	return false, nil
 }
 
 func (ur *UserRepository) RejectFriendRequest(userEmail, targetLink string) error {
-	_, err := ur.DB.Queryx(Unsubscribe, userEmail, targetLink)
+	rows, err := ur.DB.Queryx(Unsubscribe, userEmail, targetLink)
 	if err != nil {
 		fmt.Println(err)
 		// TODO check
 		return apperror.InternalServerError
 
+	}
+	err = rows.Close()
+	if err != nil {
+		return apperror.InternalServerError
 	}
 	return nil
 }
@@ -236,11 +245,18 @@ func (ur *UserRepository) UpdateUser(email string, user *dto.EditProfile) (*enti
 	query = strings.TrimSuffix(query, ", ")
 	query += fmt.Sprintf(" where email = $%d", len(fields)+1)
 	fields = append(fields, email)
-	_, err := ur.DB.Queryx(query, fields...)
+	fmt.Println(query)
+	rows, err := ur.DB.Queryx(query, fields...)
 	if err != nil {
 		fmt.Println(err)
 		return nil, apperror.InternalServerError
 	}
+
+	err = rows.Close()
+	if err != nil {
+		return nil, err
+	}
+
 	return nil, nil
 }
 
