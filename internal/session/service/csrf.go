@@ -4,7 +4,9 @@ import (
 	"depeche/internal/session"
 	"depeche/internal/session/repository"
 	"depeche/pkg/apperror"
+	"fmt"
 	"github.com/google/uuid"
+	"time"
 )
 
 type CSRFUsecase interface {
@@ -32,7 +34,10 @@ func (service *CSRFService) CreateCSRFToken(email string) (string, error) {
 		Token: id.String(),
 	}
 
-	err = service.repository.SaveCSRFToken(csrf)
+	expirationTime := int((time.Hour * 24).Minutes())
+	fmt.Println(expirationTime)
+
+	err = service.repository.SaveCSRFToken(csrf, expirationTime)
 	if err != nil {
 		return "", err
 	}
@@ -52,12 +57,9 @@ func (service *CSRFService) InvalidateCSRFToken(csrf *session.CSRF) error {
 func (service *CSRFService) ValidateCSRFToken(csrf *session.CSRF) (bool, error) {
 	success, err := service.repository.CheckCSRFToken(csrf)
 	if err != nil {
+		fmt.Println(err)
 		return false, apperror.Forbidden
 	}
 
-	if !success {
-		return false, apperror.Forbidden
-	}
-
-	return true, nil
+	return success, nil
 }

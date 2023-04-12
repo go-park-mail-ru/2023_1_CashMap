@@ -11,7 +11,7 @@ type SessionRepository interface {
 }
 
 type CSRFRepository interface {
-	SaveCSRFToken(csrf *session.CSRF) error
+	SaveCSRFToken(csrf *session.CSRF, expirationTime int) error
 	CheckCSRFToken(csrf *session.CSRF) (bool, error)
 	DeleteCSRFToken(csrf *session.CSRF) error
 }

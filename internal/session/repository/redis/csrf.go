@@ -5,12 +5,7 @@ import (
 	"depeche/internal/session/repository"
 	"depeche/pkg/apperror"
 	"github.com/go-redis/redis"
-	"time"
 )
-
-var CSRF_TOKENS_HASH_MAP = "csrf"
-
-var EXPIRATION_TIME = time.Second
 
 type CSRFStorage struct {
 	client *redis.Client
@@ -20,9 +15,8 @@ func NewCSRFStorage(client *redis.Client) repository.CSRFRepository {
 	return &CSRFStorage{client}
 }
 
-// TODO: продумать нормальную эксприацию
-func (storage *CSRFStorage) SaveCSRFToken(csrf *session.CSRF) error {
-	_, err := storage.client.Do("HSET", CSRF_TOKENS_HASH_MAP, csrf.Token, csrf.Email).Result()
+func (storage *CSRFStorage) SaveCSRFToken(csrf *session.CSRF, expirationTime int) error {
+	_, err := storage.client.Do("SET", csrf.Token, csrf.Email, "EX", EXPIRATION_TIME).Result()
 	if err != nil {
 		return err
 	}
@@ -31,11 +25,13 @@ func (storage *CSRFStorage) SaveCSRFToken(csrf *session.CSRF) error {
 }
 
 func (storage *CSRFStorage) CheckCSRFToken(csrf *session.CSRF) (bool, error) {
-	email, err := storage.client.HGet(CSRF_TOKENS_HASH_MAP, csrf.Token).Result()
-	if err != nil {
-		return false, apperror.NoAuth
+	email, err := storage.client.Get(csrf.Token).Result()
+	if err == redis.Nil {
+		return false, nil
 	}
-	// TODO: ОТСЛЕДИТЬ, ЧТО ТАКОЙ ЗАПИСИ БОЛЬШЕ НЕТ И ВЕРНУТЬ ФАЛСЕ БЕЗ ОШИБКИ
+	if err != nil {
+		return false, apperror.InternalServerError
+	}
 
 	if email != csrf.Email {
 		return false, apperror.NoAuth
@@ -45,7 +41,8 @@ func (storage *CSRFStorage) CheckCSRFToken(csrf *session.CSRF) (bool, error) {
 }
 
 func (storage *CSRFStorage) DeleteCSRFToken(csrf *session.CSRF) error {
-	email, err := storage.client.HGet(CSRF_TOKENS_HASH_MAP, csrf.Token).Result()
+	//  Проверка, что удаляем не чужой токен
+	email, err := storage.client.Get(csrf.Token).Result()
 	if err != nil {
 		return apperror.Forbidden
 	}
@@ -54,7 +51,7 @@ func (storage *CSRFStorage) DeleteCSRFToken(csrf *session.CSRF) error {
 		return apperror.Forbidden
 	}
 
-	_, err = storage.client.Do("HDEL", CSRF_TOKENS_HASH_MAP, csrf.Token).Result()
+	_, err = storage.client.Del(csrf.Token).Result()
 	if err != nil {
 		return err
 	}

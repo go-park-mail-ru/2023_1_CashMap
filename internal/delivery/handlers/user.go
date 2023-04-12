@@ -235,6 +235,8 @@ func (uh *UserHandler) CheckAuth(ctx *gin.Context) {
 
 	success, err := uh.csrfService.ValidateCSRFToken(csrf)
 	if err != nil {
+		fmt.Println("no")
+		fmt.Println(err)
 		_ = ctx.Error(apperror.Forbidden)
 		return
 	}
