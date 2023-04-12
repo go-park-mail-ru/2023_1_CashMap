@@ -200,9 +200,8 @@ func TestUserRepository_GetUserByLink(t *testing.T) {
 
 func TestUserRepository_UpdateUser(t *testing.T) {
 	type dbBehaviour struct {
-		orderIDs []driver.Value
-		data     *sqlmock.Rows
-		error    error
+		data  *sqlmock.Rows
+		error error
 	}
 	tests := []struct {
 		name  string

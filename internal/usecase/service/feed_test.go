@@ -47,7 +47,7 @@ func TestFeedService_CollectPosts(t *testing.T) {
 			},
 
 			SetupPostMock: func(repo *mock_repository.MockPostRepository) {
-				for ind, _ := range somePosts {
+				for ind := range somePosts {
 					repo.EXPECT().GetPostSenderInfo(uint(ind)+1).Return(nil, nil, nil)
 				}
 
@@ -74,7 +74,7 @@ func TestFeedService_CollectPosts(t *testing.T) {
 			},
 
 			SetupPostMock: func(repo *mock_repository.MockPostRepository) {
-				for ind, _ := range somePosts {
+				for ind := range somePosts {
 					repo.EXPECT().GetPostSenderInfo(uint(ind)+1).Return(nil, nil, nil)
 				}
 

@@ -28,7 +28,7 @@ func (storage *PostStorage) GetPostSenderInfo(postID uint) (*entities.UserInfo, 
 		" JOIN UserProfile as profile ON post.author_id = profile.id"+
 		" LEFT JOIN Photo as photo ON profile.avatar_id = photo.id WHERE post.id = $1", postID)
 	if err == sql.ErrNoRows {
-		return nil, nil, apperror.NewServerError(apperror.PostNotFound, errors.New(fmt.Sprintf("post with id=%d not found", postID)))
+		return nil, nil, apperror.NewServerError(apperror.PostNotFound, fmt.Errorf("post with id=%d not found", postID))
 	}
 
 	if err != nil {
@@ -60,7 +60,7 @@ func (storage *PostStorage) SelectPostById(postId uint) (*entities.Post, error) 
 		" LEFT JOIN UserProfile as owner ON post.owner_id = owner.id"+
 		" WHERE post.id = $1 AND post.is_deleted = false", postId)
 	if err == sql.ErrNoRows {
-		return nil, apperror.NewServerError(apperror.PostNotFound, errors.New(fmt.Sprintf("post with id=%d not found", postId)))
+		return nil, apperror.NewServerError(apperror.PostNotFound, fmt.Errorf("post with id=%d not found", postId))
 	}
 	if err != nil {
 		return nil, apperror.NewServerError(apperror.InternalServerError, err)
@@ -125,7 +125,7 @@ func (storage *PostStorage) CheckWriteAccess(senderEmail string, dto *dto.PostCr
 		var accessType string
 		err := storage.db.Get(&accessType, "SELECT access_to_posts FROM UserProfile WHERE link = $1", dto.OwnerLink)
 		if err == sql.ErrNoRows {
-			return false, apperror.NewServerError(apperror.UserNotFound, errors.New(fmt.Sprintf("user with link=%s not found", *dto.OwnerLink)))
+			return false, apperror.NewServerError(apperror.UserNotFound, fmt.Errorf("user with link=%s not found", *dto.OwnerLink))
 		}
 		if err != nil {
 			return false, apperror.NewServerError(apperror.InternalServerError, err)
@@ -176,7 +176,7 @@ func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) 
 			if err := tx.Rollback(); err != nil {
 				return 0, err
 			}
-			return 0, apperror.NewServerError(apperror.UserNotFound, errors.New(fmt.Sprintf("user with link \"%s\" not found", *dto.OwnerLink)))
+			return 0, apperror.NewServerError(apperror.UserNotFound, fmt.Errorf("user with link \"%s\" not found", *dto.OwnerLink))
 		}
 		if err != nil {
 			return 0, apperror.NewServerError(apperror.InternalServerError, err)
