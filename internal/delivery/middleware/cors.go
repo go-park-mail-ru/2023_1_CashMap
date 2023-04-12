@@ -12,7 +12,7 @@ func CORS() gin.HandlerFunc {
 	corsConfig.AllowHeaders = []string{"Content-Type", "Origin", "X-Csrf-Token", "Access-Control-Expose-Headers"}
 	corsConfig.AllowOrigins = []string{"http://95.163.212.121:8000", "http://95.163.212.121:8080", "http://95.163.212.121:80",
 		"http://127.0.0.1:8000", "http://127.0.0.1:8080"}
-	corsConfig.ExposeHeaders = []string{"Access-Control-Expose-Headers"}
+	corsConfig.ExposeHeaders = []string{"X-Csrf-Token"}
 
 	return cors.New(corsConfig)
 }
