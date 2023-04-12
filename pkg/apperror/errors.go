@@ -16,6 +16,12 @@ var (
 var (
 	UserAlreadyExists = errors.New("user already exists")
 	UserNotFound      = errors.New("user not found")
+	PostNotFound      = errors.New("post with given id not found")
+	CommunityNotFound = errors.New("community not found")
+)
+
+var (
+	PostEditingNowAllowed = errors.New("post editing is not allowed")
 )
 
 var (

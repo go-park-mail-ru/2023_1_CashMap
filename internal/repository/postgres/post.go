@@ -6,6 +6,7 @@ import (
 	"depeche/internal/entities"
 	"depeche/internal/repository"
 	"depeche/internal/utils"
+	"depeche/pkg/apperror"
 	"errors"
 	"fmt"
 	"github.com/jmoiron/sqlx"
@@ -22,12 +23,16 @@ func NewPostRepository(db *sqlx.DB) repository.PostRepository {
 }
 
 func (storage *PostStorage) GetPostSenderInfo(postID uint) (*entities.UserInfo, *entities.CommunityInfo, error) {
-	owner := &entities.UserInfo{}
-	err := storage.db.Get(owner, "SELECT first_name, last_name, url, link FROM Post as post"+
+	author := &entities.UserInfo{}
+	err := storage.db.Get(author, "SELECT first_name, last_name, url, link FROM Post as post"+
 		" JOIN UserProfile as profile ON post.author_id = profile.id"+
 		" LEFT JOIN Photo as photo ON profile.avatar_id = photo.id WHERE post.id = $1", postID)
+	if err == sql.ErrNoRows {
+		return nil, nil, apperror.NewServerError(apperror.PostNotFound, errors.New(fmt.Sprintf("post with id=%d not found", postID)))
+	}
+
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
 	// TODO: Может не работать
@@ -39,11 +44,11 @@ func (storage *PostStorage) GetPostSenderInfo(postID uint) (*entities.UserInfo, 
 		if err == sql.ErrNoRows {
 			community = nil
 		} else {
-			return nil, nil, err
+			return nil, nil, apperror.NewServerError(apperror.InternalServerError, err)
 		}
 	}
 
-	return owner, community, nil
+	return author, community, nil
 }
 
 func (storage *PostStorage) SelectPostById(postId uint) (*entities.Post, error) {
@@ -55,10 +60,10 @@ func (storage *PostStorage) SelectPostById(postId uint) (*entities.Post, error) 
 		" LEFT JOIN UserProfile as owner ON post.owner_id = owner.id"+
 		" WHERE post.id = $1 AND post.is_deleted = false", postId)
 	if err == sql.ErrNoRows {
-		return nil, errors.New("not found")
+		return nil, apperror.NewServerError(apperror.PostNotFound, errors.New(fmt.Sprintf("post with id=%d not found", postId)))
 	}
 	if err != nil {
-		return nil, err
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
 	return post, nil
@@ -75,12 +80,12 @@ func (storage *PostStorage) SelectPostsByCommunityLink(info *dto.PostsGetByLink)
 		info.LastPostDate,
 		info.BatchSize)
 	if err != nil {
-		return nil, err
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
 	posts, err := getSliceFromRows[entities.Post](rows, info.BatchSize)
 	if err != nil {
-		return nil, err
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 	return posts, nil
 }
@@ -95,12 +100,12 @@ func (storage *PostStorage) SelectPostsByUserLink(info *dto.PostsGetByLink) ([]*
 		info.LastPostDate,
 		info.BatchSize)
 	if err != nil {
-		return nil, err
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
 	posts, err := getSliceFromRows[entities.Post](rows, info.BatchSize)
 	if err != nil {
-		return nil, err
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
 	return posts, nil
@@ -120,10 +125,10 @@ func (storage *PostStorage) CheckWriteAccess(senderEmail string, dto *dto.PostCr
 		var accessType string
 		err := storage.db.Get(&accessType, "SELECT access_to_posts FROM UserProfile WHERE link = $1", dto.OwnerLink)
 		if err == sql.ErrNoRows {
-			return false, errors.New("not found")
+			return false, apperror.NewServerError(apperror.UserNotFound, errors.New(fmt.Sprintf("user with link=%s not found", *dto.OwnerLink)))
 		}
 		if err != nil {
-			return false, err
+			return false, apperror.NewServerError(apperror.InternalServerError, err)
 		}
 
 		switch accessType {
@@ -133,7 +138,7 @@ func (storage *PostStorage) CheckWriteAccess(senderEmail string, dto *dto.PostCr
 			//TODO: проверка на друзей.....
 			return true, nil
 		default:
-			return false, errors.New("error in db record")
+			return false, apperror.NewServerError(apperror.InternalServerError, errors.New(fmt.Sprintf("error in db record: invalid access type \"%s\"", accessType)))
 		}
 	}
 
@@ -156,12 +161,12 @@ func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) 
 		if err == sql.ErrNoRows {
 			// Неизвестый link сообщества
 			if err := tx.Rollback(); err != nil {
-				return 0, err
+				return 0, apperror.NewServerError(apperror.InternalServerError, err)
 			}
-			return 0, errors.New("unknown community link")
+			return 0, apperror.NewServerError(apperror.CommunityNotFound, errors.New(fmt.Sprintf("community with link \"%s\" not found", *dto.CommunityLink)))
 		}
 		if err != nil {
-			return 0, err
+			return 0, apperror.NewServerError(apperror.InternalServerError, err)
 		}
 	} else if dto.OwnerLink != nil {
 		ownerID = new(uint)
@@ -171,10 +176,10 @@ func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) 
 			if err := tx.Rollback(); err != nil {
 				return 0, err
 			}
-			return 0, errors.New("unknown profile link")
+			return 0, apperror.NewServerError(apperror.UserNotFound, errors.New(fmt.Sprintf("user with link \"%s\" not found", *dto.OwnerLink)))
 		}
 		if err != nil {
-			return 0, err
+			return 0, apperror.NewServerError(apperror.InternalServerError, err)
 		}
 
 	}
@@ -183,9 +188,9 @@ func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) 
 		"VALUES (:community_id, (SELECT id FROM UserProfile WHERE email = :sender_email), :owner_id, :show_author, :text, :init_time, :change_time) RETURNING id")
 	if err != nil {
 		if err := tx.Rollback(); err != nil {
-			return 0, err
+			return 0, apperror.NewServerError(apperror.InternalServerError, err)
 		}
-		return 0, err
+		return 0, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
 	var postID uint
@@ -198,13 +203,16 @@ func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) 
 		"init_time":    currentTime,
 		"change_time":  currentTime,
 	})
+	if err == sql.ErrNoRows {
+		return 0, apperror.NewServerError(apperror.InternalServerError, errors.New("just created post not found"))
+	}
 	if err != nil {
-		return 0, err
+		return 0, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return 0, err
+		return 0, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
 	// TODO: может выстрелить в ногу
@@ -215,16 +223,18 @@ func (storage *PostStorage) UpdatePost(senderEmail string, dto *dto.PostUpdate) 
 	var isAuthor bool
 	tx, err := storage.db.Beginx()
 	if err != nil {
-		return err
+		return apperror.NewServerError(apperror.InternalServerError, err)
 	}
 	err = tx.Get(&isAuthor, "SELECT true FROM UserProfile AS profile JOIN Post as post ON profile.id = post.author_id WHERE post.id = $1 AND email = $2", dto.PostID, senderEmail)
-	fmt.Println(isAuthor)
+	if err == sql.ErrNoRows {
+		return apperror.NewServerError(apperror.PostNotFound, errors.New(fmt.Sprintf("post with id=%d and author=%s not found", *dto.PostID, senderEmail)))
+	}
 	if err != nil {
-		return err
+		return apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
 	if !isAuthor {
-		return errors.New("editing isn't allowed")
+		return apperror.NewServerError(apperror.PostEditingNowAllowed, errors.New(fmt.Sprintf("post editing with id=%d for author=%s is not allowed", *dto.PostID, senderEmail)))
 	}
 
 	dtoToDB := map[string]string{
@@ -235,28 +245,27 @@ func (storage *PostStorage) UpdatePost(senderEmail string, dto *dto.PostUpdate) 
 	dto.ChangeDate = utils.CurrentTimeString()
 	err = repository.UpdateTable(storage.db, "Post", "id", *dto.PostID, dtoToDB, dto)
 	if err != nil {
-		return err
+		return apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
 	return nil
 }
 
 func (storage *PostStorage) DeletePost(senderEmail string, dto *dto.PostDelete) error {
-	fmt.Println(dto)
 	result, err := storage.db.Exec("UPDATE Post SET is_deleted = true WHERE author_id = (SELECT id FROM UserProfile WHERE email = $1) AND id = $2",
 		senderEmail,
 		dto.PostID)
 	if err != nil {
-		return err
+		return apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
 	deletedCount, err := result.RowsAffected()
 	if err != nil {
-		return err
+		return apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
 	if deletedCount == 0 {
-		return errors.New("resource doesn't exists or delete isn't allowed")
+		return apperror.NewServerError(apperror.PostEditingNowAllowed, errors.New("resource doesn't exists or delete isn't allowed"))
 	}
 
 	return nil

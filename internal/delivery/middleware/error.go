@@ -38,6 +38,18 @@ var Errors = map[error]ErrorResponse{
 		http.StatusNotFound,
 		"Пользователь не найден.",
 	},
+	apperror.PostNotFound: {
+		http.StatusNotFound,
+		"Запрашиваемый пост не найден",
+	},
+	apperror.CommunityNotFound: {
+		http.StatusNotFound,
+		"Запрашиваемое сообщества не найдено",
+	},
+	apperror.PostEditingNowAllowed: {
+		http.StatusForbidden,
+		"Редактирование этого поста не разрешено",
+	},
 	apperror.NoAuth: {
 		http.StatusUnauthorized,
 		"Нет авторизации.",

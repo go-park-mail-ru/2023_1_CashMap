@@ -48,6 +48,7 @@ func (feed *FeedService) CollectPosts(email string, dto *dto.FeedDTO) ([]*entiti
 		posts = append(posts, groupsPosts...)
 	}
 	for _, post := range posts {
+		// TODO: поменять энтити поста (засылать даныне автора поста а не овнера)
 		post.OwnerInfo, post.CommunityInfo, err = feed.postRepo.GetPostSenderInfo(post.ID)
 		if err != nil {
 			return nil, err
