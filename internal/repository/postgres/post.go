@@ -153,15 +153,15 @@ func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) 
 	if dto.CommunityLink != nil {
 		communityID = new(uint)
 		err = tx.Get(communityID, "SELECT id FROM Community WHERE link = $1", *dto.CommunityLink)
-		if err != nil {
-			return 0, err
-		}
-		// Неизвестый link сообщества
-		if communityID == nil {
+		if err == sql.ErrNoRows {
+			// Неизвестый link сообщества
 			if err := tx.Rollback(); err != nil {
 				return 0, err
 			}
 			return 0, errors.New("unknown community link")
+		}
+		if err != nil {
+			return 0, err
 		}
 	} else if dto.OwnerLink != nil {
 		ownerID = new(uint)

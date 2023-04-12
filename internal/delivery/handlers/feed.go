@@ -6,7 +6,6 @@ import (
 	"depeche/pkg/apperror"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strconv"
 )
 
 type FeedHandler struct {
@@ -42,18 +41,12 @@ func (handler *FeedHandler) GetFeed(ctx *gin.Context) {
 	}
 
 	feedRequest := &dto.FeedDTO{}
-	//err := ctx.ShouldBind(feedRequest)
-	//if err != nil {
-	//	_ = ctx.Error(apperror.BadRequest)
-	//	return
-	//}
-	batchSize := ctx.Query("batch_size")
-	bs, err := strconv.Atoi(batchSize)
+	err := ctx.ShouldBind(feedRequest)
 	if err != nil {
 		_ = ctx.Error(apperror.BadRequest)
+		return
 	}
 
-	feedRequest.BatchSize = uint(bs)
 	posts, err := handler.service.CollectPosts(email.(string), feedRequest)
 	if err != nil {
 		_ = ctx.Error(err)

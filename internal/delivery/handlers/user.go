@@ -234,8 +234,6 @@ func (uh *UserHandler) CheckAuth(ctx *gin.Context) {
 
 	success, err := uh.csrfService.ValidateCSRFToken(csrf)
 	if err != nil {
-		fmt.Println("no")
-		fmt.Println(err)
 		_ = ctx.Error(apperror.Forbidden)
 		return
 	}
@@ -469,7 +467,7 @@ func (uh *UserHandler) EditProfile(ctx *gin.Context) {
 		return
 	}
 
-	e, ok := ctx.Get("email")
+	e, _ := ctx.Get("email")
 	email, ok := e.(string)
 	if !ok {
 		_ = ctx.Error(apperror.NoAuth)
@@ -477,6 +475,7 @@ func (uh *UserHandler) EditProfile(ctx *gin.Context) {
 
 	err = uh.service.EditProfile(email, request.Data)
 	if err != nil {
+		_ = ctx.Error(err)
 	}
 }
 
@@ -644,6 +643,10 @@ func (uh *UserHandler) RandomUsers(ctx *gin.Context) {
 	}
 
 	users, err := uh.service.GetAllUsers(email, limit, offset)
+	if err != nil {
+		_ = ctx.Error(apperror.BadRequest)
+		return
+	}
 
 	profiles := make([]*dto.Profile, 0, len(users))
 
@@ -701,6 +704,7 @@ func (uh *UserHandler) PendingRequests(ctx *gin.Context) {
 	})
 }
 
+//nolint:unused
 func (uh *UserHandler) getSession(ctx *gin.Context) (*session.Session, error) {
 	token, err := ctx.Cookie("session_id")
 	if err != nil {

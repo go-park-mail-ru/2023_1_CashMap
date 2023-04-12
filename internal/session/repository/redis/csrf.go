@@ -16,7 +16,7 @@ func NewCSRFStorage(client *redis.Client) repository.CSRFRepository {
 }
 
 func (storage *CSRFStorage) SaveCSRFToken(csrf *session.CSRF, expirationTime int) error {
-	_, err := storage.client.Do("SET", csrf.Token, csrf.Email, "EX", EXPIRATION_TIME).Result()
+	_, err := storage.client.Do("SET", csrf.Token, csrf.Email, "EX", expirationTime).Result()
 	if err != nil {
 		return err
 	}

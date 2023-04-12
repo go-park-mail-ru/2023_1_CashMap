@@ -40,7 +40,7 @@ func NewFileHandler(fileUsecase service.FileUsecase) *FileHandler {
 func (fileHandler *FileHandler) LoadFile(ctx *gin.Context) {
 	form, err := ctx.MultipartForm()
 	if err != nil {
-		ctx.Error(apperror.BadRequest)
+		_ = ctx.Error(apperror.BadRequest)
 		return
 	}
 
@@ -48,8 +48,7 @@ func (fileHandler *FileHandler) LoadFile(ctx *gin.Context) {
 
 	var inputFiles []*entities.UserFile
 	if len(form.File["attachments"]) == 0 {
-		fmt.Println(1)
-		ctx.Error(apperror.BadRequest)
+		_ = ctx.Error(apperror.BadRequest)
 		return
 	}
 
@@ -59,15 +58,14 @@ func (fileHandler *FileHandler) LoadFile(ctx *gin.Context) {
 		contentType := file.Header.Get("Content-Type")
 		switch {
 		case contentType == "":
-			fmt.Println(2)
-			ctx.Error(apperror.BadRequest)
+			_ = ctx.Error(apperror.BadRequest)
 			return
 		case strings.Contains(contentType, "image/"):
 			if file.Size > MAX_IMG_SIZE {
 				//errorMsg := "Максимальный размер изображения - " + strconv.FormatFloat(MAX_IMG_SIZE/math.Pow(2, 20), 'f', 1, 64) + "МБ"
 				//ctx.Error(errors.Wrap(apperror.TooLargePayload, errorMsg))
 				fmt.Println(contentType, file.Filename)
-				ctx.Error(apperror.TooLargePayload)
+				_ = ctx.Error(apperror.TooLargePayload)
 				return
 			}
 			userFile.Type = entities.IMAGE
@@ -77,21 +75,21 @@ func (fileHandler *FileHandler) LoadFile(ctx *gin.Context) {
 			if extension == "exe" {
 				//errorMsg := "Недопустимо загружать исполняемые файлы"
 				//ctx.Error(errors.Wrap(apperror.BadRequest, errorMsg))
-				ctx.Error(apperror.BadRequest)
+				_ = ctx.Error(apperror.BadRequest)
 				return
 			}
 
 			if file.Size > MAX_DOC_SIZE {
 				//errorMsg := "Максимальный размер документа - " + strconv.FormatFloat(MAX_DOC_SIZE/math.Pow(2, 20), 'f', 1, 64) + "МБ"
 				//ctx.Error(errors.Wrap(apperror.TooLargePayload, errorMsg))
-				ctx.Error(apperror.TooLargePayload)
+				_ = ctx.Error(apperror.TooLargePayload)
 				return
 			}
 			userFile.Type = entities.DOCUMENT
 		}
 
 		if err != nil {
-			ctx.Error(apperror.InternalServerError)
+			_ = ctx.Error(apperror.InternalServerError)
 			return
 		}
 
@@ -99,7 +97,7 @@ func (fileHandler *FileHandler) LoadFile(ctx *gin.Context) {
 
 		inputFileStream, err := file.Open()
 		if err != nil {
-			ctx.Error(apperror.InternalServerError)
+			_ = ctx.Error(apperror.InternalServerError)
 			return
 		}
 		inputFilesReadStreams = append(inputFilesReadStreams, inputFileStream.(io.ReadCloser))
@@ -107,7 +105,7 @@ func (fileHandler *FileHandler) LoadFile(ctx *gin.Context) {
 
 	outputFiles, err := fileHandler.FileUsecase.CreateFile(inputFiles, inputFilesReadStreams)
 	if err != nil {
-		ctx.Error(apperror.InternalServerError)
+		_ = ctx.Error(apperror.InternalServerError)
 		return
 	}
 
@@ -137,13 +135,13 @@ func (fileHandler *FileHandler) GetFile(ctx *gin.Context) {
 	var file entities.UserFile
 	err := ctx.ShouldBind(&file)
 	if err != nil {
-		ctx.Error(apperror.BadRequest)
+		_ = ctx.Error(apperror.BadRequest)
 		return
 	}
 
 	err = fileHandler.FileUsecase.ReadFile(&file, ctx.Writer)
 	if err != nil {
-		ctx.Error(apperror.InternalServerError)
+		_ = ctx.Error(apperror.InternalServerError)
 		return
 	}
 
@@ -166,13 +164,13 @@ func (fileHandler *FileHandler) DeleteFile(ctx *gin.Context) {
 	var file entities.UserFile
 	err := ctx.ShouldBind(&file)
 	if err != nil {
-		ctx.Error(apperror.BadRequest)
+		_ = ctx.Error(apperror.BadRequest)
 		return
 	}
 
 	err = fileHandler.FileUsecase.DeleteFile(&file)
 	if err != nil {
-		ctx.Error(apperror.InternalServerError)
+		_ = ctx.Error(apperror.InternalServerError)
 		return
 	}
 }
