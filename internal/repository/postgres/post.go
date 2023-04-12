@@ -138,7 +138,7 @@ func (storage *PostStorage) CheckWriteAccess(senderEmail string, dto *dto.PostCr
 			//TODO: проверка на друзей.....
 			return true, nil
 		default:
-			return false, apperror.NewServerError(apperror.InternalServerError, errors.New(fmt.Sprintf("error in db record: invalid access type \"%s\"", accessType)))
+			return false, apperror.NewServerError(apperror.InternalServerError, fmt.Errorf("error in db record: invalid access type \"%s\"", accessType))
 		}
 	}
 
@@ -163,7 +163,7 @@ func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) 
 			if err := tx.Rollback(); err != nil {
 				return 0, apperror.NewServerError(apperror.InternalServerError, err)
 			}
-			return 0, apperror.NewServerError(apperror.CommunityNotFound, errors.New(fmt.Sprintf("community with link \"%s\" not found", *dto.CommunityLink)))
+			return 0, apperror.NewServerError(apperror.CommunityNotFound, fmt.Errorf("community with link \"%s\" not found", *dto.CommunityLink))
 		}
 		if err != nil {
 			return 0, apperror.NewServerError(apperror.InternalServerError, err)
@@ -227,14 +227,14 @@ func (storage *PostStorage) UpdatePost(senderEmail string, dto *dto.PostUpdate) 
 	}
 	err = tx.Get(&isAuthor, "SELECT true FROM UserProfile AS profile JOIN Post as post ON profile.id = post.author_id WHERE post.id = $1 AND email = $2", dto.PostID, senderEmail)
 	if err == sql.ErrNoRows {
-		return apperror.NewServerError(apperror.PostNotFound, errors.New(fmt.Sprintf("post with id=%d and author=%s not found", *dto.PostID, senderEmail)))
+		return apperror.NewServerError(apperror.PostNotFound, fmt.Errorf("post with id=%d and author=%s not found", *dto.PostID, senderEmail))
 	}
 	if err != nil {
 		return apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
 	if !isAuthor {
-		return apperror.NewServerError(apperror.PostEditingNowAllowed, errors.New(fmt.Sprintf("post editing with id=%d for author=%s is not allowed", *dto.PostID, senderEmail)))
+		return apperror.NewServerError(apperror.PostEditingNowAllowed, fmt.Errorf("post editing with id=%d for author=%s is not allowed", *dto.PostID, senderEmail))
 	}
 
 	dtoToDB := map[string]string{
