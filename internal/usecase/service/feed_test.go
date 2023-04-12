@@ -4,78 +4,140 @@ import (
 	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
 	mock_repository "depeche/internal/repository/mocks"
-	"depeche/internal/utils"
-	"depeche/pkg/apperror"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"testing"
+	"time"
 )
 
 func TestFeedService_CollectPosts(t *testing.T) {
 	tests := []struct {
-		name          string
-		inputDTO      *dto.SignIn
-		expectedUser  *entities.User
-		expectedError error
+		Name  string
+		Email string
+		Dto   *dto.FeedDTO
 
-		setupMock func(repo *mock_repository.MockUserRepository, in *dto.SignIn)
+		ExpectedOutput []*entities.Post
+		ExpectedErr    error
+
+		SetupPostMock func(repo *mock_repository.MockPostRepository)
+
+		SetupFeedMock func(repo *mock_repository.MockFeedRepository, email string, dto *dto.FeedDTO)
 	}{
 		{
-			name: "Successful",
-			inputDTO: &dto.SignIn{
-				Email:    "e-larkin@mail.ru",
-				Password: "Qwerty123",
+			Name:  "Not empty sorted by date feed",
+			Email: "test@gmail.com",
+			Dto: &dto.FeedDTO{
+				BatchSize: 10,
 			},
-			expectedUser:  &entities.User{},
-			expectedError: nil,
 
-			setupMock: func(repo *mock_repository.MockUserRepository, in *dto.SignIn) {
-				repo.EXPECT().GetUserByEmail(in.Email).Return(&entities.User{Password: utils.Hash("Qwerty123")}, nil)
+			ExpectedOutput: []*entities.Post{
+				somePosts[2],
+				somePosts[0],
+				somePosts[1],
+				somePosts[4],
+				somePosts[3],
+				somePosts[5],
+			},
+			ExpectedErr: nil,
+
+			SetupFeedMock: func(repo *mock_repository.MockFeedRepository, email string, dto *dto.FeedDTO) {
+				repo.EXPECT().GetGroupsPosts(email, dto).Return(nil, nil)
+
+				repo.EXPECT().GetFriendsPosts(email, dto).Return(somePosts, nil)
+			},
+
+			SetupPostMock: func(repo *mock_repository.MockPostRepository) {
+				for ind, _ := range somePosts {
+					repo.EXPECT().GetPostSenderInfo(uint(ind)+1).Return(nil, nil, nil)
+				}
+
 			},
 		},
-		{
-			name: "User doesn't exist",
-			inputDTO: &dto.SignIn{
-				Email:    "e-larkin@mail.ru",
-				Password: "Qwerty123",
-			},
-			expectedUser:  nil,
-			expectedError: apperror.UserNotFound,
 
-			setupMock: func(repo *mock_repository.MockUserRepository, in *dto.SignIn) {
-				repo.EXPECT().GetUserByEmail(in.Email).Return(nil, apperror.UserNotFound)
-			},
-		},
 		{
-			name: "Incorrect password",
-			inputDTO: &dto.SignIn{
-				Email:    "e-larkin@mail.ru",
-				Password: "Qwerty123",
+			Name:  "Feed with batch size",
+			Email: "test@gmail.com",
+			Dto: &dto.FeedDTO{
+				BatchSize: 2,
 			},
-			expectedUser:  nil,
-			expectedError: apperror.IncorrectCredentials,
 
-			setupMock: func(repo *mock_repository.MockUserRepository, in *dto.SignIn) {
-				repo.EXPECT().GetUserByEmail(in.Email).Return(&entities.User{Password: "Another Password"}, nil)
+			ExpectedOutput: []*entities.Post{
+				somePosts[2],
+				somePosts[0],
+			},
+			ExpectedErr: nil,
+
+			SetupFeedMock: func(repo *mock_repository.MockFeedRepository, email string, dto *dto.FeedDTO) {
+				repo.EXPECT().GetGroupsPosts(email, dto).Return(nil, nil)
+
+				repo.EXPECT().GetFriendsPosts(email, dto).Return(somePosts, nil)
+			},
+
+			SetupPostMock: func(repo *mock_repository.MockPostRepository) {
+				for ind, _ := range somePosts {
+					repo.EXPECT().GetPostSenderInfo(uint(ind)+1).Return(nil, nil, nil)
+				}
+
 			},
 		},
 	}
 	for _, test := range tests {
 		test := test
-		t.Run(test.name, func(t *testing.T) {
+		t.Run(test.Name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			mockRepository := mock_repository.NewMockUserRepository(ctrl)
+			mockFeedRepository := mock_repository.NewMockFeedRepository(ctrl)
+			mockPostRepository := mock_repository.NewMockPostRepository(ctrl)
 
-			userService := UserService{
-				repo: mockRepository,
+			feedService := FeedService{
+				repository: mockFeedRepository,
+				postRepo:   mockPostRepository,
 			}
-			test.setupMock(mockRepository, test.inputDTO)
-			_, err := userService.SignIn(test.inputDTO)
-			require.Equal(t, test.expectedError, err)
 
+			test.SetupFeedMock(mockFeedRepository, test.Email, test.Dto)
+			test.SetupPostMock(mockPostRepository)
+			posts, _ := feedService.CollectPosts(test.Email, test.Dto)
+			require.Equal(t, test.ExpectedOutput, posts)
 		})
 	}
+}
+
+var somePosts = []*entities.Post{
+	{
+		ID:           1,
+		Text:         "First post",
+		CreationDate: time.Date(2023, 10, 10, 0, 0, 0, 0, time.UTC).String(),
+	},
+
+	{
+		ID:           2,
+		Text:         "Second post",
+		CreationDate: time.Date(2023, 9, 10, 0, 0, 0, 0, time.UTC).String(),
+	},
+
+	{
+		ID:           3,
+		Text:         "Third post",
+		CreationDate: time.Date(2023, 12, 10, 0, 0, 0, 0, time.UTC).String(),
+	},
+
+	{
+		ID:           4,
+		Text:         "Fourth post",
+		CreationDate: time.Date(2023, 3, 10, 0, 0, 0, 0, time.UTC).String(),
+	},
+
+	{
+		ID:           5,
+		Text:         "Fifth post",
+		CreationDate: time.Date(2023, 3, 12, 0, 0, 0, 0, time.UTC).String(),
+	},
+
+	{
+		ID:           6,
+		Text:         "Fifth post",
+		CreationDate: time.Date(2023, 1, 10, 0, 0, 0, 0, time.UTC).String(),
+	},
 }
