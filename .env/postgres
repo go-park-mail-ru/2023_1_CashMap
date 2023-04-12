@@ -1,3 +1,0 @@
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=super-secret-password
-POSTGRES_DB=depeche_db

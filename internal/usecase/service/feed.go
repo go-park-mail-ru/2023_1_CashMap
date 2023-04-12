@@ -23,6 +23,7 @@ func NewFeedService(feedRepository repository.FeedRepository, postRepo repositor
 
 func (feed *FeedService) CollectPosts(email string, dto *dto.FeedDTO) ([]*entities.Post, error) {
 	if dto.LastPostDate == "" {
+		// самая "старая" дата
 		dto.LastPostDate = "0"
 	}
 
