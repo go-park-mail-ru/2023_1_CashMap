@@ -44,12 +44,14 @@ func (us *UserService) SignUp(user *dto.SignUp) (*entities.User, error) {
 	}
 
 	user.Password = utils.Hash(user.Password)
+	user = utils.Escaping(user)
 	toCreate := &entities.User{
 		Email:     user.Email,
 		Password:  user.Password,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 	}
+
 	stored, err = us.repo.CreateUser(toCreate)
 	if err != nil {
 		return nil, err
@@ -98,6 +100,28 @@ func (us *UserService) EditProfile(email string, profile *dto.EditProfile) error
 		}
 		*profile.NewPassword = utils.Hash(*profile.NewPassword)
 	}
+
+	if profile.Avatar != nil {
+		err := us.repo.UpdateAvatar(email, *profile.Avatar)
+		if err != nil {
+			return err
+		}
+		profile.Avatar = nil
+	}
+
+	// TODO validate errors
+	if profile.Link != nil {
+		exists, err := us.repo.CheckLinkExists(*profile.Link)
+		if err != nil {
+			return err
+		}
+
+		if exists {
+			return apperror.UserAlreadyExists
+		}
+	}
+
+	profile = utils.Escaping(profile)
 	_, err := us.repo.UpdateUser(email, profile)
 	if err != nil {
 		return err

@@ -6,7 +6,6 @@ import (
 	"depeche/internal/repository"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
-	"fmt"
 	"sort"
 )
 
@@ -26,7 +25,7 @@ func (feed *FeedService) CollectPosts(email string, dto *dto.FeedDTO) ([]*entiti
 	if dto.LastPostDate == "" {
 		dto.LastPostDate = "0"
 	}
-	fmt.Println(dto.BatchSize)
+
 	if dto.BatchSize == 0 {
 		return nil, apperror.BadRequest
 	}
