@@ -4,6 +4,7 @@ import (
 	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
 	"depeche/internal/repository"
+	"depeche/pkg/apperror"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -37,14 +38,15 @@ func (storage FeedStorage) GetFriendsPosts(email string, feedDTO *dto.FeedDTO) (
 	var posts []*entities.Post
 	rows, err := storage.db.Queryx(friendsQuery, email, feedDTO.BatchSize, feedDTO.LastPostDate)
 	if err != nil {
-		return nil, err
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
 	posts, err = getSliceFromRows[entities.Post](rows, feedDTO.BatchSize)
 	if err != nil {
-		return nil, err
+		return nil, apperror.NewServerError(apperror.InternalServerError, err
 	}
-	return posts, err
+
+	return posts, nil
 }
 
 func (storage FeedStorage) GetGroupsPosts(email string, feedDTO *dto.FeedDTO) ([]*entities.Post, error) {
