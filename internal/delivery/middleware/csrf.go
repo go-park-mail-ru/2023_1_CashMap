@@ -17,6 +17,9 @@ func NewCSRFMiddleware(csrfService authService.CSRFUsecase) *CSRFMiddleware {
 
 func (csrf *CSRFMiddleware) Middleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		if ctx.FullPath() == "/api/ws" {
+			return
+		}
 		csrfToken := ctx.Request.Header.Get("X-Csrf-Token")
 		if csrfToken == "" {
 			err := apperror.Forbidden

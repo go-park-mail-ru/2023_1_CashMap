@@ -5,6 +5,7 @@ import (
 	"depeche/internal/entities"
 	mock_repository "depeche/internal/repository/mocks"
 	"depeche/internal/utils"
+	"depeche/internal/utils/testUtils"
 	"depeche/pkg/apperror"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
@@ -422,7 +423,7 @@ func TestUserService_EditProfile(t *testing.T) {
 		{
 			name:    "Basic info success",
 			email:   "e-larkin@mail.ru",
-			profile: initProfileBasic("Egor", "Larkin", "Bio"),
+			profile: testUtils.InitProfileBasic("Egor", "Larkin", "Bio"),
 
 			expectedError: nil,
 
@@ -433,7 +434,7 @@ func TestUserService_EditProfile(t *testing.T) {
 		{
 			name:    "Basic internal error",
 			email:   "e-larkin@mail.ru",
-			profile: initProfileBasic("Egor", "Larkin", "Bio"),
+			profile: testUtils.InitProfileBasic("Egor", "Larkin", "Bio"),
 
 			expectedError: apperror.InternalServerError,
 
@@ -445,7 +446,7 @@ func TestUserService_EditProfile(t *testing.T) {
 			name:    "Avatar success",
 			email:   "e-larkin@mail.ru",
 			avatar:  "static/avatar/url/12345",
-			profile: initProfileAvatar("static/avatar/url/12345"),
+			profile: testUtils.InitProfileAvatar("static/avatar/url/12345"),
 
 			expectedError: nil,
 
@@ -458,7 +459,7 @@ func TestUserService_EditProfile(t *testing.T) {
 			name:    "Avatar update internal error",
 			email:   "e-larkin@mail.ru",
 			avatar:  "static/avatar/url/12345",
-			profile: initProfileAvatar("static/avatar/url/12345"),
+			profile: testUtils.InitProfileAvatar("static/avatar/url/12345"),
 
 			expectedError: apperror.InternalServerError,
 
@@ -469,7 +470,7 @@ func TestUserService_EditProfile(t *testing.T) {
 		{
 			name:    "Password success",
 			email:   "e-larkin@mail.ru",
-			profile: initProfilePasswordWithPrev("oldPassword", "newPassword"),
+			profile: testUtils.InitProfilePasswordWithPrev("oldPassword", "newPassword"),
 
 			expectedError: nil,
 
@@ -481,7 +482,7 @@ func TestUserService_EditProfile(t *testing.T) {
 		{
 			name:    "Incorrect password",
 			email:   "e-larkin@mail.ru",
-			profile: initProfilePasswordWithPrev("oldPasswordIncorrect", "newPassword"),
+			profile: testUtils.InitProfilePasswordWithPrev("oldPasswordIncorrect", "newPassword"),
 
 			expectedError: apperror.Forbidden,
 
@@ -492,7 +493,7 @@ func TestUserService_EditProfile(t *testing.T) {
 		{
 			name:    "Password update internal error",
 			email:   "e-larkin@mail.ru",
-			profile: initProfilePasswordWithPrev("oldPasswordIncorrect", "newPassword"),
+			profile: testUtils.InitProfilePasswordWithPrev("oldPasswordIncorrect", "newPassword"),
 
 			expectedError: apperror.InternalServerError,
 
@@ -503,7 +504,7 @@ func TestUserService_EditProfile(t *testing.T) {
 		{
 			name:    "Previous password not sent",
 			email:   "e-larkin@mail.ru",
-			profile: initProfilePasswordFail("newPassword"),
+			profile: testUtils.InitProfilePasswordFail("newPassword"),
 
 			expectedError: apperror.Forbidden,
 
@@ -515,7 +516,7 @@ func TestUserService_EditProfile(t *testing.T) {
 			name:    "Link success",
 			email:   "e-larkin@mail.ru",
 			link:    "newLink",
-			profile: initProfileLink("newLink"),
+			profile: testUtils.InitProfileLink("newLink"),
 
 			expectedError: nil,
 
@@ -528,7 +529,7 @@ func TestUserService_EditProfile(t *testing.T) {
 			name:    "Link exists",
 			email:   "e-larkin@mail.ru",
 			link:    "newLink",
-			profile: initProfileLink("newLink"),
+			profile: testUtils.InitProfileLink("newLink"),
 
 			expectedError: apperror.UserAlreadyExists,
 
@@ -540,7 +541,7 @@ func TestUserService_EditProfile(t *testing.T) {
 			name:    "Link Internal Error",
 			email:   "e-larkin@mail.ru",
 			link:    "newLink",
-			profile: initProfileLink("newLink"),
+			profile: testUtils.InitProfileLink("newLink"),
 
 			expectedError: apperror.InternalServerError,
 
@@ -566,39 +567,6 @@ func TestUserService_EditProfile(t *testing.T) {
 			err := userService.EditProfile(test.email, test.profile)
 			require.Equal(t, test.expectedError, err)
 		})
-	}
-}
-
-func initProfileBasic(fName, lName, bio string) *dto.EditProfile {
-	return &dto.EditProfile{
-		FirstName: &fName,
-		LastName:  &lName,
-		Bio:       &bio,
-	}
-}
-
-func initProfileAvatar(avatar string) *dto.EditProfile {
-	return &dto.EditProfile{
-		Avatar: &avatar,
-	}
-}
-
-func initProfileLink(link string) *dto.EditProfile {
-	return &dto.EditProfile{
-		Link: &link,
-	}
-}
-
-func initProfilePasswordWithPrev(old, new string) *dto.EditProfile {
-	return &dto.EditProfile{
-		PreviousPassword: &old,
-		NewPassword:      &new,
-	}
-}
-
-func initProfilePasswordFail(new string) *dto.EditProfile {
-	return &dto.EditProfile{
-		NewPassword: &new,
 	}
 }
 
