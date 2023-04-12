@@ -135,6 +135,9 @@ func (ur *UserRepository) GetUsers(email string, limit, offset int) ([]*entities
 	var users []*entities.User
 	rows, err := ur.DB.Queryx(RandomUsers, email, offset, limit)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return users, nil
+		}
 		return nil, apperror.InternalServerError
 	}
 	for rows.Next() {

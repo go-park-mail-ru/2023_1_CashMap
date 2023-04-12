@@ -55,7 +55,7 @@ func GetPostgresConnector(cfg *PostgresConfig) (*sql.DB, error) {
 
 	fmt.Println(dsn)
 
-	db, err := sql.Open("pgx", dsn)
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		return nil, err
 	}

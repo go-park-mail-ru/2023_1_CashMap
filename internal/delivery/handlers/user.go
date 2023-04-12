@@ -8,7 +8,6 @@ import (
 	authService "depeche/internal/session/service"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -457,12 +456,12 @@ func (uh *UserHandler) Friends(ctx *gin.Context) {
 	users, err := uh.service.GetFriendsByLink(email, link, limit, offset)
 	if err != nil {
 		_ = ctx.Error(err)
+		return
 	}
 
 	friends := make([]*dto.Profile, 0, len(users))
 
 	for _, user := range users {
-		fmt.Println(user)
 		friends = append(friends, dto.NewProfileFromUser(user))
 	}
 

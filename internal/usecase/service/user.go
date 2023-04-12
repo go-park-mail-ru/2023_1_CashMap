@@ -95,6 +95,9 @@ func (us *UserService) EditProfile(email string, profile *dto.EditProfile) error
 		if err != nil {
 			return err
 		}
+		if profile.PreviousPassword == nil {
+			return apperror.Forbidden
+		}
 		if user.Password != utils.Hash(*profile.PreviousPassword) {
 			return apperror.Forbidden
 		}
@@ -187,7 +190,7 @@ func (us *UserService) GetSubscribersByEmail(email string, limit, offset int) ([
 	if err != nil {
 		return nil, err
 	}
-	users, err := us.repo.GetSubscribes(user, limit, offset)
+	users, err := us.repo.GetSubscribers(user, limit, offset)
 	if err != nil {
 		return nil, err
 	}
