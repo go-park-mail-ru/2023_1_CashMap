@@ -31,7 +31,7 @@ func NewConnectionPool() *ConnectionPool {
 
 func (cp *ConnectionPool) Connect(ctx *gin.Context) {
 
-	emailRaw, ok := ctx.Get("email")
+	emailRaw, _ := ctx.Get("email")
 	email, ok := emailRaw.(string)
 	if !ok {
 		_ = ctx.Error(apperror.NoAuth)
@@ -47,13 +47,16 @@ func (cp *ConnectionPool) Connect(ctx *gin.Context) {
 
 	defer func(conn *websocket.Conn) {
 		err := conn.Close()
-		err = cp.RemoveConn(email, conn)
 		if err != nil {
-			//_ = ctx.Error(err)
-			ctx.Abort()
+			_ = ctx.Error(err)
 			return
 		}
-		ctx.Abort()
+
+		err = cp.RemoveConn(email, conn)
+		if err != nil {
+			_ = ctx.Error(err)
+			return
+		}
 	}(conn)
 
 	for {

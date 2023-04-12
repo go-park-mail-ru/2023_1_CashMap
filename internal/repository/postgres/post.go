@@ -166,16 +166,17 @@ func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) 
 	} else if dto.OwnerLink != nil {
 		ownerID = new(uint)
 		err = tx.Get(ownerID, "SELECT id FROM UserProfile WHERE link = $1", *dto.OwnerLink)
-		if err != nil {
-			return 0, err
-		}
-		// Неизвестый link юзера
-		if dto.OwnerLink != nil && dto.CommunityLink == nil && ownerID == nil {
+		if err == sql.ErrNoRows && dto.OwnerLink != nil && dto.CommunityLink == nil {
+			// Неизвестый link юзера
 			if err := tx.Rollback(); err != nil {
 				return 0, err
 			}
 			return 0, errors.New("unknown profile link")
 		}
+		if err != nil {
+			return 0, err
+		}
+
 	}
 
 	query, err := tx.PrepareNamed("INSERT INTO Post (community_id, author_id, owner_id, show_author, text_content, creation_date, change_date) " +
@@ -213,6 +214,9 @@ func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) 
 func (storage *PostStorage) UpdatePost(senderEmail string, dto *dto.PostUpdate) error {
 	var isAuthor bool
 	tx, err := storage.db.Beginx()
+	if err != nil {
+		return err
+	}
 	err = tx.Get(&isAuthor, "SELECT true FROM UserProfile AS profile JOIN Post as post ON profile.id = post.author_id WHERE post.id = $1 AND email = $2", dto.PostID, senderEmail)
 	fmt.Println(isAuthor)
 	if err != nil {

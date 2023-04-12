@@ -7,6 +7,7 @@ import (
 	"depeche/pkg/apperror"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"log"
 )
 
 type WsMiddleware struct {
@@ -26,7 +27,7 @@ func (wm *WsMiddleware) SendMsg(ctx *gin.Context) {
 		return
 	}
 
-	emailRaw, ok := ctx.Get("email")
+	emailRaw, _ := ctx.Get("email")
 	email, ok := emailRaw.(string)
 	if !ok {
 		_ = ctx.Error(apperror.NoAuth)
@@ -56,7 +57,8 @@ func (wm *WsMiddleware) SendMsg(ctx *gin.Context) {
 		for _, user := range users {
 			err = wm.pool.SendMsg(user.Email, msg)
 			if err != nil {
-				// TODO log
+				// TODO: нормальный log
+				log.Println(err)
 			}
 		}
 	}(users, email, raw)
