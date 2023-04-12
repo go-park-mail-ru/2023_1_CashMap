@@ -43,6 +43,7 @@ func Run() {
 	}
 
 	sessionStorage := redis.NewRedisStorage(client)
+	csrfStorage := redis.NewCSRFStorage(client)
 
 	userStorage := postgres.NewPostgresUserRepo(db)
 	feedStorage := postgres.NewFeedStorage(db)
@@ -50,7 +51,8 @@ func Run() {
 	messageStorage := postgres.NewMessageRepository(db)
 
 	userService := service.NewUserService(userStorage)
-	authService := authService.NewAuthService(sessionStorage)
+	authorizationService := authService.NewAuthService(sessionStorage)
+	csrfService := authService.NewCSRFService(csrfStorage)
 	feedService := service.NewFeedService(feedStorage, postStorage)
 	fileService := staticService.NewFileUsecase()
 	postService := service.NewPostService(postStorage)
@@ -58,7 +60,7 @@ func Run() {
 	msgService := service.NewMessageService(messageStorage, userStorage)
 
 	staticHandler := staticDelivery.NewFileHandler(fileService)
-	userHandler := handlers.NewUserHandler(userService, authService)
+	userHandler := handlers.NewUserHandler(userService, authorizationService, csrfService)
 	feedHandler := handlers.NewFeedHandler(feedService)
 	postHandler := handlers.NewPostHandler(postService)
 
@@ -66,13 +68,15 @@ func Run() {
 
 	handler := handlers.NewHandler(userHandler, feedHandler, postHandler, staticHandler, messageHandler)
 
-	authMiddleware := middleware.NewAuthMiddleware(authService)
+	authMiddleware := middleware.NewAuthMiddleware(authorizationService)
+
+	csrfMiddleware := middleware.NewCSRFMiddleware(csrfService)
 
 	pool := wsPool.NewConnectionPool()
 
 	wsMiddleware := middleware.NewWsMiddleware(pool, msgService)
 
-	router := initRouter(handler, authMiddleware, pool, wsMiddleware)
+	router := initRouter(handler, authMiddleware, pool, wsMiddleware, csrfMiddleware)
 
 	initValidator()
 
@@ -90,7 +94,7 @@ func initValidator() {
 	// })
 }
 
-func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, pool *wsPool.ConnectionPool, wsMiddleware *middleware.WsMiddleware) *gin.Engine {
+func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, pool *wsPool.ConnectionPool, wsMiddleware *middleware.WsMiddleware, csrfMiddleware *middleware.CSRFMiddleware) *gin.Engine {
 	router := gin.Default()
 	// [MIDDLEWARE]
 	router.Use(middleware.CORS())
@@ -112,6 +116,7 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 	// [API]
 	apiEndpointsGroup := router.Group("/api")
 	apiEndpointsGroup.Use(authMW.Middleware())
+	apiEndpointsGroup.Use(csrfMiddleware.Middleware())
 	{
 
 		// [FEED]

@@ -19,10 +19,10 @@ type AuthInfo interface {
 }
 
 type AuthService struct {
-	sessionRepo repository.Repository
+	sessionRepo repository.SessionRepository
 }
 
-func NewAuthService(repo repository.Repository) *AuthService {
+func NewAuthService(repo repository.SessionRepository) *AuthService {
 	return &AuthService{
 		sessionRepo: repo,
 	}

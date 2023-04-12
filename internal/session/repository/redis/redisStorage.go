@@ -40,7 +40,7 @@ func (s *Storage) DeleteSession(token string) error {
 	return nil
 }
 
-func NewRedisStorage(client *redis.Client) repository.Repository {
+func NewRedisStorage(client *redis.Client) repository.SessionRepository {
 	return &Storage{
 		Client:         client,
 		ExpirationTime: 84600,

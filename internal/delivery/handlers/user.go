@@ -18,12 +18,14 @@ import (
 type UserHandler struct {
 	service     usecase.User
 	authService authService.Auth
+	csrfService authService.CSRFUsecase
 }
 
-func NewUserHandler(userService usecase.User, authService authService.Auth) *UserHandler {
+func NewUserHandler(userService usecase.User, authService authService.Auth, csrfService authService.CSRFUsecase) *UserHandler {
 	return &UserHandler{
 		service:     userService,
 		authService: authService,
+		csrfService: csrfService,
 	}
 }
 
@@ -78,6 +80,15 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 	}
 
 	http.SetCookie(ctx.Writer, sessionCookie)
+
+	csrfToken, err := uh.csrfService.CreateCSRFToken(request.Data.Email)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	ctx.Header("X-Csrf-Token", csrfToken)
+
 	ctx.Status(http.StatusOK)
 }
 
@@ -131,6 +142,15 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 	}
 
 	http.SetCookie(ctx.Writer, sessionCookie)
+
+	csrfToken, err := uh.csrfService.CreateCSRFToken(request.Data.Email)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	ctx.Header("X-Csrf-Token", csrfToken)
+
 	ctx.Status(http.StatusOK)
 
 }
@@ -150,6 +170,23 @@ func (uh *UserHandler) LogOut(ctx *gin.Context) {
 		_ = ctx.Error(apperror.NoAuth)
 		return
 	}
+
+	// Игнорим ошибку ибо дальше все равно логаут
+	userSession, _ := uh.authService.CheckSession(token)
+
+	csrfToken := ctx.Request.Header.Get("X-Csrf-Token")
+	if csrfToken != "" {
+		csrf := &session.CSRF{
+			Token: csrfToken,
+			Email: userSession.Email,
+		}
+		err = uh.csrfService.InvalidateCSRFToken(csrf)
+		if err != nil {
+			_ = ctx.Error(err)
+			return
+		}
+	}
+
 	err = uh.authService.LogOut(token)
 	if err != nil {
 		_ = ctx.Error(err)
@@ -167,6 +204,7 @@ func (uh *UserHandler) LogOut(ctx *gin.Context) {
 	}
 
 	http.SetCookie(ctx.Writer, expired)
+
 	ctx.Status(http.StatusOK)
 }
 
@@ -176,10 +214,40 @@ func (uh *UserHandler) CheckAuth(ctx *gin.Context) {
 		_ = ctx.Error(apperror.NoAuth)
 		return
 	}
-	_, err = uh.authService.CheckSession(token)
+
+	userSession, err := uh.authService.CheckSession(token)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
+	}
+
+	csrfToken := ctx.Request.Header.Get("X-Csrf-Token")
+	if csrfToken == "" {
+		_ = ctx.Error(apperror.Forbidden)
+		return
+	}
+
+	csrf := &session.CSRF{
+		Token: csrfToken,
+		Email: userSession.Email,
+	}
+
+	success, err := uh.csrfService.ValidateCSRFToken(csrf)
+	if err != nil {
+		fmt.Println("no")
+		fmt.Println(err)
+		_ = ctx.Error(apperror.Forbidden)
+		return
+	}
+
+	if !success {
+		newCsrfToken, err := uh.csrfService.CreateCSRFToken(userSession.Email)
+		if err != nil {
+			_ = ctx.Error(apperror.InternalServerError)
+			return
+		}
+
+		ctx.Header("X-Csrf-Token", newCsrfToken)
 	}
 
 	ctx.Status(http.StatusOK)
