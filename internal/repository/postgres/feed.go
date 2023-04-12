@@ -43,7 +43,7 @@ func (storage FeedStorage) GetFriendsPosts(email string, feedDTO *dto.FeedDTO) (
 
 	posts, err = getSliceFromRows[entities.Post](rows, feedDTO.BatchSize)
 	if err != nil {
-		return nil, apperror.NewServerError(apperror.InternalServerError, err
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
 	return posts, nil
