@@ -1,0 +1,287 @@
+package postgres
+
+import (
+	"database/sql"
+	"depeche/internal/delivery/dto"
+	"depeche/internal/entities"
+	"depeche/internal/repository"
+	"depeche/internal/utils"
+	"depeche/pkg/apperror"
+	"errors"
+	"fmt"
+	"github.com/jmoiron/sqlx"
+)
+
+type PostStorage struct {
+	db *sqlx.DB
+}
+
+func NewPostRepository(db *sqlx.DB) repository.PostRepository {
+	return &PostStorage{
+		db: db,
+	}
+}
+
+func (storage *PostStorage) GetPostSenderInfo(postID uint) (*entities.UserInfo, *entities.CommunityInfo, error) {
+	author := &entities.UserInfo{}
+	err := storage.db.Get(author, "SELECT first_name, last_name, url, link FROM Post as post"+
+		" JOIN UserProfile as profile ON post.author_id = profile.id"+
+		" LEFT JOIN Photo as photo ON profile.avatar_id = photo.id WHERE post.id = $1", postID)
+	if err == sql.ErrNoRows {
+		return nil, nil, apperror.NewServerError(apperror.PostNotFound, fmt.Errorf("post with id=%d not found", postID))
+	}
+
+	if err != nil {
+		return nil, nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	// TODO: Может не работать
+	community := &entities.CommunityInfo{}
+	err = storage.db.Get(community, "SELECT community.title, community.link FROM Post as post"+
+		" JOIN Community as community ON post.community_id = community.id"+
+		"  WHERE post.id = $1", postID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			community = nil
+		} else {
+			return nil, nil, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+	}
+
+	return author, community, nil
+}
+
+func (storage *PostStorage) SelectPostById(postId uint) (*entities.Post, error) {
+	post := &entities.Post{}
+
+	err := storage.db.Get(post, "SELECT post.id, text_content, author.link as author_link, post.likes_amount, post.show_author, post.creation_date"+
+		" FROM Post AS post JOIN UserProfile AS author ON post.author_id = author.id"+
+		" LEFT JOIN Community as community on post.community_id = community.id"+
+		" LEFT JOIN UserProfile as owner ON post.owner_id = owner.id"+
+		" WHERE post.id = $1 AND post.is_deleted = false", postId)
+	if err == sql.ErrNoRows {
+		return nil, apperror.NewServerError(apperror.PostNotFound, fmt.Errorf("post with id=%d not found", postId))
+	}
+	if err != nil {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	return post, nil
+}
+
+func (storage *PostStorage) SelectPostsByCommunityLink(info *dto.PostsGetByLink) ([]*entities.Post, error) {
+	// больше тот, кто запощен позже
+	//TODO: NamedQueryx
+	rows, err := storage.db.Queryx("SELECT post.id, text_content, author.link as author_link, post.likes_amount, post.show_author, post.creation_date, post.change_date "+
+		"FROM Post AS post JOIN UserProfile AS author ON post.author_id = author.id "+
+		"LEFT JOIN Community as community on post.community_id = community.id "+
+		"WHERE post.community_id = (SELECT id FROM Community WHERE link = $1) AND post.creation_date > $2 AND post.is_deleted = false ORDER BY post.creation_date DESC LIMIT $3",
+		*info.CommunityLink,
+		info.LastPostDate,
+		info.BatchSize)
+	if err != nil {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	posts, err := getSliceFromRows[entities.Post](rows, info.BatchSize)
+	if err != nil {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	return posts, nil
+}
+
+func (storage *PostStorage) SelectPostsByUserLink(info *dto.PostsGetByLink) ([]*entities.Post, error) {
+	rows, err := storage.db.Queryx("SELECT post.id, text_content, author.link as author_link, post.likes_amount, post.show_author, post.creation_date, post.change_date "+
+		"FROM Post AS post JOIN UserProfile AS author ON post.author_id = author.id "+
+		"LEFT JOIN Community as community on post.community_id = community.id "+
+		"LEFT JOIN UserProfile as owner ON post.owner_id = owner.id "+
+		"WHERE post.owner_id = (SELECT id FROM UserProfile WHERE link = $1) AND post.creation_date > $2 AND post.is_deleted = false ORDER BY post.creation_date DESC LIMIT $3",
+		info.OwnerLink,
+		info.LastPostDate,
+		info.BatchSize)
+	if err != nil {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	posts, err := getSliceFromRows[entities.Post](rows, info.BatchSize)
+	if err != nil {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	return posts, nil
+}
+
+func (storage *PostStorage) CheckReadAccess(senderEmail string) (bool, error) {
+	//TODO: сделать проверку поля privacy (если private - проверить, что подписан) - РК3
+	// TODO: НА ДАЛЕКОЕ БУДУЩЕЕ(если вообще докрутим) - ПРОВЕРКА НА ВОЗМОЖНОСТЬ ДОСТУПА ЮЗЕРА К ПРОФИЛЮ ДРУОГО ЮЗЕРА
+	return true, nil
+}
+
+func (storage *PostStorage) CheckWriteAccess(senderEmail string, dto *dto.PostCreate) (bool, error) {
+	//TODO: сделать проверку поля privacy (если private - проверить, что подписан) - РК3
+	if dto.CommunityLink != nil {
+		//TODO: сделать проверку поля privacy (если не open - проверить, что имеет права через Community management) - РК3
+	} else {
+		var accessType string
+		err := storage.db.Get(&accessType, "SELECT access_to_posts FROM UserProfile WHERE link = $1", dto.OwnerLink)
+		if err == sql.ErrNoRows {
+			return false, apperror.NewServerError(apperror.UserNotFound, fmt.Errorf("user with link=%s not found", *dto.OwnerLink))
+		}
+		if err != nil {
+			return false, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+
+		switch accessType {
+		case "all":
+			return true, nil
+		case "friends":
+			//TODO: проверка на друзей.....
+			return true, nil
+		default:
+			return false, apperror.NewServerError(apperror.InternalServerError, fmt.Errorf("error in db record: invalid access type \"%s\"", accessType))
+		}
+	}
+
+	return true, nil
+}
+
+func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) (uint, error) {
+	currentTime := utils.CurrentTimeString()
+
+	tx, err := storage.db.Beginx()
+	if err != nil {
+		return 0, err
+	}
+
+	var communityID *uint
+	var ownerID *uint
+	if dto.CommunityLink != nil {
+		communityID = new(uint)
+		err = tx.Get(communityID, "SELECT id FROM Community WHERE link = $1", *dto.CommunityLink)
+		if err == sql.ErrNoRows {
+			// Неизвестый link сообщества
+			if err := tx.Rollback(); err != nil {
+				return 0, apperror.NewServerError(apperror.InternalServerError, err)
+			}
+			return 0, apperror.NewServerError(apperror.CommunityNotFound, fmt.Errorf("community with link \"%s\" not found", *dto.CommunityLink))
+		}
+		if err != nil {
+			return 0, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+	} else if dto.OwnerLink != nil {
+		ownerID = new(uint)
+		err = tx.Get(ownerID, "SELECT id FROM UserProfile WHERE link = $1", *dto.OwnerLink)
+		if err == sql.ErrNoRows && dto.OwnerLink != nil && dto.CommunityLink == nil {
+			// Неизвестый link юзера
+			if err := tx.Rollback(); err != nil {
+				return 0, err
+			}
+			return 0, apperror.NewServerError(apperror.UserNotFound, fmt.Errorf("user with link \"%s\" not found", *dto.OwnerLink))
+		}
+		if err != nil {
+			return 0, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+
+	}
+
+	query, err := tx.PrepareNamed("INSERT INTO Post (community_id, author_id, owner_id, show_author, text_content, creation_date, change_date) " +
+		"VALUES (:community_id, (SELECT id FROM UserProfile WHERE email = :sender_email), :owner_id, :show_author, :text, :init_time, :change_time) RETURNING id")
+	if err != nil {
+		if err := tx.Rollback(); err != nil {
+			return 0, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+		return 0, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	var postID uint
+	err = query.Get(&postID, map[string]interface{}{
+		"owner_id":     ownerID,
+		"sender_email": senderEmail,
+		"community_id": communityID,
+		"show_author":  dto.ShouldShowAuthor,
+		"text":         dto.Text,
+		"init_time":    currentTime,
+		"change_time":  currentTime,
+	})
+	if err == sql.ErrNoRows {
+		return 0, apperror.NewServerError(apperror.InternalServerError, errors.New("just created post not found"))
+	}
+	if err != nil {
+		return 0, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return 0, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	// TODO: может выстрелить в ногу
+	return postID, nil
+}
+
+func (storage *PostStorage) UpdatePost(senderEmail string, dto *dto.PostUpdate) error {
+	var isAuthor bool
+	tx, err := storage.db.Beginx()
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	err = tx.Get(&isAuthor, "SELECT true FROM UserProfile AS profile JOIN Post as post ON profile.id = post.author_id WHERE post.id = $1 AND email = $2", dto.PostID, senderEmail)
+	if err == sql.ErrNoRows {
+		return apperror.NewServerError(apperror.PostNotFound, fmt.Errorf("post with id=%d and author=%s not found", *dto.PostID, senderEmail))
+	}
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	if !isAuthor {
+		return apperror.NewServerError(apperror.PostEditingNowAllowed, fmt.Errorf("post editing with id=%d for author=%s is not allowed", *dto.PostID, senderEmail))
+	}
+
+	dtoToDB := map[string]string{
+		"Text":             "text_content",
+		"ShouldShowAuthor": "show_author",
+		"ChangeDate":       "change_date",
+	}
+	dto.ChangeDate = utils.CurrentTimeString()
+	err = repository.UpdateTable(storage.db, "Post", "id", *dto.PostID, dtoToDB, dto)
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	return nil
+}
+
+func (storage *PostStorage) DeletePost(senderEmail string, dto *dto.PostDelete) error {
+	result, err := storage.db.Exec("UPDATE Post SET is_deleted = true WHERE author_id = (SELECT id FROM UserProfile WHERE email = $1) AND id = $2",
+		senderEmail,
+		dto.PostID)
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	deletedCount, err := result.RowsAffected()
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	if deletedCount == 0 {
+		return apperror.NewServerError(apperror.PostEditingNowAllowed, errors.New("resource doesn't exists or delete isn't allowed"))
+	}
+
+	return nil
+}
+
+func getSliceFromRows[T any](rows *sqlx.Rows, size uint) ([]*T, error) {
+	items := make([]*T, 0, size)
+	it := 0
+	for rows.Next() {
+		item := new(T)
+		err := rows.StructScan(item)
+		if err != nil {
+			return nil, err
+		}
+		it++
+		items = append(items, item)
+	}
+	return items, nil
+}

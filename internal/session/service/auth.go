@@ -1,7 +1,6 @@
 package service
 
 import (
-	"depeche/internal/entities"
 	"depeche/internal/session"
 	"depeche/internal/session/repository"
 	"depeche/pkg/apperror"
@@ -10,22 +9,26 @@ import (
 )
 
 type Auth interface {
-	Authenticate(user *entities.User) (string, error)
+	Authenticate(user AuthInfo) (string, error)
 	LogOut(token string) error
 	CheckSession(token string) (*session.Session, error)
 }
 
-type AuthService struct {
-	sessionRepo repository.Repository
+type AuthInfo interface {
+	AuthEmail() string
 }
 
-func NewAuthService(repo repository.Repository) *AuthService {
+type AuthService struct {
+	sessionRepo repository.SessionRepository
+}
+
+func NewAuthService(repo repository.SessionRepository) *AuthService {
 	return &AuthService{
 		sessionRepo: repo,
 	}
 }
 
-func (a *AuthService) Authenticate(user *entities.User) (string, error) {
+func (a *AuthService) Authenticate(user AuthInfo) (string, error) {
 	id, err := uuid.NewUUID()
 	if err != nil {
 		return "", apperror.InternalServerError
@@ -33,7 +36,7 @@ func (a *AuthService) Authenticate(user *entities.User) (string, error) {
 	token := id.String()
 
 	err = a.sessionRepo.CreateSession(token, &session.Session{
-		Email:     user.Email,
+		Email:     user.AuthEmail(),
 		ExpiresAt: time.Now().Add(time.Second * 86400),
 	})
 	if err != nil {

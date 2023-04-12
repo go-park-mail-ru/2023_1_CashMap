@@ -11,12 +11,16 @@ func ErrorMiddleware() gin.HandlerFunc {
 		ctx.Next()
 
 		if len(ctx.Errors) == 0 {
-
-			ctx.Status(200)
 			return
 		}
 
 		err := ctx.Errors[0].Unwrap()
+
+		serverError, ok := err.(*apperror.ServerError)
+		if ok {
+			err = serverError.UserErr
+		}
+
 		ctx.JSON(Errors[err].Code, gin.H{
 			"status":  Errors[err].Code,
 			"message": Errors[err].Message,
@@ -24,13 +28,27 @@ func ErrorMiddleware() gin.HandlerFunc {
 	}
 }
 
-var Errors = map[error]struct {
-	Code    int
-	Message string
-}{
+type ErrorResponse struct {
+	Code    int    `json:"status" example:"400"`
+	Message string `json:"message" example:"Невалидный запрос."`
+}
+
+var Errors = map[error]ErrorResponse{
 	apperror.UserNotFound: {
 		http.StatusNotFound,
 		"Пользователь не найден.",
+	},
+	apperror.PostNotFound: {
+		http.StatusNotFound,
+		"Запрашиваемый пост не найден",
+	},
+	apperror.CommunityNotFound: {
+		http.StatusNotFound,
+		"Запрашиваемое сообщества не найдено",
+	},
+	apperror.PostEditingNowAllowed: {
+		http.StatusForbidden,
+		"Редактирование этого поста не разрешено",
 	},
 	apperror.NoAuth: {
 		http.StatusUnauthorized,
@@ -51,5 +69,18 @@ var Errors = map[error]struct {
 	apperror.Forbidden: {
 		http.StatusForbidden,
 		"Доступ запрещен.",
+	},
+
+	apperror.InternalServerError: {
+		http.StatusInternalServerError,
+		"Ошибка сервера :(",
+	},
+	apperror.RepeatedSubscribe: {
+		http.StatusConflict,
+		"Повторная подписка.",
+	},
+	apperror.TooLargePayload: {
+		http.StatusRequestEntityTooLarge,
+		"Превышен допустимый размер файла",
 	},
 }

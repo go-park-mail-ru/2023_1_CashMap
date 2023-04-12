@@ -1,1 +1,4 @@
 .idea
+main
+./internal/static/files/*
+.env/*

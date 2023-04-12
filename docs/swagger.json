@@ -1,0 +1,1678 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Api for Depeche social network. VK Education project. Spring, 2023",
+        "title": "Depeche API",
+        "contact": {
+            "name": "CashMap team"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/api/feed": {
+            "get": {
+                "description": "Get user's new feed part by last post id and batch size.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Feed"
+                ],
+                "summary": "Get feed part",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Posts amount",
+                        "name": "batch_size",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date and time of last post given. If not specified the newest posts will be sent",
+                        "name": "last_post_date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/doc.PostArray"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/im/chat/check": {
+            "get": {
+                "description": "User can check if chat with that user_link exists",
+                "tags": [
+                    "Message"
+                ],
+                "summary": "Check if dialog exists",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User link",
+                        "name": "user_link",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/doc.HasDialogResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/im/chat/create": {
+            "post": {
+                "description": "Create new chat with user",
+                "tags": [
+                    "Message"
+                ],
+                "summary": "Create chat",
+                "parameters": [
+                    {
+                        "description": "Chat info",
+                        "name": "request",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/doc.ChatCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/doc.ChatCreateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/im/chats": {
+            "get": {
+                "description": "Get chats list",
+                "tags": [
+                    "Message"
+                ],
+                "summary": "Get chats",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Batch size",
+                        "name": "batch_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.GetChatsDTO"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/im/messages": {
+            "get": {
+                "description": "Get messages batch by chatID sorted by date",
+                "tags": [
+                    "Message"
+                ],
+                "summary": "Get messages",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Chat id",
+                        "name": "chat_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Batch size",
+                        "name": "batch_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Last post date",
+                        "name": "last_post_date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/doc.MessagesListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/im/send": {
+            "post": {
+                "description": "Add message to db and send it to listeners",
+                "tags": [
+                    "Message"
+                ],
+                "summary": "Send message",
+                "parameters": [
+                    {
+                        "description": "Message info",
+                        "name": "request",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/doc.SendMessageResponse"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/posts/community": {
+            "get": {
+                "description": "User can get community's posts in includes batches older than specified in \"last_post_date\"",
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Get post by community link",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID of the community on whose wall the post is located",
+                        "name": "community_link",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Posts amount",
+                        "name": "batch_size",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date and time of last post given. If not specified the newest posts will be sent",
+                        "name": "last_post_date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/doc.PostsResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/posts/create": {
+            "post": {
+                "description": "User can create new post",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Create new post",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "author_link",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "name": "community_link",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "name": "owner_link",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "boolean",
+                        "name": "show_author",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "name": "text",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/doc.PostsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/posts/delete": {
+            "delete": {
+                "description": "User can delete post",
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Delete post by id",
+                "parameters": [
+                    {
+                        "description": "Post to delete info",
+                        "name": "request",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/doc.PostDelete"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/posts/edit": {
+            "patch": {
+                "description": "User can edit post",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Edit post by id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "post_id",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "boolean",
+                        "name": "show_author",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "name": "text",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/posts/id": {
+            "get": {
+                "description": "User can get post by id, returned by server from CreatePost handler",
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Get post by id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Post ID",
+                        "name": "post_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Posts amount",
+                        "name": "batch_size",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date and time of last post given. If not specified the newest posts will be sent",
+                        "name": "last_post_date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/doc.PostResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/posts/profile": {
+            "get": {
+                "description": "User can get user's posts in includes batches older than specified in \"last_post_date\"",
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Get post by user link",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID of the user on whose wall the post is located",
+                        "name": "owner_link",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Posts amount",
+                        "name": "batch_size",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date and time of last post given. If not specified the newest posts will be sent",
+                        "name": "last_post_date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/doc.PostsResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/static/delete": {
+            "delete": {
+                "description": "Users can delete file on server",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "static"
+                ],
+                "summary": "Delete file from server",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "File name",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "File type (",
+                        "name": "type",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/static/download": {
+            "get": {
+                "description": "Users can read file on server",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "static"
+                ],
+                "summary": "Read file from server",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "File name",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "File type (",
+                        "name": "type",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/static/upload": {
+            "post": {
+                "description": "Users can upload many files using multipart/form-data",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "static"
+                ],
+                "summary": "Load file on server",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entities.UserFile"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "413": {
+                        "description": "Request Entity Too Large"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/user/friends": {
+            "get": {
+                "description": "Get friends",
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Friends",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "link to requested profile",
+                        "name": "link",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "amount of profiles",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "number of batch",
+                        "name": "offset",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/doc.ProfileArray"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/profile": {
+            "get": {
+                "description": "Get self profile",
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Self",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/doc.Profile"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/profile/edit": {
+            "patch": {
+                "description": "Edit profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "EditProfile",
+                "parameters": [
+                    {
+                        "description": "Edited fields",
+                        "name": "request",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/doc.EditProfile"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/profile/link": {
+            "get": {
+                "description": "Get profile by link",
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Profile",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "link to requested profile",
+                        "name": "link",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/doc.Profile"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/reject": {
+            "post": {
+                "description": "Reject friend request",
+                "tags": [
+                    "Subscribes"
+                ],
+                "summary": "Reject",
+                "parameters": [
+                    {
+                        "description": "Link to user to reject friend request.",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/doc.Subscribes"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/sub": {
+            "get": {
+                "description": "Get subscribes or subscribers for requested user",
+                "tags": [
+                    "Profiles"
+                ],
+                "summary": "Subscribes",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "in/out for subscribers/subscribes",
+                        "name": "type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "link to requested profile",
+                        "name": "link",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "amount of profiles",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "number of batch",
+                        "name": "offset",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/doc.ProfileArray"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Subscribe to other user",
+                "tags": [
+                    "Subscribes"
+                ],
+                "summary": "Subscribe",
+                "parameters": [
+                    {
+                        "description": "Link to user to subscribe.",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/doc.Subscribes"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/unsub": {
+            "post": {
+                "description": "Unsubscribe from other user",
+                "tags": [
+                    "Subscribes"
+                ],
+                "summary": "Unsubscribe",
+                "parameters": [
+                    {
+                        "description": "Link to user to unsubscribe.",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/doc.Subscribes"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "description": "Delete user session and invalidate session cookie",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Log out",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/sign-in": {
+            "post": {
+                "description": "Authorize client with credentials (login and password).",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Sign in",
+                "parameters": [
+                    {
+                        "description": "User credentials",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/doc.SignIn"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/sign-up": {
+            "post": {
+                "description": "Register client with credentials and other user info.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Sign up",
+                "parameters": [
+                    {
+                        "description": "Required register fields",
+                        "name": "email",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/doc.SignUp"
+                        }
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "doc.Chat": {
+            "description": "All post information",
+            "type": "object",
+            "properties": {
+                "chat": {
+                    "$ref": "#/definitions/entities.Chat"
+                }
+            }
+        },
+        "doc.ChatCreateRequest": {
+            "description": "All post information",
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/dto.CreateChatDTO"
+                }
+            }
+        },
+        "doc.ChatCreateResponse": {
+            "description": "All post information",
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/doc.Chat"
+                }
+            }
+        },
+        "doc.EditProfile": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/dto.EditProfile"
+                }
+            }
+        },
+        "doc.Exists": {
+            "type": "object",
+            "properties": {
+                "has_dialog": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "doc.HasDialogResponse": {
+            "description": "All post information",
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/doc.Exists"
+                }
+            }
+        },
+        "doc.Messages": {
+            "description": "All post information",
+            "type": "object",
+            "properties": {
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entities.Message"
+                    }
+                }
+            }
+        },
+        "doc.MessagesListResponse": {
+            "description": "All post information",
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/doc.Messages"
+                }
+            }
+        },
+        "doc.PostArray": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entities.Post"
+                    }
+                }
+            }
+        },
+        "doc.PostDelete": {
+            "description": "All post information",
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/dto.PostDelete"
+                }
+            }
+        },
+        "doc.PostResponse": {
+            "description": "All post information",
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/entities.Post"
+                }
+            }
+        },
+        "doc.PostsResponse": {
+            "description": "All post information",
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entities.Post"
+                    }
+                }
+            }
+        },
+        "doc.Profile": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/dto.Profile"
+                }
+            }
+        },
+        "doc.ProfileArray": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Profile"
+                    }
+                }
+            }
+        },
+        "doc.SendMessageResponse": {
+            "description": "All post information",
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/dto.NewMessage"
+                }
+            }
+        },
+        "doc.SignIn": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/dto.SignIn"
+                }
+            }
+        },
+        "doc.SignUp": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/dto.SignUp"
+                }
+            }
+        },
+        "doc.Subscribes": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/dto.Subscribes"
+                }
+            }
+        },
+        "dto.CreateChatDTO": {
+            "type": "object",
+            "properties": {
+                "user_links": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "dto.EditProfile": {
+            "type": "object",
+            "properties": {
+                "bio": {
+                    "type": "string"
+                },
+                "birthday": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "prev_pass": {
+                    "type": "string"
+                },
+                "sex": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "user_link": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GetChatsDTO": {
+            "type": "object",
+            "properties": {
+                "batch_size": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.NewMessage": {
+            "type": "object",
+            "properties": {
+                "chat_id": {
+                    "type": "integer"
+                },
+                "message_content_type": {
+                    "type": "string"
+                },
+                "reply_to": {
+                    "type": "integer"
+                },
+                "text_content": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.PostDelete": {
+            "type": "object",
+            "properties": {
+                "post_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.Profile": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string",
+                    "example": ""
+                },
+                "bio": {
+                    "type": "string",
+                    "example": "Текст с информацией о себе."
+                },
+                "birthday": {
+                    "type": "string",
+                    "example": "30.04.2002"
+                },
+                "date_joined": {
+                    "type": "string",
+                    "example": "10.02.2023"
+                },
+                "first_name": {
+                    "type": "string",
+                    "example": "Василий"
+                },
+                "last_active": {
+                    "type": "string",
+                    "example": ""
+                },
+                "last_name": {
+                    "type": "string",
+                    "example": "Петров"
+                },
+                "private": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "sex": {
+                    "type": "string",
+                    "example": "male"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "Текст статуса."
+                },
+                "user_link": {
+                    "type": "string",
+                    "example": "id100500"
+                }
+            }
+        },
+        "dto.SignIn": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SignUp": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.Subscribes": {
+            "type": "object",
+            "properties": {
+                "user_link": {
+                    "type": "string"
+                }
+            }
+        },
+        "entities.Chat": {
+            "type": "object",
+            "properties": {
+                "chat_id": {
+                    "type": "integer"
+                },
+                "user_links": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "entities.CommunityInfo": {
+            "type": "object",
+            "properties": {
+                "title": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "entities.FileType": {
+            "type": "string",
+            "enum": [
+                "img",
+                "doc"
+            ],
+            "x-enum-varnames": [
+                "IMAGE",
+                "DOCUMENT"
+            ]
+        },
+        "entities.Message": {
+            "type": "object",
+            "properties": {
+                "change_date": {
+                    "type": "string"
+                },
+                "chat_id": {
+                    "type": "integer"
+                },
+                "creation_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "message_content_type": {
+                    "type": "string"
+                },
+                "reply_to": {
+                    "type": "integer"
+                },
+                "text_content": {
+                    "type": "string"
+                }
+            }
+        },
+        "entities.OwnerInfo": {
+            "type": "object",
+            "properties": {
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "entities.Post": {
+            "description": "All post information",
+            "type": "object",
+            "properties": {
+                "author_link": {
+                    "type": "string"
+                },
+                "change_date": {
+                    "type": "string"
+                },
+                "community_info": {
+                    "$ref": "#/definitions/entities.CommunityInfo"
+                },
+                "creation_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "likes_amount": {
+                    "type": "integer"
+                },
+                "owner_info": {
+                    "$ref": "#/definitions/entities.OwnerInfo"
+                },
+                "show_author": {
+                    "type": "boolean"
+                },
+                "text_content": {
+                    "type": "string"
+                }
+            }
+        },
+        "entities.UserFile": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/entities.FileType"
+                }
+            }
+        },
+        "middleware.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Невалидный запрос."
+                },
+                "status": {
+                    "type": "integer",
+                    "example": 400
+                }
+            }
+        }
+    }
+}

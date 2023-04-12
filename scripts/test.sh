@@ -1,3 +1,0 @@
-#!/bin/bash
-
-CGO_ENABLED=1 go test -v -race ./...
