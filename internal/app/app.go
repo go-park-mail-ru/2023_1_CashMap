@@ -144,7 +144,7 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 		}
 
 		// [STATIC]
-		staticEndpointsGroup := apiEndpointsGroup.Group("/static")
+		staticEndpointsGroup := router.Group("/static")
 		{
 			staticEndpointsGroup.POST("/upload", handler.LoadFile)
 			staticEndpointsGroup.GET("/download", handler.GetFile)
