@@ -172,7 +172,10 @@ func (uh *UserHandler) LogOut(ctx *gin.Context) {
 	}
 
 	// Игнорим ошибку ибо дальше все равно логаут
-	userSession, _ := uh.authService.CheckSession(token)
+	userSession, err := uh.authService.CheckSession(token)
+	if err != nil {
+		_ = ctx.Error(apperror.NoAuth)
+	}
 
 	csrfToken := ctx.Request.Header.Get("X-Csrf-Token")
 	if csrfToken != "" {
