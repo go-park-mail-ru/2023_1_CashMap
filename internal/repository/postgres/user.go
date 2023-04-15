@@ -153,7 +153,9 @@ func (ur *UserRepository) GetUsers(email string, limit, offset int) ([]*entities
 func (ur *UserRepository) UpdateAvatar(email string, url string) error {
 	err := ur.DB.QueryRowx(UpdateAvatar, url, email).Scan()
 	if err != nil {
-		return apperror.InternalServerError
+		if err != sql.ErrNoRows {
+			return apperror.InternalServerError
+		}
 	}
 	return nil
 }
