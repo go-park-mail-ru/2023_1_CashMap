@@ -9,7 +9,6 @@ import (
 	"depeche/internal/utils"
 	"depeche/pkg/apperror"
 	"errors"
-	"fmt"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -31,14 +30,13 @@ func (storage *MessageStorage) SaveMsg(message *dto.NewMessage) (*entities.Messa
 		message.ReplyTo).Scan(&msg.Id)
 
 	if err != nil {
-		fmt.Println(err)
-		return nil, apperror.BadRequest
+		return nil, apperror.NewServerError(apperror.BadRequest, err)
 	}
 
 	err = storage.db.QueryRowx(MessageById, msg.Id).StructScan(msg)
 	if err != nil {
-		fmt.Println(err)
-		return nil, apperror.BadRequest
+
+		return nil, apperror.NewServerError(apperror.BadRequest, err)
 	}
 	return msg, nil
 }
@@ -47,13 +45,13 @@ func (storage *MessageStorage) GetMembersByChatId(chatId uint) ([]*entities.User
 	var users []*entities.User
 	rows, err := storage.db.Queryx(GetMembersByChatId, chatId)
 	if err != nil {
-		return nil, apperror.BadRequest
+		return nil, apperror.NewServerError(apperror.BadRequest, err)
 	}
 	for rows.Next() {
 		user := &entities.User{}
 		err := rows.StructScan(user)
 		if err != nil {
-			return nil, apperror.InternalServerError
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
 		}
 		users = append(users, user)
 	}

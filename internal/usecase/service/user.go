@@ -254,7 +254,7 @@ func (us *UserService) getUser(link string) (*entities.User, error) {
 	if strings.HasPrefix(link, "id") {
 		id, err := strconv.Atoi(strings.TrimPrefix(link, "id"))
 		if err != nil {
-			return nil, apperror.BadRequest
+			return nil, apperror.NewServerError(apperror.BadRequest, err)
 		}
 		return us.repo.GetUserById(uint(id))
 	}
