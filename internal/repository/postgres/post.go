@@ -24,9 +24,7 @@ func NewPostRepository(db *sqlx.DB) repository.PostRepository {
 
 func (storage *PostStorage) GetPostSenderInfo(postID uint) (*entities.UserInfo, *entities.CommunityInfo, error) {
 	author := &entities.UserInfo{}
-	err := storage.db.Get(author, "SELECT first_name, last_name, url, link FROM Post as post"+
-		" JOIN UserProfile as profile ON post.author_id = profile.id"+
-		" LEFT JOIN Photo as photo ON profile.avatar_id = photo.id WHERE post.id = $1", postID)
+	err := storage.db.Get(author, PostSenderInfoQuery, postID)
 	if err == sql.ErrNoRows {
 		return nil, nil, apperror.NewServerError(apperror.PostNotFound, fmt.Errorf("post with id=%d not found", postID))
 	}
@@ -37,9 +35,7 @@ func (storage *PostStorage) GetPostSenderInfo(postID uint) (*entities.UserInfo, 
 
 	// TODO: Может не работать
 	community := &entities.CommunityInfo{}
-	err = storage.db.Get(community, "SELECT community.title, community.link FROM Post as post"+
-		" JOIN Community as community ON post.community_id = community.id"+
-		"  WHERE post.id = $1", postID)
+	err = storage.db.Get(community, CommunityPostInfoQuery, postID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			community = nil
@@ -54,11 +50,7 @@ func (storage *PostStorage) GetPostSenderInfo(postID uint) (*entities.UserInfo, 
 func (storage *PostStorage) SelectPostById(postId uint) (*entities.Post, error) {
 	post := &entities.Post{}
 
-	err := storage.db.Get(post, "SELECT post.id, text_content, author.link as author_link, post.likes_amount, post.show_author, post.creation_date"+
-		" FROM Post AS post JOIN UserProfile AS author ON post.author_id = author.id"+
-		" LEFT JOIN Community as community on post.community_id = community.id"+
-		" LEFT JOIN UserProfile as owner ON post.owner_id = owner.id"+
-		" WHERE post.id = $1 AND post.is_deleted = false", postId)
+	err := storage.db.Get(post, PostInfoByIdQuery, postId)
 	if err == sql.ErrNoRows {
 		return nil, apperror.NewServerError(apperror.PostNotFound, fmt.Errorf("post with id=%d not found", postId))
 	}
@@ -72,10 +64,8 @@ func (storage *PostStorage) SelectPostById(postId uint) (*entities.Post, error) 
 func (storage *PostStorage) SelectPostsByCommunityLink(info *dto.PostsGetByLink) ([]*entities.Post, error) {
 	// больше тот, кто запощен позже
 	//TODO: NamedQueryx
-	rows, err := storage.db.Queryx("SELECT post.id, text_content, author.link as author_link, post.likes_amount, post.show_author, post.creation_date, post.change_date "+
-		"FROM Post AS post JOIN UserProfile AS author ON post.author_id = author.id "+
-		"LEFT JOIN Community as community on post.community_id = community.id "+
-		"WHERE post.community_id = (SELECT id FROM Community WHERE link = $1) AND post.creation_date > $2 AND post.is_deleted = false ORDER BY post.creation_date DESC LIMIT $3",
+	rows, err := storage.db.Queryx(
+		PostByCommunityLinkQuery,
 		*info.CommunityLink,
 		info.LastPostDate,
 		info.BatchSize)
@@ -91,11 +81,8 @@ func (storage *PostStorage) SelectPostsByCommunityLink(info *dto.PostsGetByLink)
 }
 
 func (storage *PostStorage) SelectPostsByUserLink(info *dto.PostsGetByLink) ([]*entities.Post, error) {
-	rows, err := storage.db.Queryx("SELECT post.id, text_content, author.link as author_link, post.likes_amount, post.show_author, post.creation_date, post.change_date "+
-		"FROM Post AS post JOIN UserProfile AS author ON post.author_id = author.id "+
-		"LEFT JOIN Community as community on post.community_id = community.id "+
-		"LEFT JOIN UserProfile as owner ON post.owner_id = owner.id "+
-		"WHERE post.owner_id = (SELECT id FROM UserProfile WHERE link = $1) AND post.creation_date > $2 AND post.is_deleted = false ORDER BY post.creation_date DESC LIMIT $3",
+	rows, err := storage.db.Queryx(
+		PostsByUserLinkQuery,
 		info.OwnerLink,
 		info.LastPostDate,
 		info.BatchSize)
@@ -184,8 +171,7 @@ func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) 
 
 	}
 
-	query, err := tx.PrepareNamed("INSERT INTO Post (community_id, author_id, owner_id, show_author, text_content, creation_date, change_date) " +
-		"VALUES (:community_id, (SELECT id FROM UserProfile WHERE email = :sender_email), :owner_id, :show_author, :text, :init_time, :change_time) RETURNING id")
+	query, err := tx.PrepareNamed(CreatePostQuery)
 	if err != nil {
 		if err := tx.Rollback(); err != nil {
 			return 0, apperror.NewServerError(apperror.InternalServerError, err)
