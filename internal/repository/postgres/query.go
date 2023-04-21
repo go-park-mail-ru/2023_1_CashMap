@@ -341,3 +341,13 @@ var (
 	where cm.chat_id = $1
 	`
 )
+
+var (
+	CreateGroup       = ``
+	UpdateGroupLink   = ``
+	UpdateGroupAvatar = ``
+	DeleteGroup       = ``
+	GroupSubscribe    = ``
+	GroupUnsubscribe  = ``
+	AddManager        = ``
+)
