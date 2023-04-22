@@ -1,21 +1,17 @@
 package service
 
 import (
-	"depeche/internal/session"
-	"depeche/internal/session/repository"
+	"depeche/authorization_ms"
+	"depeche/authorization_ms/repository"
 	"depeche/pkg/apperror"
 	"github.com/google/uuid"
 	"time"
 )
 
 type Auth interface {
-	Authenticate(user AuthInfo) (string, error)
+	Authenticate(email string) (string, error)
 	LogOut(token string) error
-	CheckSession(token string) (*session.Session, error)
-}
-
-type AuthInfo interface {
-	AuthEmail() string
+	CheckSession(token string) (*authorization_ms.Session, error)
 }
 
 type AuthService struct {
@@ -28,15 +24,15 @@ func NewAuthService(repo repository.SessionRepository) *AuthService {
 	}
 }
 
-func (a *AuthService) Authenticate(user AuthInfo) (string, error) {
+func (a *AuthService) Authenticate(email string) (string, error) {
 	id, err := uuid.NewUUID()
 	if err != nil {
 		return "", apperror.InternalServerError
 	}
 	token := id.String()
 
-	err = a.sessionRepo.CreateSession(token, &session.Session{
-		Email:     user.AuthEmail(),
+	err = a.sessionRepo.CreateSession(token, &authorization_ms.Session{
+		Email:     email,
 		ExpiresAt: time.Now().Add(time.Second * 86400),
 	})
 	if err != nil {
@@ -53,7 +49,7 @@ func (a *AuthService) LogOut(token string) error {
 	return nil
 }
 
-func (a *AuthService) CheckSession(token string) (*session.Session, error) {
+func (a *AuthService) CheckSession(token string) (*authorization_ms.Session, error) {
 	stored, err := a.sessionRepo.GetSession(token)
 	if err != nil {
 		return nil, err

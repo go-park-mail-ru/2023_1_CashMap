@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	session "depeche/internal/session"
-	authService "depeche/internal/session/service"
+	"depeche/authorization_ms"
+	authService "depeche/authorization_ms/service"
 	"depeche/pkg/apperror"
 	"github.com/gin-gonic/gin"
 )
@@ -34,7 +34,7 @@ func (csrf *CSRFMiddleware) Middleware() gin.HandlerFunc {
 			return
 		}
 
-		csrfData := session.CSRF{
+		csrfData := authorization_ms.CSRF{
 			Token: csrfToken,
 			Email: email.(string),
 		}

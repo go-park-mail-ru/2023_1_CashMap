@@ -1,4 +1,4 @@
-package session
+package authorization_ms
 
 import (
 	"time"

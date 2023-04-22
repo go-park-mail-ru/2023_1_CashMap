@@ -1024,7 +1024,7 @@ paths:
       - Subscribes
   /auth/logout:
     post:
-      description: Delete user session and invalidate session cookie
+      description: Delete user authorization_ms and invalidate authorization_ms cookie
       responses:
         "200":
           description: OK

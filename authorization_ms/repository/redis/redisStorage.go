@@ -1,8 +1,8 @@
 package redis
 
 import (
-	"depeche/internal/session"
-	"depeche/internal/session/repository"
+	"depeche/authorization_ms"
+	"depeche/authorization_ms/repository"
 	"depeche/pkg/apperror"
 	"fmt"
 	"github.com/go-redis/redis"
@@ -13,7 +13,7 @@ type Storage struct {
 	ExpirationTime int
 }
 
-func (s *Storage) CreateSession(token string, session *session.Session) error {
+func (s *Storage) CreateSession(token string, session *authorization_ms.Session) error {
 	_, err := s.Client.Do("SET", token, session.Email, "EX", s.ExpirationTime).Result()
 	fmt.Println("NEW SESSION: ", session.Email)
 	if err != nil {
@@ -22,12 +22,12 @@ func (s *Storage) CreateSession(token string, session *session.Session) error {
 	return nil
 }
 
-func (s *Storage) GetSession(token string) (*session.Session, error) {
+func (s *Storage) GetSession(token string) (*authorization_ms.Session, error) {
 	email, err := s.Client.Get(token).Result()
 	if err != nil {
 		return nil, apperror.NoAuth
 	}
-	return &session.Session{
+	return &authorization_ms.Session{
 		Email: email,
 	}, nil
 }

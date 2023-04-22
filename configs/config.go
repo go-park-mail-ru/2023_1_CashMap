@@ -11,7 +11,7 @@ import (
 type Config struct {
 	Host           string                   `yaml:"host"`
 	Port           int                      `yaml:"port"`
-	SessionStorage connector.RedisConfig    `yaml:"session"`
+	SessionStorage connector.RedisConfig    `yaml:"authorization_ms"`
 	DB             connector.PostgresConfig `yaml:"db"`
 	DBMSName       string                   `yaml:"dbms_name"`
 }
