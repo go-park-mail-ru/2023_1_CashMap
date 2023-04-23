@@ -1,17 +1,17 @@
 package repository
 
 import (
-	session2 "depeche/authorization_ms"
+	"depeche/authorization_ms/authEntities"
 )
 
 type SessionRepository interface {
-	CreateSession(token string, session *session2.Session) error
-	GetSession(token string) (*session2.Session, error)
+	CreateSession(token string, session *authEntities.Session) error
+	GetSession(token string) (*authEntities.Session, error)
 	DeleteSession(token string) error
 }
 
 type CSRFRepository interface {
-	SaveCSRFToken(csrf *session2.CSRF, expirationTime int) error
-	CheckCSRFToken(csrf *session2.CSRF) (bool, error)
-	DeleteCSRFToken(csrf *session2.CSRF) error
+	SaveCSRFToken(csrf *authEntities.CSRF, expirationTime int) error
+	CheckCSRFToken(csrf *authEntities.CSRF) (bool, error)
+	DeleteCSRFToken(csrf *authEntities.CSRF) error
 }

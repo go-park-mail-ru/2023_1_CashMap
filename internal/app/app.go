@@ -1,6 +1,7 @@
 package app
 
 import (
+	"depeche/authorization_ms/api"
 	redis2 "depeche/authorization_ms/repository/redis"
 	service2 "depeche/authorization_ms/service"
 	"depeche/configs"
@@ -10,6 +11,7 @@ import (
 	"depeche/internal/delivery/wsPool"
 	"depeche/internal/repository/postgres"
 	httpserver "depeche/internal/server"
+	"depeche/internal/session/auth_client"
 	staticDelivery "depeche/internal/static/delivery"
 	staticService "depeche/internal/static/service"
 	"depeche/internal/usecase/service"
@@ -18,6 +20,8 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"log"
 )
 
@@ -42,7 +46,14 @@ func Run() {
 		log.Fatal(err)
 	}
 
-	sessionStorage := redis2.NewRedisStorage(client)
+	//sessionStorage := redis2.NewRedisStorage(client)
+	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", cfg.AuthMs.Host, cfg.AuthMs.Port),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatal(err)
+	}
+	authClient := api.NewAuthServiceClient(conn)
+
 	csrfStorage := redis2.NewCSRFStorage(client)
 
 	userStorage := postgres.NewPostgresUserRepo(db)
@@ -51,7 +62,7 @@ func Run() {
 	messageStorage := postgres.NewMessageRepository(db)
 
 	userService := service.NewUserService(userStorage)
-	authorizationService := service2.NewAuthService(sessionStorage)
+	authorizationService := auth_client.NewAuthService(authClient)
 	csrfService := service2.NewCSRFService(csrfStorage)
 	feedService := service.NewFeedService(feedStorage, postStorage)
 	fileService := staticService.NewFileUsecase()
@@ -116,7 +127,7 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 	// [API]
 	apiEndpointsGroup := router.Group("/api")
 	apiEndpointsGroup.Use(authMW.Middleware())
-	apiEndpointsGroup.Use(csrfMiddleware.Middleware())
+	//apiEndpointsGroup.Use(csrfMiddleware.Middleware())
 	{
 
 		// [FEED]

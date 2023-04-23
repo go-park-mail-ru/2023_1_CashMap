@@ -35,7 +35,11 @@ func (us *UserService) SignIn(user *dto.SignIn) (*entities.User, error) {
 
 func (us *UserService) SignUp(user *dto.SignUp) (*entities.User, error) {
 	stored, err := us.repo.GetUserByEmail(user.Email)
-	if err != nil && err != apperror.UserNotFound {
+	sErr, ok := err.(*apperror.ServerError)
+	if !ok {
+		return nil, apperror.NewServerError(apperror.InternalServerError, nil)
+	}
+	if err != nil && sErr.UserErr != apperror.UserNotFound {
 		return nil, err
 	}
 

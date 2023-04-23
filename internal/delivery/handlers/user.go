@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	session2 "depeche/authorization_ms"
+	"depeche/authorization_ms/authEntities"
 	service2 "depeche/authorization_ms/service"
 	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
@@ -176,7 +176,7 @@ func (uh *UserHandler) LogOut(ctx *gin.Context) {
 
 	csrfToken := ctx.Request.Header.Get("X-Csrf-Token")
 	if csrfToken != "" {
-		csrf := &session2.CSRF{
+		csrf := &authEntities.CSRF{
 			Token: csrfToken,
 			Email: userSession.Email,
 		}
@@ -227,7 +227,7 @@ func (uh *UserHandler) CheckAuth(ctx *gin.Context) {
 		return
 	}
 
-	csrf := &session2.CSRF{
+	csrf := &authEntities.CSRF{
 		Token: csrfToken,
 		Email: userSession.Email,
 	}
@@ -705,7 +705,7 @@ func (uh *UserHandler) PendingRequests(ctx *gin.Context) {
 }
 
 //nolint:unused
-func (uh *UserHandler) getSession(ctx *gin.Context) (*session2.Session, error) {
+func (uh *UserHandler) getSession(ctx *gin.Context) (*authEntities.Session, error) {
 	token, err := ctx.Cookie("session_id")
 	if err != nil {
 

@@ -1,4 +1,4 @@
-package authorization_ms
+package authEntities
 
 import (
 	"time"
