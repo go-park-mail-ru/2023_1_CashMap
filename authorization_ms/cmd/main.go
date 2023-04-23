@@ -7,6 +7,7 @@ import (
 	"depeche/authorization_ms/service"
 	"depeche/configs"
 	"depeche/pkg/connector"
+	"fmt"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -30,5 +31,10 @@ func main() {
 	api.RegisterAuthServiceServer(srv, authHandler)
 
 	// TODO add configs
-	listener, err := net.Listen()
+	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.AuthMs.Host, cfg.AuthMs.Port))
+
+	if err := srv.Serve(listener); err != nil {
+		log.Fatal(err)
+	}
+
 }

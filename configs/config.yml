@@ -8,3 +8,6 @@ db:
   host: "localhost"
   port: 5432
   database: "depeche_db"
+auth_ms:
+  host: ""
+  port: 8081
