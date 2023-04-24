@@ -27,10 +27,14 @@ func main() {
 	authService := service.NewAuthService(authRepository)
 	authHandler := handler.NewAuthHandler(authService)
 
+	csrfRepository := redis.NewCSRFStorage(client)
+	csrfService := service.NewCSRFService(csrfRepository)
+	csrfHandler := handler.NewCSRFHandler(csrfService)
+
 	srv := grpc.NewServer()
 	api.RegisterAuthServiceServer(srv, authHandler)
+	api.RegisterCSRFServiceServer(srv, csrfHandler)
 
-	// TODO add configs
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.AuthMs.Host, cfg.AuthMs.Port))
 
 	if err := srv.Serve(listener); err != nil {

@@ -23,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CSRFServiceClient interface {
-	CreateCSRFToken(ctx context.Context, in *Email, opts ...grpc.CallOption) (*Token, error)
+	CreateCSRFToken(ctx context.Context, in *EmailCSRF, opts ...grpc.CallOption) (*TokenCSRF, error)
 	InvalidateCSRFToken(ctx context.Context, in *CSRF, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ValidateCSRFToken(ctx context.Context, in *CSRF, opts ...grpc.CallOption) (*Valid, error)
 }
@@ -36,8 +36,8 @@ func NewCSRFServiceClient(cc grpc.ClientConnInterface) CSRFServiceClient {
 	return &cSRFServiceClient{cc}
 }
 
-func (c *cSRFServiceClient) CreateCSRFToken(ctx context.Context, in *Email, opts ...grpc.CallOption) (*Token, error) {
-	out := new(Token)
+func (c *cSRFServiceClient) CreateCSRFToken(ctx context.Context, in *EmailCSRF, opts ...grpc.CallOption) (*TokenCSRF, error) {
+	out := new(TokenCSRF)
 	err := c.cc.Invoke(ctx, "/csrf.CSRFService/CreateCSRFToken", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -67,7 +67,7 @@ func (c *cSRFServiceClient) ValidateCSRFToken(ctx context.Context, in *CSRF, opt
 // All implementations must embed UnimplementedCSRFServiceServer
 // for forward compatibility
 type CSRFServiceServer interface {
-	CreateCSRFToken(context.Context, *Email) (*Token, error)
+	CreateCSRFToken(context.Context, *EmailCSRF) (*TokenCSRF, error)
 	InvalidateCSRFToken(context.Context, *CSRF) (*emptypb.Empty, error)
 	ValidateCSRFToken(context.Context, *CSRF) (*Valid, error)
 	mustEmbedUnimplementedCSRFServiceServer()
@@ -77,7 +77,7 @@ type CSRFServiceServer interface {
 type UnimplementedCSRFServiceServer struct {
 }
 
-func (UnimplementedCSRFServiceServer) CreateCSRFToken(context.Context, *Email) (*Token, error) {
+func (UnimplementedCSRFServiceServer) CreateCSRFToken(context.Context, *EmailCSRF) (*TokenCSRF, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateCSRFToken not implemented")
 }
 func (UnimplementedCSRFServiceServer) InvalidateCSRFToken(context.Context, *CSRF) (*emptypb.Empty, error) {
@@ -100,7 +100,7 @@ func RegisterCSRFServiceServer(s grpc.ServiceRegistrar, srv CSRFServiceServer) {
 }
 
 func _CSRFService_CreateCSRFToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Email)
+	in := new(EmailCSRF)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -112,7 +112,7 @@ func _CSRFService_CreateCSRFToken_Handler(srv interface{}, ctx context.Context, 
 		FullMethod: "/csrf.CSRFService/CreateCSRFToken",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CSRFServiceServer).CreateCSRFToken(ctx, req.(*Email))
+		return srv.(CSRFServiceServer).CreateCSRFToken(ctx, req.(*EmailCSRF))
 	}
 	return interceptor(ctx, in, info, handler)
 }

@@ -2,8 +2,6 @@ package app
 
 import (
 	"depeche/authorization_ms/api"
-	redis2 "depeche/authorization_ms/repository/redis"
-	service2 "depeche/authorization_ms/service"
 	"depeche/configs"
 	"depeche/docs"
 	"depeche/internal/delivery/handlers"
@@ -11,7 +9,7 @@ import (
 	"depeche/internal/delivery/wsPool"
 	"depeche/internal/repository/postgres"
 	httpserver "depeche/internal/server"
-	"depeche/internal/session/auth_client"
+	"depeche/internal/session/client"
 	staticDelivery "depeche/internal/static/delivery"
 	staticService "depeche/internal/static/service"
 	"depeche/internal/usecase/service"
@@ -41,10 +39,10 @@ func Run() {
 	// TODO: как обработать ошибку в дефере нормаль?...
 	defer db.Close()
 
-	client, err := connector.ConnectRedis(&cfg.SessionStorage)
-	if err != nil {
-		log.Fatal(err)
-	}
+	//redisClient, err := connector.ConnectRedis(&cfg.SessionStorage)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
 
 	//sessionStorage := redis2.NewRedisStorage(client)
 	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", cfg.AuthMs.Host, cfg.AuthMs.Port),
@@ -53,8 +51,7 @@ func Run() {
 		log.Fatal(err)
 	}
 	authClient := api.NewAuthServiceClient(conn)
-
-	csrfStorage := redis2.NewCSRFStorage(client)
+	csrfClient := api.NewCSRFServiceClient(conn)
 
 	userStorage := postgres.NewPostgresUserRepo(db)
 	feedStorage := postgres.NewFeedStorage(db)
@@ -62,8 +59,8 @@ func Run() {
 	messageStorage := postgres.NewMessageRepository(db)
 
 	userService := service.NewUserService(userStorage)
-	authorizationService := auth_client.NewAuthService(authClient)
-	csrfService := service2.NewCSRFService(csrfStorage)
+	authorizationService := client.NewAuthService(authClient)
+	csrfService := client.NewCSRFService(csrfClient)
 	feedService := service.NewFeedService(feedStorage, postStorage)
 	fileService := staticService.NewFileUsecase()
 	postService := service.NewPostService(postStorage)

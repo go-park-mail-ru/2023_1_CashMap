@@ -11,20 +11,20 @@ message CSRF {
   string email = 2;
 }
 
-message Token {
+message TokenCSRF {
   string token = 1;
 }
 
-message Email {
+message EmailCSRF {
   string email = 1;
 }
 
 message Valid {
-  bool vaild = 1;
+  bool valid = 1;
 }
 
 service CSRFService {
-  rpc CreateCSRFToken(Email) returns(Token);
+  rpc CreateCSRFToken(EmailCSRF) returns(TokenCSRF);
   rpc InvalidateCSRFToken(CSRF) returns(google.protobuf.Empty);
   rpc ValidateCSRFToken(CSRF) returns(Valid);
 }
