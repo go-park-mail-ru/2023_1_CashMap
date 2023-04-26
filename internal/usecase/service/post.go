@@ -6,6 +6,7 @@ import (
 	"depeche/internal/repository"
 	"depeche/internal/usecase"
 	"depeche/internal/utils"
+	"depeche/pkg/apperror"
 	"errors"
 )
 
@@ -29,7 +30,7 @@ func (service *PostService) GetPostById(email string, postDTO *dto.PostGetByID) 
 		return nil, errors.New("access to post denied")
 	}
 
-	post, err := service.SelectPostById(postDTO.PostID)
+	post, err := service.SelectPostById(postDTO.PostID, email)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +56,7 @@ func (service *PostService) GetPostsByCommunityLink(email string, dto *dto.Posts
 		return nil, errors.New("access to posts denied")
 	}
 
-	posts, err := service.SelectPostsByCommunityLink(dto)
+	posts, err := service.SelectPostsByCommunityLink(dto, email)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +88,7 @@ func (service *PostService) GetPostsByUserLink(email string, dto *dto.PostsGetBy
 		dto.LastPostDate = "0"
 	}
 
-	posts, err := service.PostRepository.SelectPostsByUserLink(dto)
+	posts, err := service.PostRepository.SelectPostsByUserLink(dto, email)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +130,7 @@ func (service *PostService) CreatePost(email string, dto *dto.PostCreate) (*enti
 	if err != nil {
 		return nil, err
 	}
-	return service.PostRepository.SelectPostById(postID)
+	return service.PostRepository.SelectPostById(postID, email)
 }
 
 func (service *PostService) UpdatePost(email string, dto *dto.PostUpdate) error {
@@ -154,12 +155,30 @@ func (service *PostService) DeletePost(email string, dto *dto.PostDelete) error 
 	return nil
 }
 
-func (service *PostService) LikePost() {
-	//TODO: рк3
+func (service *PostService) LikePost(email string, dto *dto.LikeDTO) (int, error) {
+	if dto.PostID == nil {
+		return 0, apperror.NewServerError(apperror.BadRequest, errors.New("post_id can't be null"))
+	}
+
+	err := service.PostRepository.SetLike(email, *dto.PostID)
+	if err != nil {
+		return 0, err
+	}
+
+	return service.PostRepository.GetLikesAmount(email, *dto.PostID)
 }
 
-func (service *PostService) CancelLike() {
-	//TODO: рк3
+func (service *PostService) CancelLike(email string, dto *dto.LikeDTO) error {
+	if dto.PostID == nil {
+		return apperror.NewServerError(apperror.BadRequest, errors.New("post_id can't be null"))
+	}
+
+	err := service.PostRepository.CancelLike(email, *dto.PostID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (service *PostService) Repost() {

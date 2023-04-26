@@ -14,8 +14,8 @@ type PostUsecase interface {
 
 	DeletePost(email string, dto *dto.PostDelete) error
 
-	LikePost()
-	CancelLike()
+	LikePost(email string, dto *dto.LikeDTO) (int, error)
+	CancelLike(email string, dto *dto.LikeDTO) error
 
 	UpdatePost(email string, dto *dto.PostUpdate) error
 

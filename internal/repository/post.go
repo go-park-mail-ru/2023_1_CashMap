@@ -6,9 +6,9 @@ import (
 )
 
 type PostRepository interface {
-	SelectPostById(postId uint) (*entities.Post, error)
-	SelectPostsByCommunityLink(info *dto.PostsGetByLink) ([]*entities.Post, error)
-	SelectPostsByUserLink(info *dto.PostsGetByLink) ([]*entities.Post, error)
+	SelectPostById(postId uint, email string) (*entities.Post, error)
+	SelectPostsByCommunityLink(info *dto.PostsGetByLink, email string) ([]*entities.Post, error)
+	SelectPostsByUserLink(info *dto.PostsGetByLink, email string) ([]*entities.Post, error)
 
 	GetPostSenderInfo(postID uint) (*entities.UserInfo, *entities.CommunityInfo, error)
 
@@ -18,4 +18,8 @@ type PostRepository interface {
 	CreatePost(senderEmail string, dto *dto.PostCreate) (uint, error)
 	UpdatePost(senderEmail string, dto *dto.PostUpdate) error
 	DeletePost(senderEmail string, dto *dto.PostDelete) error
+
+	SetLike(email string, postID uint) error
+	CancelLike(email string, postID uint) error
+	GetLikesAmount(email string, postID uint) (int, error)
 }

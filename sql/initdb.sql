@@ -7,7 +7,7 @@ CREATE TABLE Photo
 );
 
 
-CREATE TABLE userprofile
+CREATE TABLE UserProfile
 (
     id              serial,
     email           text     NOT NULL UNIQUE,
@@ -113,7 +113,8 @@ CREATE TABLE PostPhoto
 CREATE TABLE PostLike
 (
     user_id int REFERENCES UserProfile (id),
-    post_id int REFERENCES Post (id)
+    post_id int REFERENCES Post (id),
+    UNIQUE (user_id, post_id)
 );
 
 CREATE TABLE Comment

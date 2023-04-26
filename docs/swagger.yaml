@@ -34,6 +34,11 @@ definitions:
       body:
         $ref: '#/definitions/doc.Exists'
     type: object
+  doc.LikePost:
+    properties:
+      body:
+        $ref: '#/definitions/entities.LikesAmount'
+    type: object
   doc.Messages:
     description: All post information
     properties:
@@ -117,6 +122,8 @@ definitions:
     type: object
   dto.EditProfile:
     properties:
+      avatar:
+        type: string
       bio:
         type: string
       birthday:
@@ -143,6 +150,11 @@ definitions:
       batch_size:
         type: integer
       offset:
+        type: integer
+    type: object
+  dto.LikeDTO:
+    properties:
+      post_id:
         type: integer
     type: object
   dto.NewMessage:
@@ -224,13 +236,15 @@ definitions:
     properties:
       chat_id:
         type: integer
-      user_links:
+      members:
         items:
-          type: string
+          $ref: '#/definitions/entities.UserInfo'
         type: array
     type: object
   entities.CommunityInfo:
     properties:
+      link:
+        type: string
       title:
         type: string
       url:
@@ -244,6 +258,11 @@ definitions:
     x-enum-varnames:
     - IMAGE
     - DOCUMENT
+  entities.LikesAmount:
+    properties:
+      likes_amount:
+        type: integer
+    type: object
   entities.Message:
     properties:
       change_date:
@@ -256,27 +275,22 @@ definitions:
         type: integer
       is_deleted:
         type: boolean
-      link:
-        type: string
       message_content_type:
         type: string
       reply_to:
         type: integer
+      sender_info:
+        $ref: '#/definitions/entities.UserInfo'
       text_content:
-        type: string
-    type: object
-  entities.OwnerInfo:
-    properties:
-      first_name:
-        type: string
-      last_name:
-        type: string
-      url:
         type: string
     type: object
   entities.Post:
     description: All post information
     properties:
+      attachments:
+        items:
+          type: string
+        type: array
       author_link:
         type: string
       change_date:
@@ -289,10 +303,12 @@ definitions:
         type: integer
       is_deleted:
         type: boolean
+      is_liked:
+        type: boolean
       likes_amount:
         type: integer
       owner_info:
-        $ref: '#/definitions/entities.OwnerInfo'
+        $ref: '#/definitions/entities.UserInfo'
       show_author:
         type: boolean
       text_content:
@@ -304,6 +320,17 @@ definitions:
         type: string
       type:
         $ref: '#/definitions/entities.FileType'
+    type: object
+  entities.UserInfo:
+    properties:
+      first_name:
+        type: string
+      last_name:
+        type: string
+      link:
+        type: string
+      url:
+        type: string
     type: object
   middleware.ErrorResponse:
     properties:
@@ -538,9 +565,6 @@ paths:
       - in: formData
         name: show_author
         type: boolean
-      - in: formData
-        name: text
-        type: string
       produces:
       - application/json
       responses:
@@ -580,6 +604,13 @@ paths:
     patch:
       description: User can edit post
       parameters:
+      - collectionFormat: csv
+        description: Attachments         *[]io.ReadCloser `form:"attachments" valid:"-"`
+        in: formData
+        items:
+          type: string
+        name: attachments_to_remove
+        type: array
       - in: formData
         name: post_id
         type: integer
@@ -634,6 +665,76 @@ paths:
         "500":
           description: Internal Server Error
       summary: Get post by id
+      tags:
+      - Post
+  /api/posts/like/cancel:
+    post:
+      description: User can deny post like if like exists
+      parameters:
+      - description: Post data to cancel like
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LikeDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: Cancel post like
+      tags:
+      - Post
+  /api/posts/like/set:
+    post:
+      description: User can like posts if like hasn't already set
+      parameters:
+      - description: Post data to like
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LikeDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/doc.LikePost'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/middleware.ErrorResponse'
+      summary: Set like on post
       tags:
       - Post
   /api/posts/profile:

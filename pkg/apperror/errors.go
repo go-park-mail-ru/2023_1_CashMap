@@ -22,6 +22,8 @@ var (
 
 var (
 	PostEditingNowAllowed = errors.New("post editing is not allowed")
+	AlreadyLiked          = errors.New("like has already set")
+	LikeIsMissing         = errors.New("like on this post doesn't exists")
 )
 
 var (

@@ -34,3 +34,7 @@ type PostUpdate struct {
 	AttachmentsToRemove *[]string        `form:"attachments_to_remove" valid:"-"`
 	ChangeDate          string           `form:"-" json:"-"`
 }
+
+type LikeDTO struct {
+	PostID *uint `json:"post_id" valid:"-"`
+}
