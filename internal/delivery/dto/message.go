@@ -1,6 +1,6 @@
 package dto
 
-type NewMessage struct {
+type NewMessageDTO struct {
 	UserId      uint   `json:"-"`
 	ChatId      uint   `json:"chat_id"`
 	ContentType string `json:"message_content_type"`

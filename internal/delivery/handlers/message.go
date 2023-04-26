@@ -30,7 +30,7 @@ func NewMessageHandler(service usecase.MessageUsecase) *MessageHandler {
 //	@Router			/api/im/send [post]
 func (handler *MessageHandler) Send(ctx *gin.Context) {
 	var request = struct {
-		Data *dto.NewMessage `json:"body"`
+		Data *dto.NewMessageDTO `json:"body"`
 	}{}
 
 	err := ctx.ShouldBindJSON(&request)

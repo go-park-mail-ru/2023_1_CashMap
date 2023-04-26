@@ -30,14 +30,14 @@ type Chat struct {
 //
 //	@Description	All post information
 type SendMessageRequest struct {
-	Body dto.NewMessage `json:"body"`
+	Body dto.NewMessageDTO `json:"body"`
 }
 
 // SendMessageResponse entity info
 //
 //	@Description	All post information
 type SendMessageResponse struct {
-	Body dto.NewMessage `json:"body"`
+	Body dto.NewMessageDTO `json:"body"`
 }
 
 // MessagesListResponse entity info

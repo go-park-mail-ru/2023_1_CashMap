@@ -253,3 +253,37 @@ func TestUserRepository_GetUserByLink(t *testing.T) {
 //		})
 //	}
 //}
+
+func TestUserRepository_SearchUserByName(t *testing.T) {
+	//var cfg configs.Config
+	//err := configs.InitCfg(&cfg)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//
+	//postgresDefault, err := connector.GetPostgresConnector(&cfg.DB)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//
+	//db := connector.GetSqlxConnector(postgresDefault, cfg.DBMSName)
+	//// TODO: как обработать ошибку в дефере нормаль?...
+	//defer db.Close()
+	//
+	//repo := postgres.NewPostgresUserRepo(db)
+	//
+	//dto := dto2.GlobalSearchDTO{
+	//	SearchQuery: "All Repin qw",
+	//	BatchSize:   40,
+	//	Offset:      100,
+	//}
+	//name, err := repo.SearchUserByName(&dto)
+	//if err != nil {
+	//	t.Error(err)
+	//}
+	//
+	//for _, a := range name {
+	//	fmt.Println(*a.FirstName + " " + *a.LastName)
+	//	fmt.Println("--------------------")
+	//}
+}

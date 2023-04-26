@@ -21,7 +21,7 @@ func NewMessageRepository(DB *sqlx.DB) repository.MessageRepository {
 	return &MessageStorage{DB}
 }
 
-func (storage *MessageStorage) SaveMsg(message *dto.NewMessage) (*entities.Message, error) {
+func (storage *MessageStorage) SaveMsg(message *dto.NewMessageDTO) (*entities.Message, error) {
 	msg := &entities.Message{}
 	err := storage.db.QueryRowx(CreateMessage,
 		message.UserId, message.ChatId,

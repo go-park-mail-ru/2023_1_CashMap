@@ -7,7 +7,7 @@ CREATE TABLE Photo
 );
 
 
-CREATE TABLE userprofile
+CREATE TABLE UserProfile
 (
     id              serial,
     email           text     NOT NULL UNIQUE,
@@ -23,7 +23,7 @@ CREATE TABLE userprofile
     last_active     text              DEFAULT '',
     is_deleted      boolean  NOT NULL DEFAULT false,
     dying_time      interval NOT NULL DEFAULT INTERVAL '6 months',
-    access_to_posts text     NOT NULL DEFAULT 'all',
+    access_to_posts text     NOT NULL DEFAULT 'all'
     PRIMARY KEY (id)
 
 );

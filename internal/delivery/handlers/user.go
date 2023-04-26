@@ -8,6 +8,8 @@ import (
 	authService "depeche/internal/session/service"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
+	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -703,6 +705,28 @@ func (uh *UserHandler) PendingRequests(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"body": gin.H{
 			"profiles": profiles,
+		},
+	})
+}
+
+func (uh *UserHandler) GetGlobalSearchResult(ctx *gin.Context) {
+	dto := &dto.GlobalSearchDTO{}
+
+	err := ctx.ShouldBind(dto)
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse search dto from query")))
+		return
+	}
+	fmt.Println(dto)
+	searchResult, err := uh.service.GlobalSearch(dto)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"body": gin.H{
+			"users": searchResult,
 		},
 	})
 }

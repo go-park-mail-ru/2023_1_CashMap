@@ -3,6 +3,8 @@ module depeche
 go 1.18
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0
+	github.com/arbovm/levenshtein v0.0.0-20160628152529-48b4e1c0c4d0
 	github.com/fatih/structs v1.1.0
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.9.0
@@ -22,7 +24,7 @@ require (
 )
 
 require (
-	github.com/DATA-DOG/go-sqlmock v1.5.0 // indirect
+	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/mod v0.10.0 // indirect

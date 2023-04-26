@@ -27,4 +27,6 @@ type User interface {
 	GetFriendsByLink(requestEmail, targetLink string, limit, offset int) ([]*entities.User, error)
 	GetSubscribesByLink(requestEmail, targetLink string, limit, offset int) ([]*entities.User, error)
 	GetSubscribersByLink(requestEmail, targetLink string, limit, offset int) ([]*entities.User, error)
+
+	GlobalSearch(dto *dto.GlobalSearchDTO) ([]*entities.UserInfo, error)
 }

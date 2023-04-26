@@ -8,6 +8,7 @@ import (
 	"depeche/internal/utils"
 	"depeche/pkg/apperror"
 	"fmt"
+	"github.com/arbovm/levenshtein"
 	"github.com/jackc/pgerrcode"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -361,3 +362,86 @@ func (ur *UserRepository) GetPendingFriendRequests(user *entities.User, limit, o
 //	}
 //	return pending, nil
 //}
+
+func (ur *UserRepository) SearchUserByName(searchDTO *dto.GlobalSearchDTO) ([]*entities.UserInfo, error) {
+	// TODO: сначала выбрать из друзей
+	searchName := utils.NormalizeString(*searchDTO.SearchQuery)
+	splitSearchName := strings.Split(searchName, " ")
+
+	rows, err := ur.DB.Queryx("SELECT id, first_name, last_name FROM UserProfile AS profile")
+	if err != nil {
+		return nil, err
+	}
+
+	distances := make([]int, len(splitSearchName))
+
+	user := userForSearch{}
+	usersBatch := make([]userForSearch, 0, *searchDTO.BatchSize)
+	var usersAmount uint
+
+	maxLevenshteinDistance := float64(utils.GetMaxLength(splitSearchName...)) * 0.75
+
+MAIN:
+	for rows.Next() {
+		err := rows.StructScan(&user)
+		if err != nil {
+			return nil, err
+		}
+
+		// считаем минимальное расстояние между искомым именем и именем из базы
+		for i := 0; i < len(splitSearchName); i++ {
+			firstDistance := levenshtein.Distance(strings.ToLower(user.FirstName), splitSearchName[i])
+			secondDistance := levenshtein.Distance(strings.ToLower(user.LastName), splitSearchName[i])
+
+			distances[i] = utils.Min(firstDistance, secondDistance)
+		}
+
+		user.Distance = float64(utils.SliceMin(distances))
+		if user.Distance > maxLevenshteinDistance {
+			continue
+		}
+
+		// обновляем список с наилучшими мэтчами по имени
+		var i uint
+		for i = 0; i < usersAmount; i++ {
+			if user.Distance < usersBatch[i].Distance {
+				if usersAmount < *searchDTO.BatchSize+*searchDTO.Offset {
+					usersBatch = append(usersBatch, userForSearch{})
+				}
+
+				utils.ShiftRight(usersBatch, int(i), 1)
+				usersBatch[i] = user
+				usersAmount++
+				continue MAIN
+			}
+		}
+
+		if usersAmount < *searchDTO.BatchSize {
+			usersBatch = append(usersBatch, user)
+			usersAmount++
+		}
+	}
+
+	var users = make([]*entities.UserInfo, 0, *searchDTO.BatchSize)
+
+	if *searchDTO.Offset >= uint(len(usersBatch)) {
+		return nil, nil
+	}
+	for ind, info := range usersBatch[*searchDTO.Offset:] {
+		users = append(users, nil)
+		users[ind] = new(entities.UserInfo)
+		err = ur.DB.Get(users[ind], "SELECT first_name, last_name, link,  url FROM UserProfile AS profile LEFT JOIN Photo ON profile.avatar_id = photo.id WHERE profile.id = $1", info.ID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return users, nil
+}
+
+type userForSearch struct {
+	ID        uint   `db:"id"`
+	FirstName string `db:"first_name"`
+	LastName  string `db:"last_name"`
+	Distance  float64
+}

@@ -155,6 +155,7 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 
 		userEndpoints := apiEndpointsGroup.Group("/user")
 		{
+			userEndpoints.GET("/search", handler.GetGlobalSearchResult)
 			// [PROFILE]
 			profileEndpoints := userEndpoints.Group("/profile")
 			{
