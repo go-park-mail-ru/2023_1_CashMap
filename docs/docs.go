@@ -350,11 +350,6 @@ const docTemplate = `{
                         "type": "boolean",
                         "name": "show_author",
                         "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "name": "text",
-                        "in": "formData"
                     }
                 ],
                 "responses": {
@@ -417,6 +412,16 @@ const docTemplate = `{
                 ],
                 "summary": "Edit post by id",
                 "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Attachments         *[]io.ReadCloser ` + "`" + `form:\"attachments\" valid:\"-\"` + "`" + `",
+                        "name": "attachments_to_remove",
+                        "in": "formData"
+                    },
                     {
                         "type": "integer",
                         "name": "post_id",
@@ -493,6 +498,113 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/posts/like/cancel": {
+            "post": {
+                "description": "User can deny post like if like exists",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Cancel post like",
+                "parameters": [
+                    {
+                        "description": "Post data to cancel like",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.LikeDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/posts/like/set": {
+            "post": {
+                "description": "User can like posts if like hasn't already set",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Set like on post",
+                "parameters": [
+                    {
+                        "description": "Post data to like",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.LikeDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/doc.LikePost"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -1258,6 +1370,14 @@ const docTemplate = `{
                 }
             }
         },
+        "doc.LikePost": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "$ref": "#/definitions/entities.LikesAmount"
+                }
+            }
+        },
         "doc.Messages": {
             "description": "All post information",
             "type": "object",
@@ -1386,6 +1506,9 @@ const docTemplate = `{
         "dto.EditProfile": {
             "type": "object",
             "properties": {
+                "avatar": {
+                    "type": "string"
+                },
                 "bio": {
                     "type": "string"
                 },
@@ -1425,6 +1548,14 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "offset": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.LikeDTO": {
+            "type": "object",
+            "properties": {
+                "post_id": {
                     "type": "integer"
                 }
             }
@@ -1545,10 +1676,10 @@ const docTemplate = `{
                 "chat_id": {
                     "type": "integer"
                 },
-                "user_links": {
+                "members": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/entities.UserInfo"
                     }
                 }
             }
@@ -1556,6 +1687,9 @@ const docTemplate = `{
         "entities.CommunityInfo": {
             "type": "object",
             "properties": {
+                "link": {
+                    "type": "string"
+                },
                 "title": {
                     "type": "string"
                 },
@@ -1575,6 +1709,14 @@ const docTemplate = `{
                 "DOCUMENT"
             ]
         },
+        "entities.LikesAmount": {
+            "type": "object",
+            "properties": {
+                "likes_amount": {
+                    "type": "integer"
+                }
+            }
+        },
         "entities.Message": {
             "type": "object",
             "properties": {
@@ -1593,30 +1735,16 @@ const docTemplate = `{
                 "is_deleted": {
                     "type": "boolean"
                 },
-                "link": {
-                    "type": "string"
-                },
                 "message_content_type": {
                     "type": "string"
                 },
                 "reply_to": {
                     "type": "integer"
                 },
+                "sender_info": {
+                    "$ref": "#/definitions/entities.UserInfo"
+                },
                 "text_content": {
-                    "type": "string"
-                }
-            }
-        },
-        "entities.OwnerInfo": {
-            "type": "object",
-            "properties": {
-                "first_name": {
-                    "type": "string"
-                },
-                "last_name": {
-                    "type": "string"
-                },
-                "url": {
                     "type": "string"
                 }
             }
@@ -1625,6 +1753,12 @@ const docTemplate = `{
             "description": "All post information",
             "type": "object",
             "properties": {
+                "attachments": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "author_link": {
                     "type": "string"
                 },
@@ -1643,11 +1777,14 @@ const docTemplate = `{
                 "is_deleted": {
                     "type": "boolean"
                 },
+                "is_liked": {
+                    "type": "boolean"
+                },
                 "likes_amount": {
                     "type": "integer"
                 },
                 "owner_info": {
-                    "$ref": "#/definitions/entities.OwnerInfo"
+                    "$ref": "#/definitions/entities.UserInfo"
                 },
                 "show_author": {
                     "type": "boolean"
@@ -1665,6 +1802,23 @@ const docTemplate = `{
                 },
                 "type": {
                     "$ref": "#/definitions/entities.FileType"
+                }
+            }
+        },
+        "entities.UserInfo": {
+            "type": "object",
+            "properties": {
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
                 }
             }
         },

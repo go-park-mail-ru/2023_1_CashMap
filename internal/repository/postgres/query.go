@@ -353,4 +353,164 @@ var (
 	WHERE post_id = $1
 	  AND user_id = (SELECT id FROM UserProfile WHERE email = $2)
 	`
+
+	FriendsPostsQuery = `
+		SELECT  post.id,
+		        text_content,
+		        author.link as author_link,
+		        post.likes_amount, 
+        		case when post.show_author is null then true else post.show_author end  AS show_author,
+        		post.creation_date
+		FROM Post post
+		    JOIN userprofile author on author.id = post.author_id 
+		
+		WHERE owner_id IN (SELECT u.id 
+		                   FROM friendrequests f1
+		                       
+        JOIN friendrequests f2 on
+                f1.subscribed = f2.subscriber and
+                f2.subscribed = f1.subscriber
+		                       
+		JOIN userprofile u on
+			f1.subscribed = u.id                                                                                                                                                                                        
+		WHERE f1.subscriber = (SELECT id FROM UserProfile WHERE email = $1))
+		  and creation_date > $3 AND NOT post.is_deleted
+		
+        ORDER BY creation_date
+        LIMIT $2
+	`
+)
+
+var (
+	PostSenderInfoQuery = `
+		SELECT first_name, last_name, url, link
+		FROM Post as post
+				 JOIN UserProfile as profile ON post.author_id = profile.id
+				 LEFT JOIN Photo as photo ON profile.avatar_id = photo.id
+		WHERE post.id = $1
+		`
+
+	CommunityPostInfoQuery = `
+		SELECT community.title, community.link
+		FROM Post as post
+				 JOIN Community as community
+					  ON post.community_id = community.id
+		
+		WHERE post.id = $1
+		`
+
+	PostInfoByIdQuery = `
+			SELECT post.id, text_content, author.link as author_link, post.likes_amount, post.show_author, post.creation_date, CASE WHEN like_table.post_id is null THEN FALSE ELSE TRUE END as is_liked
+			FROM Post AS post
+					 JOIN UserProfile AS author ON post.author_id = author.id
+					 LEFT JOIN Community as community on post.community_id = community.id
+					 LEFT JOIN UserProfile as owner ON post.owner_id = owner.id
+					 LEFT JOIN PostLike as like_table ON like_table.user_id = (SELECT id FROM UserProfile WHERE email = $2) AND like_table.post_id = post.id
+			WHERE post.id = $1
+			  AND post.is_deleted = false
+	`
+
+	PostByCommunityLinkQuery = `
+		SELECT post.id,
+			   text_content,
+			   author.link as author_link,
+			   post.likes_amount,
+			   post.show_author,
+			   post.creation_date,
+			   post.change_date,
+			   CASE WHEN like_table.post_id is null THEN FALSE ELSE TRUE END as is_liked
+		FROM Post AS post
+				 JOIN UserProfile AS author ON post.author_id = author.id
+				 LEFT JOIN Community as community on post.community_id = community.id
+				 LEFT JOIN PostLike as like_table ON like_table.user_id = (SELECT id FROM UserProfile WHERE email = $4) AND like_table.post_id = post.id
+		WHERE post.community_id = (SELECT id FROM Community WHERE link = $1)
+		  AND post.creation_date > $2
+		  AND post.is_deleted = false
+		ORDER BY post.creation_date DESC
+		LIMIT $3
+	`
+
+	PostsByUserLinkQuery = `
+		SELECT post.id,
+			   text_content,
+			   author.link as author_link,
+			   post.likes_amount,
+			   post.show_author,
+			   post.creation_date,
+			   post.change_date,
+			   CASE WHEN like_table.post_id is null THEN FALSE ELSE TRUE END as is_liked
+		FROM Post AS post
+				 JOIN UserProfile AS author ON post.author_id = author.id
+				 LEFT JOIN Community as community on post.community_id = community.id
+				 LEFT JOIN UserProfile as owner ON post.owner_id = owner.id
+				LEFT JOIN PostLike as like_table ON like_table.user_id = (SELECT id FROM UserProfile WHERE email = $4) AND like_table.post_id = post.id
+		WHERE post.owner_id = (SELECT id FROM UserProfile WHERE link = $1)
+		  AND post.creation_date > $2
+		  AND post.is_deleted = false
+		ORDER BY post.creation_date DESC
+		LIMIT $3
+	`
+
+	CreatePostQuery = `
+		INSERT INTO Post (community_id, author_id, owner_id, show_author, text_content, creation_date, change_date)
+		VALUES (:community_id, (SELECT id FROM UserProfile WHERE email = :sender_email), :owner_id, :show_author, :text,
+				:init_time, :change_time)
+		RETURNING id
+	`
+)
+
+var (
+	MessageByChatIdQuery = `
+		SELECT msg.id, msg.chat_id, text_content, msg.creation_date, msg.change_date, msg.reply_to, msg.is_deleted
+		FROM Message AS msg
+				 JOIN UserProfile AS author ON msg.user_id = author.id
+		WHERE msg.chat_id = (SELECT id FROM Chat WHERE id = $1)
+		  AND msg.creation_date > $2
+		  AND msg.is_deleted = false
+		ORDER BY msg.creation_date
+		LIMIT $3
+	`
+
+	ChatsQuery = `
+		SELECT chat.id as chat_id
+		FROM ChatMember as member
+				 JOIN Chat ON chat_id = chat.id
+		WHERE member.user_id = (SELECT id FROM UserProfile WHERE email = $1 LIMIT $2 OFFSET $3)
+	`
+
+	UserInfoByChatIdQuery = `
+		SELECT first_name, last_name, url, link
+		FROM ChatMember
+				 JOIN UserProfile ON id = user_id
+				 LEFT JOIN Photo AS photo ON avatar_id = photo.id
+		WHERE chat_id = $1
+	`
+
+	UserInfoByMessageIdQuery = `
+		SELECT first_name, last_name, url, link
+		FROM Message as msg
+				 JOIN UserProfile as profile ON msg.user_id = profile.id
+				 LEFT JOIN Photo as photo ON profile.avatar_id = photo.id
+		WHERE msg.id = $1
+	`
+
+	IsChatExistsQuery = `
+		WITH CommonChats AS (SELECT DISTINCT first.chat_id as chat_id
+							 FROM ChatMember first
+									  JOIN ChatMember second ON first.chat_id = second.chat_id
+							 WHERE first.user_id = (SELECT id FROM UserProfile WHERE link = $1)
+							   AND second.user_id = (SELECT id FROM UserProfile WHERE email = $2))
+		SELECT chat.id as chat_id
+		FROM Chat as chat
+				 JOIN CommonChats as common ON common.chat_id = chat.id
+		WHERE chat.members_number = 2
+	`
+
+	IsChatMemberQuery = `
+		SELECT true
+		FROM ChatMember member
+				 JOIN Chat as chat on chat.id = member.chat_id
+		WHERE chat_id = $1
+		  AND member.user_id = (SELECT id FROM UserProfile WHERE email = $2)
+	`
 )

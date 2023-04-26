@@ -6,9 +6,9 @@ import (
 )
 
 type PostRepository interface {
-	SelectPostById(postId uint) (*entities.Post, error)
-	SelectPostsByCommunityLink(info *dto.PostsGetByLink) ([]*entities.Post, error)
-	SelectPostsByUserLink(info *dto.PostsGetByLink) ([]*entities.Post, error)
+	SelectPostById(postId uint, email string) (*entities.Post, error)
+	SelectPostsByCommunityLink(info *dto.PostsGetByLink, email string) ([]*entities.Post, error)
+	SelectPostsByUserLink(info *dto.PostsGetByLink, email string) ([]*entities.Post, error)
 
 	GetPostSenderInfo(postID uint) (*entities.UserInfo, *entities.CommunityInfo, error)
 

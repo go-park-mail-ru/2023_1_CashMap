@@ -30,7 +30,7 @@ func (service *PostService) GetPostById(email string, postDTO *dto.PostGetByID) 
 		return nil, errors.New("access to post denied")
 	}
 
-	post, err := service.SelectPostById(postDTO.PostID)
+	post, err := service.SelectPostById(postDTO.PostID, email)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (service *PostService) GetPostsByCommunityLink(email string, dto *dto.Posts
 		return nil, errors.New("access to posts denied")
 	}
 
-	posts, err := service.SelectPostsByCommunityLink(dto)
+	posts, err := service.SelectPostsByCommunityLink(dto, email)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func (service *PostService) GetPostsByUserLink(email string, dto *dto.PostsGetBy
 		dto.LastPostDate = "0"
 	}
 
-	posts, err := service.PostRepository.SelectPostsByUserLink(dto)
+	posts, err := service.PostRepository.SelectPostsByUserLink(dto, email)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func (service *PostService) CreatePost(email string, dto *dto.PostCreate) (*enti
 	if err != nil {
 		return nil, err
 	}
-	return service.PostRepository.SelectPostById(postID)
+	return service.PostRepository.SelectPostById(postID, email)
 }
 
 func (service *PostService) UpdatePost(email string, dto *dto.PostUpdate) error {

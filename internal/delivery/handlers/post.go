@@ -277,7 +277,7 @@ func (handler *PostHandler) EditPost(ctx *gin.Context) {
 //	@Description	User can like posts if like hasn't already set
 //	@Tags			Post
 //	@Produce		json
-//	@Param			request	formData	dto.LikeDTO	 true	"Post data to like"
+//	@Param			request	body	dto.LikeDTO	 true	"Post data to like"
 //	@Success		200		{object}	doc.LikePost
 //	@Failure		400		{object} middleware.ErrorResponse
 //	@Failure		401		{object} middleware.ErrorResponse
@@ -319,7 +319,7 @@ func (handler *PostHandler) LikePost(ctx *gin.Context) {
 //	@Description	User can deny post like if like exists
 //	@Tags			Post
 //	@Produce		json
-//	@Param			request	formData	dto.LikeDTO	 true	"Post data to cancel like"
+//	@Param			request	body	dto.LikeDTO	 true	"Post data to cancel like"
 //	@Success		200
 //	@Failure		400		{object} middleware.ErrorResponse
 //	@Failure		401		{object} middleware.ErrorResponse
