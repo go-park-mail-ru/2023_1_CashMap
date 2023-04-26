@@ -124,7 +124,7 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 	// [API]
 	apiEndpointsGroup := router.Group("/api")
 	apiEndpointsGroup.Use(authMW.Middleware())
-	//apiEndpointsGroup.Use(csrfMiddleware.Middleware())
+	apiEndpointsGroup.Use(csrfMiddleware.Middleware())
 	{
 
 		// [FEED]
