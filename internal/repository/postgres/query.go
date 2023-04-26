@@ -341,3 +341,16 @@ var (
 	where cm.chat_id = $1
 	`
 )
+
+var (
+	SetLikeQuery = `
+	INSERT INTO Postlike (post_id, user_id)
+	VALUES ($1, (SELECT id FROM UserProfile WHERE email = $2))
+	`
+
+	CancelLikeQuery = `
+	DELETE FROM PostLike
+	WHERE post_id = $1
+	  AND user_id = (SELECT id FROM UserProfile WHERE email = $2)
+	`
+)

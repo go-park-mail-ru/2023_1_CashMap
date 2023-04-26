@@ -83,4 +83,14 @@ var Errors = map[error]ErrorResponse{
 		http.StatusRequestEntityTooLarge,
 		"Превышен допустимый размер файла",
 	},
+
+	apperror.AlreadyLiked: {
+		http.StatusConflict,
+		"Лайк уже поставлен",
+	},
+
+	apperror.LikeIsMissing: {
+		http.StatusConflict,
+		"Нельзя убрать несуществующий лайк",
+	},
 }

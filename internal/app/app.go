@@ -141,6 +141,8 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 			postEndpoints.DELETE("/delete", handler.DeletePost)
 			postEndpoints.POST("/create", handler.CreatePost)
 			postEndpoints.PATCH("/edit", handler.EditPost)
+			postEndpoints.POST("/like/set", handler.LikePost)
+			postEndpoints.POST("/like/cancel", handler.CancelPostLike)
 		}
 
 		// [STATIC]

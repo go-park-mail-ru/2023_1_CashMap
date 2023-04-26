@@ -271,6 +271,85 @@ func (storage *PostStorage) DeletePost(senderEmail string, dto *dto.PostDelete) 
 	return nil
 }
 
+func (storage *PostStorage) SetLike(email string, postID uint) error {
+	// TODO: нужна проверка доступа к постам (ручка недописанная выше)
+	tx, err := storage.db.Beginx()
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	_, err = tx.Exec(SetLikeQuery, postID, email)
+	if err != nil {
+		// TODO: выделить отдельно ошибку при нарушении констрэнта unique
+		tx.Rollback()
+		return apperror.NewServerError(apperror.AlreadyLiked, err)
+	}
+
+	_, err = tx.Exec("UPDATE Post SET likes_amount = likes_amount + 1 WHERE id = $1", postID)
+	if err != nil {
+		tx.Rollback()
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	return nil
+}
+
+func (storage *PostStorage) CancelLike(email string, postID uint) error {
+	// TODO: нужна проверка доступа к постам (ручка недописанная выше)
+	tx, err := storage.db.Beginx()
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	execResult, err := tx.Exec(CancelLikeQuery, postID, email)
+	if err != nil {
+		// TODO: выделить отдельно ошибку при нарушении констрэнта unique
+		tx.Rollback()
+		return apperror.NewServerError(apperror.AlreadyLiked, err)
+	}
+
+	rowsAmount, err := execResult.RowsAffected()
+	if err != nil {
+		tx.Rollback()
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	if rowsAmount == 0 {
+		tx.Rollback()
+		return apperror.NewServerError(apperror.LikeIsMissing,
+			fmt.Errorf("like for post with id = %d for user with email = %s doesn't exists", postID, email))
+	}
+
+	_, err = tx.Queryx("UPDATE Post SET likes_amount = likes_amount - 1 WHERE id = $1", postID)
+	if err != nil {
+		tx.Rollback()
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	return nil
+}
+
+func (storage *PostStorage) GetLikesAmount(email string, postID uint) (int, error) {
+	// TODO: нужна проверка доступа к постам (ручка недописанная выше)
+	var likesAmount int
+	err := storage.db.Get(&likesAmount, "SELECT likes_amount FROM Post WHERE id = $1", postID)
+	if err != nil {
+		return 0, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	return likesAmount, nil
+}
+
 func getSliceFromRows[T any](rows *sqlx.Rows, size uint) ([]*T, error) {
 	items := make([]*T, 0, size)
 	it := 0

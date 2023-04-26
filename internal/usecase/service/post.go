@@ -6,6 +6,7 @@ import (
 	"depeche/internal/repository"
 	"depeche/internal/usecase"
 	"depeche/internal/utils"
+	"depeche/pkg/apperror"
 	"errors"
 )
 
@@ -154,12 +155,30 @@ func (service *PostService) DeletePost(email string, dto *dto.PostDelete) error 
 	return nil
 }
 
-func (service *PostService) LikePost() {
-	//TODO: рк3
+func (service *PostService) LikePost(email string, dto *dto.LikeDTO) (int, error) {
+	if dto.PostID == nil {
+		return 0, apperror.NewServerError(apperror.BadRequest, errors.New("post_id can't be null"))
+	}
+
+	err := service.PostRepository.SetLike(email, *dto.PostID)
+	if err != nil {
+		return 0, err
+	}
+
+	return service.PostRepository.GetLikesAmount(email, *dto.PostID)
 }
 
-func (service *PostService) CancelLike() {
-	//TODO: рк3
+func (service *PostService) CancelLike(email string, dto *dto.LikeDTO) error {
+	if dto.PostID == nil {
+		return apperror.NewServerError(apperror.BadRequest, errors.New("post_id can't be null"))
+	}
+
+	err := service.PostRepository.CancelLike(email, *dto.PostID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (service *PostService) Repost() {

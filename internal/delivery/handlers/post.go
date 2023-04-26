@@ -5,6 +5,7 @@ import (
 	"depeche/internal/entities"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -264,6 +265,86 @@ func (handler *PostHandler) EditPost(ctx *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 		_ = ctx.Error(apperror.InternalServerError)
+		return
+	}
+
+	ctx.Status(http.StatusOK)
+}
+
+// LikePost godoc
+//
+//	@Summary		Set like on post
+//	@Description	User can like posts if like hasn't already set
+//	@Tags			Post
+//	@Produce		json
+//	@Param			request	formData	dto.LikeDTO	 true	"Post data to like"
+//	@Success		200		{object}	doc.LikePost
+//	@Failure		400		{object} middleware.ErrorResponse
+//	@Failure		401		{object} middleware.ErrorResponse
+//	@Failure		409		{object} middleware.ErrorResponse
+//	@Failure		500		{object} middleware.ErrorResponse
+//	@Router			/api/posts/like/set [post]
+func (handler *PostHandler) LikePost(ctx *gin.Context) {
+	var request = struct {
+		dto.LikeDTO `json:"body"`
+	}{}
+	err := ctx.ShouldBind(&request)
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse data")))
+		return
+	}
+
+	email, exists := ctx.Get("email")
+	if !exists {
+		_ = ctx.Error(apperror.NewServerError(apperror.NoAuth, errors.New("failed to get email from context")))
+		return
+	}
+
+	newLikesAmount, err := handler.PostUsecase.LikePost(email.(string), &request.LikeDTO)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"body": gin.H{
+			"likes_amount": newLikesAmount,
+		},
+	})
+}
+
+// CancelPostLike godoc
+//
+//	@Summary		Cancel post like
+//	@Description	User can deny post like if like exists
+//	@Tags			Post
+//	@Produce		json
+//	@Param			request	formData	dto.LikeDTO	 true	"Post data to cancel like"
+//	@Success		200
+//	@Failure		400		{object} middleware.ErrorResponse
+//	@Failure		401		{object} middleware.ErrorResponse
+//	@Failure		409		{object} middleware.ErrorResponse
+//	@Failure		500		{object} middleware.ErrorResponse
+//	@Router			/api/posts/like/cancel [post]
+func (handler *PostHandler) CancelPostLike(ctx *gin.Context) {
+	var request = struct {
+		dto.LikeDTO `json:"body"`
+	}{}
+	err := ctx.ShouldBind(&request)
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse data")))
+		return
+	}
+
+	email, exists := ctx.Get("email")
+	if !exists {
+		_ = ctx.Error(apperror.NewServerError(apperror.NoAuth, errors.New("failed to get email from context")))
+		return
+	}
+
+	err = handler.PostUsecase.CancelLike(email.(string), &request.LikeDTO)
+	if err != nil {
+		_ = ctx.Error(err)
 		return
 	}
 

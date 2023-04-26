@@ -18,4 +18,8 @@ type PostRepository interface {
 	CreatePost(senderEmail string, dto *dto.PostCreate) (uint, error)
 	UpdatePost(senderEmail string, dto *dto.PostUpdate) error
 	DeletePost(senderEmail string, dto *dto.PostDelete) error
+
+	SetLike(email string, postID uint) error
+	CancelLike(email string, postID uint) error
+	GetLikesAmount(email string, postID uint) (int, error)
 }
