@@ -1079,7 +1079,7 @@ const docTemplate = `{
         },
         "/auth/logout": {
             "post": {
-                "description": "Delete user session and invalidate session cookie",
+                "description": "Delete user authorization_ms and invalidate authorization_ms cookie",
                 "tags": [
                     "Auth"
                 ],

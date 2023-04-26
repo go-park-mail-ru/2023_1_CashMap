@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	authService "depeche/internal/session/service"
+	authService "depeche/authorization_ms/service"
 	"depeche/pkg/apperror"
 	"github.com/gin-gonic/gin"
 	"net/http"

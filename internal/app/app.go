@@ -1,6 +1,7 @@
 package app
 
 import (
+	"depeche/authorization_ms/api"
 	"depeche/configs"
 	"depeche/docs"
 	"depeche/internal/delivery/handlers"
@@ -8,8 +9,7 @@ import (
 	"depeche/internal/delivery/wsPool"
 	"depeche/internal/repository/postgres"
 	httpserver "depeche/internal/server"
-	"depeche/internal/session/repository/redis"
-	authService "depeche/internal/session/service"
+	"depeche/internal/session/client"
 	staticDelivery "depeche/internal/static/delivery"
 	staticService "depeche/internal/static/service"
 	"depeche/internal/usecase/service"
@@ -18,6 +18,8 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"log"
 )
 
@@ -37,13 +39,19 @@ func Run() {
 	// TODO: как обработать ошибку в дефере нормаль?...
 	defer db.Close()
 
-	client, err := connector.ConnectRedis(&cfg.SessionStorage)
+	//redisClient, err := connector.ConnectRedis(&cfg.SessionStorage)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+
+	//sessionStorage := redis2.NewRedisStorage(client)
+	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", cfg.AuthMs.Host, cfg.AuthMs.Port),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	sessionStorage := redis.NewRedisStorage(client)
-	csrfStorage := redis.NewCSRFStorage(client)
+	authClient := api.NewAuthServiceClient(conn)
+	csrfClient := api.NewCSRFServiceClient(conn)
 
 	userStorage := postgres.NewPostgresUserRepo(db)
 	feedStorage := postgres.NewFeedStorage(db)
@@ -51,8 +59,8 @@ func Run() {
 	messageStorage := postgres.NewMessageRepository(db)
 
 	userService := service.NewUserService(userStorage)
-	authorizationService := authService.NewAuthService(sessionStorage)
-	csrfService := authService.NewCSRFService(csrfStorage)
+	authorizationService := client.NewAuthService(authClient)
+	csrfService := client.NewCSRFService(csrfClient)
 	feedService := service.NewFeedService(feedStorage, postStorage)
 	fileService := staticService.NewFileUsecase()
 	postService := service.NewPostService(postStorage)
@@ -116,7 +124,7 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 	// [API]
 	apiEndpointsGroup := router.Group("/api")
 	apiEndpointsGroup.Use(authMW.Middleware())
-	apiEndpointsGroup.Use(csrfMiddleware.Middleware())
+	//apiEndpointsGroup.Use(csrfMiddleware.Middleware())
 	{
 
 		// [FEED]

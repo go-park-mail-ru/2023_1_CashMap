@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"depeche/authorization_ms/config"
 	"depeche/pkg/connector"
 	"github.com/joho/godotenv"
 	"gopkg.in/yaml.v2"
@@ -14,6 +15,7 @@ type Config struct {
 	SessionStorage connector.RedisConfig    `yaml:"session"`
 	DB             connector.PostgresConfig `yaml:"db"`
 	DBMSName       string                   `yaml:"dbms_name"`
+	AuthMs         config.AuthMsConfig      `yaml:"auth_ms"`
 }
 
 func InitCfg(config *Config) error {

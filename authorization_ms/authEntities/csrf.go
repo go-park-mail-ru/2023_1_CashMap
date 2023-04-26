@@ -1,4 +1,4 @@
-package session
+package authEntities
 
 type CSRF struct {
 	Token string

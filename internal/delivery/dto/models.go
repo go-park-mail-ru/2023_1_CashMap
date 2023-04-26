@@ -71,11 +71,3 @@ func NewProfileFromUser(user *entities.User) *Profile {
 		LastActive: user.LastActive,
 	}
 }
-
-func (si *SignIn) AuthEmail() string {
-	return si.Email
-}
-
-func (su *SignUp) AuthEmail() string {
-	return su.Email
-}
