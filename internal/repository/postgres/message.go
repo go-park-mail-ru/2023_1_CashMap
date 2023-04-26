@@ -67,9 +67,8 @@ func (storage *MessageStorage) SelectMessagesByChatID(senderEmail string, dto *d
 		return nil, errors.New("access to messages isn't allowed")
 	}
 
-	rows, err := storage.db.Queryx("SELECT msg.id, msg.chat_id, text_content, msg.creation_date, msg.change_date, msg.reply_to, msg.is_deleted "+
-		"FROM Message AS msg JOIN UserProfile AS author ON msg.user_id = author.id "+
-		"WHERE msg.chat_id = (SELECT id FROM Chat WHERE id = $1) AND msg.creation_date > $2 AND msg.is_deleted = false ORDER BY msg.creation_date LIMIT $3",
+	rows, err := storage.db.Queryx(
+		MessageByChatIdQuery,
 		dto.ChatID,
 		dto.LastMessageDate,
 		dto.BatchSize)
@@ -96,9 +95,8 @@ func (storage *MessageStorage) SelectMessagesByChatID(senderEmail string, dto *d
 }
 
 func (storage *MessageStorage) SelectChats(senderEmail string, dto *dto.GetChatsDTO) ([]*entities.Chat, error) {
-	rows, err := storage.db.Queryx("SELECT chat.id as chat_id FROM ChatMember as member"+
-		" JOIN Chat ON chat_id = chat.id"+
-		" WHERE member.user_id = (SELECT id FROM UserProfile WHERE email = $1 LIMIT $2 OFFSET $3)",
+	rows, err := storage.db.Queryx(
+		ChatsQuery,
 		senderEmail,
 		dto.BatchSize,
 		dto.Offset)
@@ -186,7 +184,7 @@ func (storage *MessageStorage) HasDialog(senderEmail string, dto *dto.HasDialogD
 
 func (storage *MessageStorage) GetUsersInfoByChatID(chatID uint) ([]*entities.UserInfo, error) {
 	var chat []*entities.UserInfo
-	err := storage.db.Select(&chat, "SELECT first_name, last_name, url, link FROM ChatMember JOIN UserProfile ON id = user_id LEFT JOIN Photo AS photo ON avatar_id = photo.id WHERE chat_id = $1", chatID)
+	err := storage.db.Select(&chat, UserInfoByChatIdQuery, chatID)
 	if err != nil {
 		return nil, err
 	}
@@ -196,9 +194,7 @@ func (storage *MessageStorage) GetUsersInfoByChatID(chatID uint) ([]*entities.Us
 
 func (storage *MessageStorage) GetUserInfoByMessageId(messageID uint) (*entities.UserInfo, error) {
 	senderInfo := &entities.UserInfo{}
-	err := storage.db.Get(senderInfo, "SELECT first_name, last_name, url, link "+
-		"FROM Message as msg JOIN UserProfile as profile ON msg.user_id = profile.id"+
-		" LEFT JOIN Photo as photo ON profile.avatar_id = photo.id WHERE msg.id = $1",
+	err := storage.db.Get(senderInfo, UserInfoByMessageIdQuery,
 		messageID)
 	if err != nil {
 		return nil, err
@@ -209,9 +205,9 @@ func (storage *MessageStorage) GetUserInfoByMessageId(messageID uint) (*entities
 
 func (storage *MessageStorage) isPersonalChatExists(email string, userLink string) (*int, error) {
 	var chatId int
-	err := storage.db.Get(&chatId, `WITH CommonChats AS (SELECT DISTINCT first.chat_id as chat_id FROM ChatMember first JOIN ChatMember second ON first.chat_id = second.chat_id
-		WHERE first.user_id = (SELECT id FROM UserProfile WHERE link = $1) AND second.user_id = (SELECT id FROM UserProfile WHERE email = $2))
-		SELECT chat.id as chat_id FROM Chat as chat JOIN CommonChats as common ON common.chat_id = chat.id WHERE chat.members_number = 2`,
+	err := storage.db.Get(
+		&chatId,
+		IsChatExistsQuery,
 		userLink,
 		email)
 	if err == sql.ErrNoRows {
@@ -226,8 +222,9 @@ func (storage *MessageStorage) isPersonalChatExists(email string, userLink strin
 
 func (storage *MessageStorage) isChatMember(email string, chatID uint) (bool, error) {
 	var hasAccess bool
-	err := storage.db.Get(&hasAccess, "SELECT true FROM ChatMember member JOIN Chat as chat on chat.id = member.chat_id "+
-		"WHERE chat_id = $1 AND member.user_id = (SELECT id FROM UserProfile WHERE email = $2)",
+	err := storage.db.Get(
+		&hasAccess,
+		IsChatMemberQuery,
 		chatID,
 		email)
 	if err != nil {
