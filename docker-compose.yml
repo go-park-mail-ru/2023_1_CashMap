@@ -56,6 +56,8 @@ services:
     depends_on:
       redis:
         condition: service_started
+    volumes:
+      - ./:/depeche-backend
 volumes:
   .:
   db_data:
