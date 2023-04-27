@@ -20,8 +20,11 @@ func ErrorMiddleware() gin.HandlerFunc {
 		serverError, ok := err.(*apperror.ServerError)
 		if ok {
 			err = serverError.UserErr
+			logger.Error(serverError.Unwrap())
+		} else {
+			logger.Error(err)
 		}
-		logger.Error(serverError.Unwrap())
+
 		ctx.JSON(Errors[err].Code, gin.H{
 			"status":  Errors[err].Code,
 			"message": Errors[err].Message,
@@ -93,5 +96,10 @@ var Errors = map[error]ErrorResponse{
 	apperror.LikeIsMissing: {
 		http.StatusConflict,
 		"Нельзя убрать несуществующий лайк",
+	},
+
+	apperror.IllegalFileExtensionError: {
+		http.StatusBadRequest,
+		"Недопустимое расширение файла",
 	},
 }

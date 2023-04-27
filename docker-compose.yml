@@ -13,6 +13,8 @@ services:
     depends_on:
       postgres:
         condition: service_started
+    volumes:
+      - ./:/depeche-backend
   redis:
     image: redis:latest
     container_name: depeche_redis
@@ -55,4 +57,5 @@ services:
       redis:
         condition: service_started
 volumes:
+  .:
   db_data:

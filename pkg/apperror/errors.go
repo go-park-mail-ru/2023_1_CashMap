@@ -34,6 +34,10 @@ var (
 	InternalServerError = errors.New("internal server error")
 )
 
+var (
+	IllegalFileExtensionError = errors.New("illegal file extension")
+)
+
 type ServerError struct {
 	UserErr     error
 	internalErr error

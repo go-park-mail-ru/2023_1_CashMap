@@ -3,9 +3,11 @@ package configs
 import (
 	"depeche/authorization_ms/config"
 	"depeche/pkg/connector"
+	"fmt"
 	"github.com/joho/godotenv"
 	"gopkg.in/yaml.v2"
 	"os"
+	"os/exec"
 	"path/filepath"
 )
 
@@ -19,12 +21,17 @@ type Config struct {
 }
 
 func InitCfg(config *Config) error {
-	err := godotenv.Load(".env/backend", ".env/postgres", ".env/redis")
+
+	cmd := exec.Command("ls", "-a")
+	stdout, err := cmd.Output()
+	fmt.Println(string(stdout))
+
+	err = godotenv.Load("/depeche-backend/.env/backend", "/depeche-backend/.env/postgres", "/depeche-backend/.env/redis")
 	if err != nil {
 		return err
 	}
 
-	filename, err := filepath.Abs("./configs/config.yml")
+	filename, err := filepath.Abs("/depeche-backend/configs/config.yml")
 
 	if err != nil {
 		return err
