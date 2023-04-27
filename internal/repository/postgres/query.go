@@ -360,9 +360,11 @@ var (
 		        author.link as author_link,
 		        post.likes_amount, 
         		case when post.show_author is null then true else post.show_author end  AS show_author,
-        		post.creation_date
+        		post.creation_date,
+        		CASE WHEN like_table.post_id is null THEN FALSE ELSE TRUE END as is_liked
 		FROM Post post
 		    JOIN userprofile author on author.id = post.author_id 
+			LEFT JOIN PostLike as like_table ON like_table.user_id = (SELECT id FROM UserProfile WHERE email = $4) AND like_table.post_id = post.id
 		
 		WHERE owner_id IN (SELECT u.id 
 		                   FROM friendrequests f1
@@ -372,7 +374,7 @@ var (
                 f2.subscribed = f1.subscriber
 		                       
 		JOIN userprofile u on
-			f1.subscribed = u.id                                                                                                                                                                                        
+			f1.subscribed = u.id        
 		WHERE f1.subscriber = (SELECT id FROM UserProfile WHERE email = $1))
 		  and creation_date > $3 AND NOT post.is_deleted
 		
