@@ -2,13 +2,13 @@ FROM golang:alpine AS builder
 WORKDIR /depeche-auth
 COPY  . .
 RUN apk update
-RUN CGO_ENABLED=0 GOOS=linux go build -o /auth_main -ldflags="-s -w" -a -installsuffix cgo ./authorization_ms/cmd/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o main -ldflags="-s -w" -a -installsuffix cgo ./authorization_ms/cmd/main.go
 
 FROM alpine
 WORKDIR /depeche-auth
-COPY --from=builder /auth_main /
+COPY --from=builder ./depeche-auth .
 
 EXPOSE 8081
 
 
-ENTRYPOINT ["/bin/sh", "-c" , "mv /auth_main /depeche-backend && /depeche-backend/auth_main"]
+ENTRYPOINT ["./main"]

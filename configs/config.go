@@ -26,12 +26,12 @@ func InitCfg(config *Config) error {
 	stdout, err := cmd.Output()
 	fmt.Println(string(stdout))
 
-	err = godotenv.Load("/depeche-backend/.env/backend", "/depeche-backend/.env/postgres", "/depeche-backend/.env/redis")
+	err = godotenv.Load(".env/backend", ".env/postgres", ".env/redis")
 	if err != nil {
 		return err
 	}
 
-	filename, err := filepath.Abs("/depeche-backend/configs/config.yml")
+	filename, err := filepath.Abs("configs/config.yml")
 
 	if err != nil {
 		return err
