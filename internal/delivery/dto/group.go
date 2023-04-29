@@ -1,6 +1,6 @@
 package dto
 
-type CreateGroup struct {
+type Group struct {
 	Title     string `json:"title"`
 	Info      string `json:"group_info"`
 	Avatar    string `json:"avatar"`

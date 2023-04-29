@@ -38,6 +38,10 @@ var (
 	IllegalFileExtensionError = errors.New("illegal file extension")
 )
 
+var (
+	GroupNotFound = errors.New("group not found")
+)
+
 type ServerError struct {
 	UserErr     error
 	internalErr error

@@ -48,14 +48,16 @@ CREATE TABLE groups
 (
     id            serial,
     title         text    NOT NULL,
-    link          text    NOT NULL UNIQUE,
+    link          text    UNIQUE,
+    owner_id      int REFERENCES UserProfile(id),
     avatar_id     int REFERENCES Photo (id),
     group_info           text DEFAULT '',
     privacy       text    NOT NULL DEFAULT 'open' CHECK ( privacy IN ('open', 'default', 'close') ),
     creation_date text    NOT NULL,
     hide_author   boolean default false,
-    id_deleted    boolean NOT NULL DEFAULT false,
+    is_deleted    boolean NOT NULL DEFAULT false,
     is_banned     boolean NOT NULL DEFAULT false,
+    subscribers  int default 0,
     PRIMARY KEY (id)
 );
 
@@ -71,7 +73,9 @@ CREATE TABLE GroupManagement
 CREATE TABLE GroupSubscriber
 (
     user_id      int REFERENCES UserProfile (id),
-    group_id int REFERENCES groups (id)
+    group_id int REFERENCES groups (id),
+    accepted bool default true,
+    unique (user_id, group_id)
 );
 
 CREATE TABLE Post
@@ -238,9 +242,37 @@ CREATE TABLE Sticker
     request_time text,
     rejected     boolean default false,
     unique (subscriber, subscribed)
-)
+);
+
+CREATE OR REPLACE FUNCTION increase_subscribers_count()
+    RETURNS trigger AS
+$$
+BEGIN
+    UPDATE groups set subscribers = subscribers + 1
+    where NEW.group_id = id and NEW.accepted;
+    return NEW;
+END;
+$$
+    LANGUAGE 'plpgsql';
 
 
+CREATE OR REPLACE FUNCTION decrease_subscribers_count()
+    RETURNS trigger AS
+$$
+BEGIN
+    UPDATE groups set subscribers = subscribers - 1
+    where OLD.group_id = id and OLD.accepted;
+    return OLD;
+END;
+$$
+    LANGUAGE 'plpgsql';
 
+CREATE trigger increase_subscribers_count_on_insert_trigger
+    after insert on groupsubscriber
+    FOR EACH ROW
+    EXECUTE FUNCTION increase_subscribers_count();
 
-
+CREATE trigger increase_subscribers_count_on_delete_trigger
+    before delete on groupsubscriber
+    FOR EACH ROW
+EXECUTE FUNCTION decrease_subscribers_count();

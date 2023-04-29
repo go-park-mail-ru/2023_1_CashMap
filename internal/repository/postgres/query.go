@@ -343,13 +343,160 @@ var (
 )
 
 var (
-	CreateGroup       = ``
-	UpdateGroupLink   = ``
-	UpdateGroupAvatar = ``
-	DeleteGroup       = ``
-	GroupSubscribe    = ``
-	GroupUnsubscribe  = ``
-	AddManager        = ``
+	GroupByLink = `
+	select g.title, g.link, g.group_info info, g.privacy,
+	       g.creation_date, g.hide_author, g.owner_id,
+	       g.is_deleted, g.subscribers,
+	case when p.url is null 
+           then ''
+           else p.url end avatar
+	from groups g
+         left join photo p on g.avatar_id = p.id
+	where g.link = $1
+	`
+
+	GroupsByUserlink = `
+	select g.title, g.link, g.group_info info, g.privacy,
+	       g.creation_date, g.hide_author, g.owner_id,
+	       g.is_deleted, g.subscribers,
+	case when p.url is null 
+           then ''
+           else p.url end avatar
+	from groups g 
+		left join photo p on g.avatar_id = p.id
+	join groupsubscriber g2 on g.id = g2.group_id and g2.accepted
+	join userprofile u on g2.user_id = u.id
+	where u.link = $1
+	and g.id > $2
+	order by g.id
+	limit $3
+	`
+
+	GroupsByUserEmail = `
+	select g.title, g.link, g.group_info info, g.privacy,
+	       g.creation_date, g.hide_author, g.owner_id,
+	       g.is_deleted, g.subscribers,
+	case when p.url is null 
+           then ''
+           else p.url end avatar
+	from groups g 
+		left join photo p on g.avatar_id = p.id
+	join groupsubscriber g2 on g.id = g2.group_id and g2.accepted
+	join userprofile u on g2.user_id = u.id
+	where u.email = $1
+	and g.id > $2
+	order by g.id
+	limit $3
+	`
+	GetGroups = `
+		select g.title, g.link, g.group_info info, g.privacy,
+	       g.creation_date, g.hide_author, g.owner_id,
+	       g.is_deleted, g.subscribers,
+	case when p.url is null 
+           then ''
+           else p.url end avatar
+	from groups g 
+		left join photo p on g.avatar_id = p.id
+	order by g.subscribers
+	`
+
+	GroupSubscribers = `
+	select  u.id, u.link, u.email,
+	    u.first_name, u.last_name, 
+		u.sex, u.bio, u.status,
+		u.birthday, u.last_active, 
+		case when p.url is null 
+			then ''
+			else p.url end avatar
+	from userprofile u
+         left join photo p on u.avatar_id = p.id
+	join groupsubscriber g on u.id = g.user_id and g.accepted
+	where u.id = $1
+	and u.id > $2
+	order by u.id
+	limit $3
+	`
+
+	PendingGroupRequests = `
+	select  u.id, u.link, u.email,
+	    u.first_name, u.last_name, 
+		u.sex, u.bio, u.status,
+		u.birthday, u.last_active, 
+		case when p.url is null 
+			then ''
+			else p.url end avatar
+	from userprofile u
+         left join photo p on u.avatar_id = p.id
+	join groupsubscriber g on u.id = g.user_id and not g.accepted
+	where u.id = $1
+	and u.id > $2
+	order by u.id
+	limit $3`
+
+	AcceptRequest = `
+	update groupsubscriber g
+	set accepted = true
+	from groupsubscriber g1
+    	join userprofile u on g1.user_id = u.id
+    	join groups g2 on g1.group_id = g2.id
+	where g2.link = $1 and u.link = $2
+  	and g.user_id = u.id and g.group_id = g2.id
+	`
+
+	DeclineRequest = `
+	delete from groupsubscriber g 
+	where g.group_id in (select id from groups g2 where g2.link = $1 )
+	and g.user_id in (select id from userprofile u where u.link = $2)`
+
+	AcceptAllRequests = `
+	update groupsubscriber g
+	set accepted = true
+	from groupsubscriber g1
+    	join groups g2 on g1.group_id = g2.id
+	where g2.link = $1 
+  	and g.group_id = g2.id
+  	`
+
+	CreateGroup = `
+		with owner as (select id from userprofile where email = $1)
+		insert into groups (title, group_info, privacy, creation_date, hide_author, owner_id)
+		select $1, $2, $3, $4, $5, owner.id from owner
+		returning id`
+
+	UpdateGroupLink = `
+		update groups 
+			set link = $1
+		where id = $2`
+
+	UpdateGroupAvatar = `
+	with inserted as (
+    insert into photo (url) values ($1)
+           returning id p_id
+	)
+	update groups p1
+	set avatar_id = av.p_id
+	from inserted av where u1.link = $2
+	`
+	DeleteGroup = `
+	update groups 
+		set is_deleted = true
+	where link = $1`
+
+	GroupSubscribe = `
+		insert into groupsubscriber (user_id, group_id, accepted) 
+		select u.id, g.id, 
+		       case when g.privacy == 'open'
+			   then true
+			   else false end accepted
+		from userprofile u cross join groups g 
+		where u.email = $1 and g.link = $2
+	`
+
+	GroupUnsubscribe = `
+		delete from groupsubscriber g 
+		where g.group_id in (select id from groups g2 where g2.link = $1 )
+		and g.user_id in (select id from userprofile u where u.email = $2)
+	`
 )
 
 var (
@@ -405,8 +552,8 @@ var (
 	CommunityPostInfoQuery = `
 		SELECT community.title, community.link
 		FROM Post as post
-				 JOIN Community as community
-					  ON post.community_id = community.id
+				 JOIN groups as community
+					  ON post.group_id = community.id
 		
 		WHERE post.id = $1
 		`
@@ -415,7 +562,7 @@ var (
 			SELECT post.id, text_content, author.link as author_link, post.likes_amount, post.show_author, post.creation_date, CASE WHEN like_table.post_id is null THEN FALSE ELSE TRUE END as is_liked
 			FROM Post AS post
 					 JOIN UserProfile AS author ON post.author_id = author.id
-					 LEFT JOIN Community as community on post.community_id = community.id
+					 LEFT JOIN groups as community on post.group_id = community.id
 					 LEFT JOIN UserProfile as owner ON post.owner_id = owner.id
 					 LEFT JOIN PostLike as like_table ON like_table.user_id = (SELECT id FROM UserProfile WHERE email = $2) AND like_table.post_id = post.id
 			WHERE post.id = $1
@@ -433,9 +580,9 @@ var (
 			   CASE WHEN like_table.post_id is null THEN FALSE ELSE TRUE END as is_liked
 		FROM Post AS post
 				 JOIN UserProfile AS author ON post.author_id = author.id
-				 LEFT JOIN Community as community on post.community_id = community.id
+				 LEFT JOIN groups as community on post.group_id = community.id
 				 LEFT JOIN PostLike as like_table ON like_table.user_id = (SELECT id FROM UserProfile WHERE email = $4) AND like_table.post_id = post.id
-		WHERE post.community_id = (SELECT id FROM Community WHERE link = $1)
+		WHERE post.group_id = (SELECT id FROM Community WHERE link = $1)
 		  AND post.creation_date > $2
 		  AND post.is_deleted = false
 		ORDER BY post.creation_date DESC
@@ -453,7 +600,7 @@ var (
 			   CASE WHEN like_table.post_id is null THEN FALSE ELSE TRUE END as is_liked
 		FROM Post AS post
 				 JOIN UserProfile AS author ON post.author_id = author.id
-				 LEFT JOIN Community as community on post.community_id = community.id
+				 LEFT JOIN groups as community on post.group_id = community.id
 				 LEFT JOIN UserProfile as owner ON post.owner_id = owner.id
 				LEFT JOIN PostLike as like_table ON like_table.user_id = (SELECT id FROM UserProfile WHERE email = $4) AND like_table.post_id = post.id
 		WHERE post.owner_id = (SELECT id FROM UserProfile WHERE link = $1)
@@ -464,7 +611,7 @@ var (
 	`
 
 	CreatePostQuery = `
-		INSERT INTO Post (community_id, author_id, owner_id, show_author, text_content, creation_date, change_date)
+		INSERT INTO Post (group_id, author_id, owner_id, show_author, text_content, creation_date, change_date)
 		VALUES (:community_id, (SELECT id FROM UserProfile WHERE email = :sender_email), :owner_id, :show_author, :text,
 				:init_time, :change_time)
 		RETURNING id

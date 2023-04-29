@@ -102,4 +102,8 @@ var Errors = map[error]ErrorResponse{
 		http.StatusBadRequest,
 		"Недопустимое расширение файла",
 	},
+	apperror.GroupNotFound: {
+		http.StatusNotFound,
+		"Группа не найдена.",
+	},
 }
