@@ -345,19 +345,20 @@ var (
 var (
 	GroupByLink = `
 	select g.title, g.link, g.group_info info, g.privacy,
-	       g.creation_date, g.hide_author, g.owner_id,
+	       g.creation_date, g.hide_author, u.link owner_link,
 	       g.is_deleted, g.subscribers,
 	case when p.url is null 
            then ''
            else p.url end avatar
 	from groups g
          left join photo p on g.avatar_id = p.id
+		 join userprofile u on g.owner_id = u.id
 	where g.link = $1
 	`
 
 	GroupsByUserlink = `
 	select g.title, g.link, g.group_info info, g.privacy,
-	       g.creation_date, g.hide_author, g.owner_id,
+	       g.creation_date, g.hide_author, u2.link owner_link,
 	       g.is_deleted, g.subscribers,
 	case when p.url is null 
            then ''
@@ -366,6 +367,7 @@ var (
 		left join photo p on g.avatar_id = p.id
 	join groupsubscriber g2 on g.id = g2.group_id and g2.accepted
 	join userprofile u on g2.user_id = u.id
+	join userprofile u2 on g.owner_id = u2.id
 	where u.link = $1
 	and g.id > $2
 	order by g.id
@@ -374,7 +376,7 @@ var (
 
 	GroupsByUserEmail = `
 	select g.title, g.link, g.group_info info, g.privacy,
-	       g.creation_date, g.hide_author, g.owner_id,
+	       g.creation_date, g.hide_author, u2.link owner_link,
 	       g.is_deleted, g.subscribers,
 	case when p.url is null 
            then ''
@@ -383,6 +385,7 @@ var (
 		left join photo p on g.avatar_id = p.id
 	join groupsubscriber g2 on g.id = g2.group_id and g2.accepted
 	join userprofile u on g2.user_id = u.id
+	join userprofile u2 on g.owner_id = u2.id
 	where u.email = $1
 	and g.id > $2
 	order by g.id
@@ -390,13 +393,14 @@ var (
 	`
 	GetGroups = `
 		select g.title, g.link, g.group_info info, g.privacy,
-	       g.creation_date, g.hide_author, g.owner_id,
+	       g.creation_date, g.hide_author, u.link owner_link,
 	       g.is_deleted, g.subscribers,
 	case when p.url is null 
            then ''
            else p.url end avatar
 	from groups g 
 		left join photo p on g.avatar_id = p.id
+		join userprofile u on g.owner_id = u.id
 	order by g.subscribers
 	`
 
@@ -410,8 +414,9 @@ var (
 			else p.url end avatar
 	from userprofile u
          left join photo p on u.avatar_id = p.id
-	join groupsubscriber g on u.id = g.user_id and g.accepted
-	where u.id = $1
+	join groupsubscriber g on u.id = g.user_id and g.accepted 
+	join groups gr on g.group_id = gr.id
+	where gr.link = $1
 	and u.id > $2
 	order by u.id
 	limit $3
@@ -439,14 +444,15 @@ var (
 	from groupsubscriber g1
     	join userprofile u on g1.user_id = u.id
     	join groups g2 on g1.group_id = g2.id
-	where g2.link = $1 and u.link = $2
+	where u.link = $1 and g2.link = $2
   	and g.user_id = u.id and g.group_id = g2.id
 	`
 
 	DeclineRequest = `
 	delete from groupsubscriber g 
-	where g.group_id in (select id from groups g2 where g2.link = $1 )
-	and g.user_id in (select id from userprofile u where u.link = $2)`
+	where  g.user_id in (select id from userprofile u where u.link = $1)
+	and g.group_id in (select id from groups g2 where g2.link = $2)
+	`
 
 	AcceptAllRequests = `
 	update groupsubscriber g
@@ -460,7 +466,7 @@ var (
 	CreateGroup = `
 		with owner as (select id from userprofile where email = $1)
 		insert into groups (title, group_info, privacy, creation_date, hide_author, owner_id)
-		select $1, $2, $3, $4, $5, owner.id from owner
+		select $2, $3, $4, $5, $6, owner.id from owner
 		returning id`
 
 	UpdateGroupLink = `
@@ -496,6 +502,16 @@ var (
 		delete from groupsubscriber g 
 		where g.group_id in (select id from groups g2 where g2.link = $1 )
 		and g.user_id in (select id from userprofile u where u.email = $2)
+	`
+
+	IsOwner = `
+	select case when 
+	    exists(select u.id 
+	           from userprofile u 
+			   join groups g on u.id = g.owner_id 
+	           where u.email = $1 and g.link = $2)
+		then true
+		else false end is_owner
 	`
 )
 

@@ -4,12 +4,15 @@ type Group struct {
 	ID           uint              `json:"-"                    db:"id"`
 	Link         string            `json:"link"                 db:"link"`
 	Title        string            `json:"title"                db:"title"`
-	Avatar       string            `json:"avatar,omitempty"     db:"avatar"`
-	MembersCount int               `json:"members_count"        db:"members_count"`
+	Info         string            `json:"info"                 db:"info"`
+	Privacy      string            `json:"privacy"              db:"privacy"`
+	Avatar       string            `json:"avatar"               db:"avatar"`
+	MembersCount int               `json:"subscribers"          db:"subscribers"`
 	CreationDate string            `json:"creation_date"        db:"creation_date"`
-	OwnerLink    string            `json:"owner_link,omitempty" db:"owner_link"`
-	HideOwner    bool              `json:"hide_author"          db:"hide_owner"`
-	Management   []GroupManagement `json:"management"`
+	OwnerLink    string            `json:"-"                    db:"owner_link"`
+	HideOwner    bool              `json:"hide_owner"           db:"hide_author"`
+	IsDeleted    bool              `json:"is_deleted"           db:"is_deleted"`
+	Management   []GroupManagement `json:"management,omitempty"`
 }
 
 type GroupManagement struct {

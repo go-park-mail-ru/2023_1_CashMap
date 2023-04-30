@@ -267,8 +267,8 @@ END;
 $$
     LANGUAGE 'plpgsql';
 
-CREATE trigger increase_subscribers_count_on_insert_trigger
-    after insert on groupsubscriber
+CREATE trigger increase_subscribers_count_on_insert_update_trigger
+    after insert or update of accepted on groupsubscriber
     FOR EACH ROW
     EXECUTE FUNCTION increase_subscribers_count();
 

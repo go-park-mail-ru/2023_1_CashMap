@@ -57,6 +57,7 @@ func Run() {
 	feedStorage := postgres.NewFeedStorage(db)
 	postStorage := postgres.NewPostRepository(db)
 	messageStorage := postgres.NewMessageRepository(db)
+	groupStorage := postgres.NewGroupRepository(db)
 
 	userService := service.NewUserService(userStorage)
 	authorizationService := client.NewAuthService(authClient)
@@ -64,17 +65,17 @@ func Run() {
 	feedService := service.NewFeedService(feedStorage, postStorage)
 	fileService := staticService.NewFileUsecase()
 	postService := service.NewPostService(postStorage)
-
+	groupService := service.NewGroupService(groupStorage)
 	msgService := service.NewMessageService(messageStorage, userStorage)
 
 	staticHandler := staticDelivery.NewFileHandler(fileService)
 	userHandler := handlers.NewUserHandler(userService, authorizationService, csrfService)
 	feedHandler := handlers.NewFeedHandler(feedService)
 	postHandler := handlers.NewPostHandler(postService)
-
 	messageHandler := handlers.NewMessageHandler(msgService)
+	groupHandler := handlers.NewGroupHandler(groupService)
 
-	handler := handlers.NewHandler(userHandler, feedHandler, postHandler, staticHandler, messageHandler)
+	handler := handlers.NewHandler(userHandler, feedHandler, postHandler, staticHandler, messageHandler, groupHandler)
 
 	authMiddleware := middleware.NewAuthMiddleware(authorizationService)
 
@@ -124,7 +125,7 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 	// [API]
 	apiEndpointsGroup := router.Group("/api")
 	apiEndpointsGroup.Use(authMW.Middleware())
-	apiEndpointsGroup.Use(csrfMiddleware.Middleware())
+	//apiEndpointsGroup.Use(csrfMiddleware.Middleware())
 	{
 
 		// [FEED]
@@ -169,8 +170,9 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 			profileEndpoints := userEndpoints.Group("/profile")
 			{
 				profileEndpoints.GET("", handler.Self)
-				profileEndpoints.GET("/:link", handler.Profile)
+				profileEndpoints.GET("/link/:link", handler.Profile)
 				profileEndpoints.PATCH("/edit", handler.EditProfile)
+				profileEndpoints.GET("/groups", handler.GetUserGroups)
 
 			}
 			userEndpoints.GET("/rand", handler.RandomUsers)
@@ -179,7 +181,7 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 
 			// [SUBSCRIBES]
 			userEndpoints.GET("/sub", handler.Subscribes)
-			userEndpoints.GET("/pending", handler.PendingRequests)
+			userEndpoints.GET("/pending", handler.PendingGroupRequests)
 
 			// [SUBSCRIBE]
 			userEndpoints.POST("/sub", handler.Subscribe)
@@ -191,6 +193,28 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 			userEndpoints.POST("/reject", handler.Reject)
 		}
 
+		// [GROUP]
+		groupEndpoints := apiEndpointsGroup.Group("/group")
+		{
+			// TODO :)
+			groupLink := groupEndpoints.Group("/link/:link")
+			{
+				groupLink.GET("", handler.GetGroup)
+				groupLink.PATCH("", handler.UpdateGroup)
+				groupLink.DELETE("", handler.DeleteGroup)
+				groupLink.GET("/subs", handler.GetSubscribers)
+				groupLink.POST("/sub", handler.SubscribeGroup)
+				groupLink.POST("/unsub", handler.UnsubscribeGroup)
+				groupLink.PATCH("/accept", handler.AcceptRequest)
+				groupLink.PUT("/accept", handler.AcceptAllRequests)
+				groupLink.PATCH("/decl", handler.DeclineRequest)
+				groupLink.GET("/pending", handler.PendingGroupRequests)
+			}
+			groupEndpoints.GET("/self", handler.GetGroups)
+			groupEndpoints.GET("/hot", handler.GetPopularGroups)
+			groupEndpoints.POST("/create", handler.CreateGroup)
+
+		}
 		// [WS]
 		apiEndpointsGroup.GET("/ws", pool.Connect)
 

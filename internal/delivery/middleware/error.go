@@ -106,4 +106,8 @@ var Errors = map[error]ErrorResponse{
 		http.StatusNotFound,
 		"Группа не найдена.",
 	},
+	apperror.GroupAlreadyExists: {
+		http.StatusConflict,
+		"Сообщество с таким идентификатором уже существует.",
+	},
 }

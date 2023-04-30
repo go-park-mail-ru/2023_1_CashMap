@@ -15,6 +15,13 @@ func Escaping[T *dto.SignUp | *dto.EditProfile | *dto.PostCreate | *dto.NewMessa
 			escapeStr := html.EscapeString(valueStr)
 			valueField.SetString(escapeStr)
 		}
+		if valueStrPtr, ok := f.(*string); ok {
+			if valueStrPtr == nil {
+				continue
+			}
+			escapeStr := html.EscapeString(*valueStrPtr)
+			valueField.Set(reflect.ValueOf(&escapeStr))
+		}
 	}
 	return obj
 }

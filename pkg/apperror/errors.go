@@ -39,7 +39,9 @@ var (
 )
 
 var (
-	GroupNotFound = errors.New("group not found")
+	GroupNotFound      = errors.New("group not found")
+	UnableToLoadAvatar = errors.New("unable to load avatar")
+	GroupAlreadyExists = errors.New("link is already in use")
 )
 
 type ServerError struct {
@@ -51,6 +53,13 @@ func NewServerError(userErr error, internalErr error) *ServerError {
 	return &ServerError{
 		UserErr:     userErr,
 		internalErr: internalErr,
+	}
+}
+
+func NewBadRequest() *ServerError {
+	return &ServerError{
+		UserErr:     BadRequest,
+		internalErr: nil,
 	}
 }
 
