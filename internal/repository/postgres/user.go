@@ -379,7 +379,7 @@ func (ur *UserRepository) SearchUserByName(searchDTO *dto.GlobalSearchDTO) ([]*e
 	usersBatch := make([]userForSearch, 0, *searchDTO.BatchSize)
 	var usersAmount uint
 
-	maxLevenshteinDistance := float64(utils.GetMaxLength(splitSearchName...)) * 0.75
+	maxLevenshteinDistance := float64(utils.GetMaxLength(splitSearchName...)) * 0.5
 
 MAIN:
 	for rows.Next() {

@@ -717,13 +717,15 @@ func (uh *UserHandler) GetGlobalSearchResult(ctx *gin.Context) {
 		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse search dto from query")))
 		return
 	}
-	fmt.Println(dto)
 	searchResult, err := uh.service.GlobalSearch(dto)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
+	for _, user := range searchResult {
+		fmt.Println(*user.LastName)
+	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"body": gin.H{
 			"users": searchResult,

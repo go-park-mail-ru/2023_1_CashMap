@@ -23,6 +23,6 @@ type User struct {
 type UserInfo struct {
 	FirstName *string `db:"first_name" json:"first_name"`
 	LastName  *string `db:"last_name" json:"last_name"`
-	AvatarUrl *string `db:"url" json:"url"`
+	AvatarUrl *string `db:"url" json:"avatar_url"`
 	Link      *string `db:"link" json:"link"`
 }
