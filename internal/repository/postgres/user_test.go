@@ -3,7 +3,9 @@ package postgres
 import (
 	"database/sql"
 	"database/sql/driver"
+	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
+	"depeche/internal/utils/testUtils"
 	"depeche/pkg/apperror"
 	"errors"
 	"github.com/DATA-DOG/go-sqlmock"
@@ -99,7 +101,9 @@ func TestUserRepository_GetUserById(t *testing.T) {
 			}
 
 			_, err = userRepo.GetUserById(test.id)
-			require.Equal(t, test.expectedError, err)
+			uerr, ok := err.(*apperror.ServerError)
+			require.Equal(t, true, ok)
+			require.Equal(t, test.expectedError, uerr.UserErr)
 		})
 	}
 }
@@ -191,65 +195,69 @@ func TestUserRepository_GetUserByLink(t *testing.T) {
 			}
 
 			_, err = userRepo.GetUserByLink(test.link)
-			require.Equal(t, test.expectedError, err)
+			uerr, ok := err.(*apperror.ServerError)
+			require.Equal(t, true, ok)
+			require.Equal(t, test.expectedError, uerr.UserErr)
 		})
 	}
 }
 
-//func TestUserRepository_UpdateUser(t *testing.T) {
-//	type dbBehaviour struct {
-//		data  *sqlmock.Rows
-//		error error
-//	}
-//	tests := []struct {
-//		name  string
-//		email string
-//		user  *dto.EditProfile
-//
-//		expectedUser  *entities.User
-//		expectedError error
-//
-//		dbBehaviour
-//
-//		setupMock func(mock sqlmock.Sqlmock, email string, profile *dto.EditProfile, behaviour dbBehaviour)
-//	}{}
-//	//	{
-//	//		name:  "success basic",
-//	//		email: "e-larkin@mail.ru",
-//	//		user:  testUtils.InitProfileBasic("Egor", "Larkin", "Bio"),
-//	//
-//	//		expectedError: nil,
-//	//		expectedUser:  nil,
-//	//
-//	//		dbBehaviour: dbBehaviour{
-//	//			error: nil,
-//	//			data:  sqlmock.NewRows([]string{}),
-//	//		},
-//	//
-//	//		setupMock: func(mock sqlmock.Sqlmock, email string, profile *dto.EditProfile, behaviour dbBehaviour) {
-//	//			mock.ExpectQuery("update userprofile set first_name = $1, last_name = $2, bio = $3 where email = $4").WithArgs(
-//	//				*profile.FirstName, *profile.LastName, *profile.Bio, email).WillReturnRows(behaviour.data)
-//	//		},
-//	//	},
-//	//}
-//	for _, test := range tests {
-//		test := test
-//		t.Run(test.name, func(t *testing.T) {
-//			t.Parallel()
-//			db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
-//			require.NoError(t, err)
-//			defer func(db *sql.DB) {
-//				_ = db.Close()
-//			}(db)
-//
-//			test.setupMock(mock, test.email, test.user, test.dbBehaviour)
-//
-//			sqlxDB := sqlx.NewDb(db, "sqlmock")
-//			userRepo := &UserRepository{
-//				DB: sqlxDB,
-//			}
-//			_, err = userRepo.UpdateUser(test.email, test.user)
-//			require.Equal(t, test.expectedError, err)
-//		})
-//	}
-//}
+func TestUserRepository_UpdateUser(t *testing.T) {
+	type dbBehaviour struct {
+		data  *sqlmock.Rows
+		error error
+	}
+	tests := []struct {
+		name  string
+		email string
+		user  *dto.EditProfile
+
+		expectedUser  *entities.User
+		expectedError error
+
+		dbBehaviour
+
+		setupMock func(mock sqlmock.Sqlmock, email string, profile *dto.EditProfile, behaviour dbBehaviour)
+	}{
+		{
+			name:  "success basic",
+			email: "e-larkin@mail.ru",
+			user:  testUtils.InitProfileBasic("Egor", "Larkin", "Bio"),
+
+			expectedError: nil,
+			expectedUser:  nil,
+
+			dbBehaviour: dbBehaviour{
+				error: nil,
+				data:  sqlmock.NewRows([]string{}),
+			},
+
+			setupMock: func(mock sqlmock.Sqlmock, email string, profile *dto.EditProfile, behaviour dbBehaviour) {
+				mock.ExpectQuery("update userprofile set first_name = $1, last_name = $2, bio = $3 where email = $4").WithArgs(
+					*profile.FirstName, *profile.LastName, *profile.Bio, email).WillReturnRows(behaviour.data)
+			},
+		},
+	}
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+			require.NoError(t, err)
+			defer func(db *sql.DB) {
+				_ = db.Close()
+			}(db)
+
+			test.setupMock(mock, test.email, test.user, test.dbBehaviour)
+
+			sqlxDB := sqlx.NewDb(db, "sqlmock")
+			userRepo := &UserRepository{
+				DB: sqlxDB,
+			}
+			_, err = userRepo.UpdateUser(test.email, test.user)
+			uerr, ok := err.(*apperror.ServerError)
+			require.Equal(t, true, ok)
+			require.Equal(t, test.expectedError, uerr.UserErr)
+		})
+	}
+}
