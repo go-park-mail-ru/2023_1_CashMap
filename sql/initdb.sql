@@ -11,7 +11,7 @@ CREATE TABLE UserProfile
 (
     id              serial,
     email           text     NOT NULL UNIQUE,
-    link            text UNIQUE,
+    link            text UNIQUE DEFAULT '',
     first_name      text              DEFAULT '',
     last_name       text              DEFAULT '',
     password        text     NOT NULL,
@@ -185,7 +185,8 @@ CREATE TABLE ChatMember
 (
     chat_id int REFERENCES Chat (id) ON DELETE CASCADE,
     user_id int REFERENCES UserProfile (id),
-    role    text DEFAULT 'member' CHECK ( role in ('member', 'admin') )
+    role    text DEFAULT 'member' CHECK ( role in ('member', 'admin') ),
+    UNIQUE (chat_id, user_id)
 );
 
 

@@ -37,6 +37,12 @@ type Subscribes struct {
 	Link string `json:"user_link"`
 }
 
+type GlobalSearchDTO struct {
+	SearchQuery *string `form:"search_query"`
+	BatchSize   *uint   `form:"batch_size"`
+	Offset      *uint   `form:"offset"`
+}
+
 // [OUTGOING]
 
 type Profile struct {

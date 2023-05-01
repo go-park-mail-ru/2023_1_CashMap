@@ -19,7 +19,7 @@ func NewMessageService(repo repository.MessageRepository, userRepo repository.Us
 	return &MessageService{repo, userRepo}
 }
 
-func (service *MessageService) Send(email string, message *dto.NewMessage) (*entities.Message, error) {
+func (service *MessageService) Send(email string, message *dto.NewMessageDTO) (*entities.Message, error) {
 	user, err := service.UserRepository.GetUserByEmail(email)
 	if err != nil {
 		return nil, err

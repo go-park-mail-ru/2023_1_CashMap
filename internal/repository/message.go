@@ -10,7 +10,7 @@ type MessageRepository interface {
 	SelectChats(senderEmail string, dto *dto.GetChatsDTO) ([]*entities.Chat, error)
 	CreateChat(senderEmail string, dto *dto.CreateChatDTO) (uint, error)
 	HasDialog(senderEmail string, dto *dto.HasDialogDTO) (*int, error)
-	SaveMsg(message *dto.NewMessage) (*entities.Message, error)
+	SaveMsg(message *dto.NewMessageDTO) (*entities.Message, error)
 	GetMembersByChatId(chatId uint) ([]*entities.User, error)
 	GetUsersInfoByChatID(chatID uint) ([]*entities.UserInfo, error)
 	GetUserInfoByMessageId(messageID uint) (*entities.UserInfo, error)
