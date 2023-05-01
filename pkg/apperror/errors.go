@@ -22,6 +22,8 @@ var (
 
 var (
 	PostEditingNowAllowed = errors.New("post editing is not allowed")
+	AlreadyLiked          = errors.New("like has already set")
+	LikeIsMissing         = errors.New("like on this post doesn't exists")
 )
 
 var (
@@ -30,6 +32,10 @@ var (
 
 var (
 	InternalServerError = errors.New("internal server error")
+)
+
+var (
+	IllegalFileExtensionError = errors.New("illegal file extension")
 )
 
 type ServerError struct {

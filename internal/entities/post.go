@@ -15,6 +15,7 @@ type Post struct {
 	ChangeDate       string         `db:"change_date" json:"change_date"`
 	IsDeleted        bool           `db:"is_deleted" json:"is_deleted"`
 	Attachments      []string       `db:"attachments" json:"attachments"`
+	IsLikedByUser    bool           `db:"is_liked" json:"is_liked"`
 }
 
 type CommunityInfo struct {

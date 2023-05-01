@@ -1,8 +1,8 @@
 package service
 
 import (
-	"depeche/internal/session"
-	"depeche/internal/session/repository"
+	"depeche/authorization_ms/authEntities"
+	"depeche/authorization_ms/repository"
 	"depeche/pkg/apperror"
 	"fmt"
 	"github.com/google/uuid"
@@ -11,8 +11,8 @@ import (
 
 type CSRFUsecase interface {
 	CreateCSRFToken(email string) (string, error)
-	InvalidateCSRFToken(csrf *session.CSRF) error
-	ValidateCSRFToken(csrf *session.CSRF) (bool, error)
+	InvalidateCSRFToken(csrf *authEntities.CSRF) error
+	ValidateCSRFToken(csrf *authEntities.CSRF) (bool, error)
 }
 
 type CSRFService struct {
@@ -29,7 +29,7 @@ func (service *CSRFService) CreateCSRFToken(email string) (string, error) {
 		return "", apperror.InternalServerError
 	}
 
-	csrf := &session.CSRF{
+	csrf := &authEntities.CSRF{
 		Email: email,
 		Token: id.String(),
 	}
@@ -45,7 +45,7 @@ func (service *CSRFService) CreateCSRFToken(email string) (string, error) {
 	return csrf.Token, nil
 }
 
-func (service *CSRFService) InvalidateCSRFToken(csrf *session.CSRF) error {
+func (service *CSRFService) InvalidateCSRFToken(csrf *authEntities.CSRF) error {
 	err := service.repository.DeleteCSRFToken(csrf)
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func (service *CSRFService) InvalidateCSRFToken(csrf *session.CSRF) error {
 	return nil
 }
 
-func (service *CSRFService) ValidateCSRFToken(csrf *session.CSRF) (bool, error) {
+func (service *CSRFService) ValidateCSRFToken(csrf *authEntities.CSRF) (bool, error) {
 	success, err := service.repository.CheckCSRFToken(csrf)
 	if err != nil {
 		fmt.Println(err)

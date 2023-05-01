@@ -343,15 +343,38 @@ var (
 )
 
 var (
+	CreateGroup       = ``
+	UpdateGroupLink   = ``
+	UpdateGroupAvatar = ``
+	DeleteGroup       = ``
+	GroupSubscribe    = ``
+	GroupUnsubscribe  = ``
+	AddManager        = ``
+)
+
+var (
+	SetLikeQuery = `
+	INSERT INTO Postlike (post_id, user_id)
+	VALUES ($1, (SELECT id FROM UserProfile WHERE email = $2))
+	`
+
+	CancelLikeQuery = `
+	DELETE FROM PostLike
+	WHERE post_id = $1
+	  AND user_id = (SELECT id FROM UserProfile WHERE email = $2)
+	`
+
 	FriendsPostsQuery = `
 		SELECT  post.id,
 		        text_content,
 		        author.link as author_link,
 		        post.likes_amount, 
         		case when post.show_author is null then true else post.show_author end  AS show_author,
-        		post.creation_date
+        		post.creation_date,
+        		CASE WHEN like_table.post_id is null THEN FALSE ELSE TRUE END as is_liked
 		FROM Post post
 		    JOIN userprofile author on author.id = post.author_id 
+			LEFT JOIN PostLike as like_table ON like_table.user_id = (SELECT id FROM UserProfile WHERE email = $1) AND like_table.post_id = post.id
 		
 		WHERE owner_id IN (SELECT u.id 
 		                   FROM friendrequests f1
@@ -361,7 +384,7 @@ var (
                 f2.subscribed = f1.subscriber
 		                       
 		JOIN userprofile u on
-			f1.subscribed = u.id                                                                                                                                                                                        
+			f1.subscribed = u.id        
 		WHERE f1.subscriber = (SELECT id FROM UserProfile WHERE email = $1))
 		  and creation_date > $3 AND NOT post.is_deleted
 		
@@ -389,11 +412,12 @@ var (
 		`
 
 	PostInfoByIdQuery = `
-			SELECT post.id, text_content, author.link as author_link, post.likes_amount, post.show_author, post.creation_date
+			SELECT post.id, text_content, author.link as author_link, post.likes_amount, post.show_author, post.creation_date, CASE WHEN like_table.post_id is null THEN FALSE ELSE TRUE END as is_liked
 			FROM Post AS post
 					 JOIN UserProfile AS author ON post.author_id = author.id
 					 LEFT JOIN Community as community on post.community_id = community.id
 					 LEFT JOIN UserProfile as owner ON post.owner_id = owner.id
+					 LEFT JOIN PostLike as like_table ON like_table.user_id = (SELECT id FROM UserProfile WHERE email = $2) AND like_table.post_id = post.id
 			WHERE post.id = $1
 			  AND post.is_deleted = false
 	`
@@ -405,10 +429,12 @@ var (
 			   post.likes_amount,
 			   post.show_author,
 			   post.creation_date,
-			   post.change_date
+			   post.change_date,
+			   CASE WHEN like_table.post_id is null THEN FALSE ELSE TRUE END as is_liked
 		FROM Post AS post
 				 JOIN UserProfile AS author ON post.author_id = author.id
 				 LEFT JOIN Community as community on post.community_id = community.id
+				 LEFT JOIN PostLike as like_table ON like_table.user_id = (SELECT id FROM UserProfile WHERE email = $4) AND like_table.post_id = post.id
 		WHERE post.community_id = (SELECT id FROM Community WHERE link = $1)
 		  AND post.creation_date > $2
 		  AND post.is_deleted = false
@@ -423,11 +449,13 @@ var (
 			   post.likes_amount,
 			   post.show_author,
 			   post.creation_date,
-			   post.change_date
+			   post.change_date,
+			   CASE WHEN like_table.post_id is null THEN FALSE ELSE TRUE END as is_liked
 		FROM Post AS post
 				 JOIN UserProfile AS author ON post.author_id = author.id
 				 LEFT JOIN Community as community on post.community_id = community.id
 				 LEFT JOIN UserProfile as owner ON post.owner_id = owner.id
+				LEFT JOIN PostLike as like_table ON like_table.user_id = (SELECT id FROM UserProfile WHERE email = $4) AND like_table.post_id = post.id
 		WHERE post.owner_id = (SELECT id FROM UserProfile WHERE link = $1)
 		  AND post.creation_date > $2
 		  AND post.is_deleted = false

@@ -4,19 +4,17 @@ services:
     container_name: depeche_backend
     build:
       context: ./
-      dockerfile: docker/dev/Dockerfile
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
     links:
-      - "redis:redis"
       - "postgres:postgres"
+      - "auth:auth"
     depends_on:
-      redis:
-        condition: service_started
       postgres:
         condition: service_started
     volumes:
-      - ./:/depeche-backend
+      - static_files:/depeche_backend/internal/static/files
   redis:
     image: redis:latest
     container_name: depeche_redis
@@ -25,7 +23,7 @@ services:
     ports:
       - "6379:6379"
     command: >
-     --requirepass "password"
+      --requirepass "password"
 
   postgres:
     image: postgres:15-alpine
@@ -46,5 +44,18 @@ services:
       start_period: 10s
     restart: always
 
+  auth:
+    container_name: depeche_auth_ms
+    build:
+      context: ./
+      dockerfile: Dockerfile-auth
+    ports:
+      - "8081:8081"
+    links:
+      - "redis:redis"
+    depends_on:
+      redis:
+        condition: service_started
 volumes:
   db_data:
+  static_files:

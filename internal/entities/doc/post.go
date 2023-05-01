@@ -29,3 +29,7 @@ type PostDelete struct {
 type PostArray struct {
 	Body []entities.Post `json:"body"`
 }
+
+type LikePost struct {
+	Body entities.LikesAmount `json:"body"`
+}

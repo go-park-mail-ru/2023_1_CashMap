@@ -1,11 +1,11 @@
 package handlers
 
 import (
+	"depeche/authorization_ms/authEntities"
+	service2 "depeche/authorization_ms/service"
 	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
 	_ "depeche/internal/entities/doc"
-	"depeche/internal/session"
-	authService "depeche/internal/session/service"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
 	"errors"
@@ -19,11 +19,11 @@ import (
 
 type UserHandler struct {
 	service     usecase.User
-	authService authService.Auth
-	csrfService authService.CSRFUsecase
+	authService service2.Auth
+	csrfService service2.CSRFUsecase
 }
 
-func NewUserHandler(userService usecase.User, authService authService.Auth, csrfService authService.CSRFUsecase) *UserHandler {
+func NewUserHandler(userService usecase.User, authService service2.Auth, csrfService service2.CSRFUsecase) *UserHandler {
 	return &UserHandler{
 		service:     userService,
 		authService: authService,
@@ -66,7 +66,7 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 		return
 	}
 
-	token, err := uh.authService.Authenticate(request.Data)
+	token, err := uh.authService.Authenticate(request.Data.Email)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -128,7 +128,7 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 		return
 	}
 
-	token, err := uh.authService.Authenticate(request.Data)
+	token, err := uh.authService.Authenticate(request.Data.Email)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -160,7 +160,7 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 // LogOut godoc
 //
 //	@Summary		Log out
-//	@Description	Delete user session and invalidate session cookie
+//	@Description	Delete user authorization_ms and invalidate authorization_ms cookie
 //	@Tags			Auth
 //	@Success		200
 //	@Failure		401	{object}	middleware.ErrorResponse
@@ -181,7 +181,7 @@ func (uh *UserHandler) LogOut(ctx *gin.Context) {
 
 	csrfToken := ctx.Request.Header.Get("X-Csrf-Token")
 	if csrfToken != "" {
-		csrf := &session.CSRF{
+		csrf := &authEntities.CSRF{
 			Token: csrfToken,
 			Email: userSession.Email,
 		}
@@ -232,7 +232,7 @@ func (uh *UserHandler) CheckAuth(ctx *gin.Context) {
 		return
 	}
 
-	csrf := &session.CSRF{
+	csrf := &authEntities.CSRF{
 		Token: csrfToken,
 		Email: userSession.Email,
 	}
@@ -649,7 +649,7 @@ func (uh *UserHandler) RandomUsers(ctx *gin.Context) {
 
 	users, err := uh.service.GetAllUsers(email, limit, offset)
 	if err != nil {
-		_ = ctx.Error(apperror.BadRequest)
+		_ = ctx.Error(err)
 		return
 	}
 
@@ -734,7 +734,7 @@ func (uh *UserHandler) GetGlobalSearchResult(ctx *gin.Context) {
 }
 
 //nolint:unused
-func (uh *UserHandler) getSession(ctx *gin.Context) (*session.Session, error) {
+func (uh *UserHandler) getSession(ctx *gin.Context) (*authEntities.Session, error) {
 	token, err := ctx.Cookie("session_id")
 	if err != nil {
 

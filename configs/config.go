@@ -1,10 +1,13 @@
 package configs
 
 import (
+	"depeche/authorization_ms/config"
 	"depeche/pkg/connector"
+	"fmt"
 	"github.com/joho/godotenv"
 	"gopkg.in/yaml.v2"
 	"os"
+	"os/exec"
 	"path/filepath"
 )
 
@@ -14,15 +17,21 @@ type Config struct {
 	SessionStorage connector.RedisConfig    `yaml:"session"`
 	DB             connector.PostgresConfig `yaml:"db"`
 	DBMSName       string                   `yaml:"dbms_name"`
+	AuthMs         config.AuthMsConfig      `yaml:"auth_ms"`
 }
 
 func InitCfg(config *Config) error {
-	err := godotenv.Load(".env/backend", ".env/postgres", ".env/redis")
+
+	cmd := exec.Command("ls", "-a")
+	stdout, err := cmd.Output()
+	fmt.Println(string(stdout))
+
+	err = godotenv.Load(".env/backend", ".env/postgres", ".env/redis")
 	if err != nil {
 		return err
 	}
 
-	filename, err := filepath.Abs("./configs/config.yml")
+	filename, err := filepath.Abs("configs/config.yml")
 
 	if err != nil {
 		return err

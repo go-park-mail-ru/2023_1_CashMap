@@ -2,23 +2,27 @@ package middleware
 
 import (
 	"depeche/pkg/apperror"
+	"depeche/pkg/logs"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 func ErrorMiddleware() gin.HandlerFunc {
+	logger := logs.GetLogger()
 	return func(ctx *gin.Context) {
 		ctx.Next()
 
 		if len(ctx.Errors) == 0 {
 			return
 		}
-
 		err := ctx.Errors[0].Unwrap()
 
 		serverError, ok := err.(*apperror.ServerError)
 		if ok {
 			err = serverError.UserErr
+			logger.Error(serverError.Unwrap())
+		} else {
+			logger.Error(err)
 		}
 
 		ctx.JSON(Errors[err].Code, gin.H{
@@ -82,5 +86,20 @@ var Errors = map[error]ErrorResponse{
 	apperror.TooLargePayload: {
 		http.StatusRequestEntityTooLarge,
 		"Превышен допустимый размер файла",
+	},
+
+	apperror.AlreadyLiked: {
+		http.StatusConflict,
+		"Лайк уже поставлен",
+	},
+
+	apperror.LikeIsMissing: {
+		http.StatusConflict,
+		"Нельзя убрать несуществующий лайк",
+	},
+
+	apperror.IllegalFileExtensionError: {
+		http.StatusBadRequest,
+		"Недопустимое расширение файла",
 	},
 }
