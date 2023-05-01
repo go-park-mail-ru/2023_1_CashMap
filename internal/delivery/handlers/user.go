@@ -545,7 +545,7 @@ func (uh *UserHandler) RandomUsers(ctx *gin.Context) {
 
 	users, err := uh.service.GetAllUsers(email, limit, offset)
 	if err != nil {
-		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, err))
+		_ = ctx.Error(err)
 		return
 	}
 

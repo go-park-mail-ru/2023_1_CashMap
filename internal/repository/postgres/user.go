@@ -5,6 +5,7 @@ import (
 	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
 	"depeche/internal/repository"
+	utildb "depeche/internal/repository/utils"
 	"depeche/internal/utils"
 	"depeche/pkg/apperror"
 	"fmt"
@@ -86,6 +87,7 @@ func (ur *UserRepository) GetUserByEmail(email string) (*entities.User, error) {
 func (ur *UserRepository) GetFriends(user *entities.User, limit, offset int) ([]*entities.User, error) {
 	var users []*entities.User
 	rows, err := ur.DB.Queryx(FriendsById, user.ID, offset, limit)
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return users, nil
@@ -105,6 +107,7 @@ func (ur *UserRepository) GetFriends(user *entities.User, limit, offset int) ([]
 func (ur *UserRepository) GetSubscribes(user *entities.User, limit, offset int) ([]*entities.User, error) {
 	var users []*entities.User
 	rows, err := ur.DB.Queryx(SubscribesById, user.ID, offset, limit)
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return users, nil
@@ -124,6 +127,7 @@ func (ur *UserRepository) GetSubscribes(user *entities.User, limit, offset int) 
 func (ur *UserRepository) GetSubscribers(user *entities.User, limit, offset int) ([]*entities.User, error) {
 	var users []*entities.User
 	rows, err := ur.DB.Queryx(SubscribersById, user.ID, offset, limit)
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return users, nil
@@ -143,6 +147,7 @@ func (ur *UserRepository) GetSubscribers(user *entities.User, limit, offset int)
 func (ur *UserRepository) GetUsers(email string, limit, offset int) ([]*entities.User, error) {
 	var users []*entities.User
 	rows, err := ur.DB.Queryx(RandomUsers, email, offset, limit)
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return users, nil
@@ -197,7 +202,7 @@ func (ur *UserRepository) Subscribe(subEmail, targetLink, requestTime string) (b
 
 func (ur *UserRepository) Unsubscribe(userEmail, targetLink string) (bool, error) {
 	rows, err := ur.DB.Queryx(Unsubscribe, userEmail, targetLink)
-
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		fmt.Println(err)
 		// TODO check subscribe conflict (repeated unsubscribe)
@@ -212,6 +217,7 @@ func (ur *UserRepository) Unsubscribe(userEmail, targetLink string) (bool, error
 
 func (ur *UserRepository) RejectFriendRequest(userEmail, targetLink string) error {
 	rows, err := ur.DB.Queryx(Unsubscribe, userEmail, targetLink)
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		// TODO check
 		return apperror.NewServerError(apperror.InternalServerError, err)
@@ -273,6 +279,7 @@ func (ur *UserRepository) UpdateUser(email string, user *dto.EditProfile) (*enti
 	query += fmt.Sprintf(" where email = $%d", len(fields)+1)
 	fields = append(fields, email)
 	rows, err := ur.DB.Queryx(query, fields...)
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
@@ -308,6 +315,7 @@ func (ur *UserRepository) DeleteUser(email string) error {
 
 func (ur *UserRepository) GetPendingFriendRequests(user *entities.User, limit, offset int) ([]*entities.User, error) {
 	rows, err := ur.DB.Queryx(PendingFriendRequestsById, user.ID, offset, limit)
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil

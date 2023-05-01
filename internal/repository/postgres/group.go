@@ -5,6 +5,7 @@ import (
 	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
 	"depeche/internal/repository"
+	utildb "depeche/internal/repository/utils"
 	"depeche/internal/utils"
 	"depeche/pkg/apperror"
 	"errors"
@@ -38,6 +39,7 @@ func (gr *GroupRepository) GetGroupByLink(link string) (*entities.Group, error) 
 func (gr *GroupRepository) GetUserGroupsByLink(link string, limit int, offset int) ([]*entities.Group, error) {
 	var groups []*entities.Group
 	rows, err := gr.db.Queryx(GroupsByUserlink, link, limit, offset)
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return groups, nil
@@ -56,6 +58,7 @@ func (gr *GroupRepository) GetUserGroupsByLink(link string, limit int, offset in
 func (gr *GroupRepository) GetUserGroupsByEmail(email string, limit int, offset int) ([]*entities.Group, error) {
 	var groups []*entities.Group
 	rows, err := gr.db.Queryx(GroupsByUserEmail, email, limit, offset)
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return groups, nil
@@ -74,6 +77,7 @@ func (gr *GroupRepository) GetUserGroupsByEmail(email string, limit int, offset 
 func (gr *GroupRepository) GetPopularGroups(email string, limit int, offset int) ([]*entities.Group, error) {
 	var groups []*entities.Group
 	rows, err := gr.db.Queryx(GetGroups, email, limit, offset)
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return groups, nil
@@ -93,6 +97,7 @@ func (gr *GroupRepository) GetPopularGroups(email string, limit int, offset int)
 func (gr *GroupRepository) GetManagedGroups(email string, limit int, offset int) ([]*entities.Group, error) {
 	var groups []*entities.Group
 	rows, err := gr.db.Queryx(GetManaged, email, limit, offset)
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return groups, nil
@@ -184,6 +189,7 @@ func (gr *GroupRepository) UpdateGroup(link string, group *dto.UpdateGroup) erro
 	query += fmt.Sprintf(" where link = $%d", len(fields)+1)
 	fields = append(fields, link)
 	rows, err := gr.db.Queryx(query, fields...)
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		return apperror.NewServerError(apperror.InternalServerError, err)
 	}
@@ -219,6 +225,7 @@ func (gr *GroupRepository) DeleteGroup(link string) error {
 func (gr *GroupRepository) GetSubscribers(groupLink string, limit int, offset int) ([]*entities.User, error) {
 	var users []*entities.User
 	rows, err := gr.db.Queryx(GroupSubscribers, groupLink, offset, limit)
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return users, nil
@@ -288,6 +295,7 @@ func (gr *GroupRepository) DeclineRequest(userLink, groupLink string) error {
 func (gr *GroupRepository) GetPendingRequests(groupLink string, limit, offset int) ([]*entities.User, error) {
 	var users []*entities.User
 	rows, err := gr.db.Queryx(PendingGroupRequests, groupLink, offset, limit)
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return users, nil

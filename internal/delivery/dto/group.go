@@ -17,7 +17,8 @@ type UpdateGroup struct {
 	HideOwner *bool   `json:"hide_owner"`
 }
 type Requests struct {
-	AcceptEmail string `json:"accept_email"`
+	AcceptEmail string `json:"link"`
 }
+
 type AddManager struct {
 }

@@ -5,6 +5,7 @@ import (
 	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
 	"depeche/internal/repository"
+	utildb "depeche/internal/repository/utils"
 	"depeche/internal/utils"
 	"depeche/pkg/apperror"
 	"errors"
@@ -70,6 +71,7 @@ func (storage *PostStorage) SelectPostsByCommunityLink(info *dto.PostsGetByLink,
 		info.LastPostDate,
 		info.BatchSize,
 		email)
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
@@ -88,6 +90,7 @@ func (storage *PostStorage) SelectPostsByUserLink(info *dto.PostsGetByLink, emai
 		info.LastPostDate,
 		info.BatchSize,
 		email)
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
@@ -303,19 +306,20 @@ func (storage *PostStorage) CancelLike(email string, postID uint) error {
 
 	rowsAmount, err := execResult.RowsAffected()
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
 	if rowsAmount == 0 {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return apperror.NewServerError(apperror.LikeIsMissing,
 			fmt.Errorf("like for post with id = %d for user with email = %s doesn't exists", postID, email))
 	}
 
-	_, err = tx.Queryx("UPDATE Post SET likes_amount = likes_amount - 1 WHERE id = $1", postID)
+	rows, err := tx.Queryx("UPDATE Post SET likes_amount = likes_amount - 1 WHERE id = $1", postID)
+	defer utildb.CloseRows(rows)
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return apperror.NewServerError(apperror.InternalServerError, err)
 	}
 

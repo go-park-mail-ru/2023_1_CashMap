@@ -6,6 +6,7 @@ import (
 	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
 	"depeche/internal/repository"
+	utildb "depeche/internal/repository/utils"
 	"depeche/internal/utils"
 	"depeche/pkg/apperror"
 	"errors"
@@ -44,6 +45,7 @@ func (storage *MessageStorage) SaveMsg(message *dto.NewMessage) (*entities.Messa
 func (storage *MessageStorage) GetMembersByChatId(chatId uint) ([]*entities.User, error) {
 	var users []*entities.User
 	rows, err := storage.db.Queryx(GetMembersByChatId, chatId)
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		return nil, apperror.NewServerError(apperror.BadRequest, err)
 	}
@@ -72,7 +74,7 @@ func (storage *MessageStorage) SelectMessagesByChatID(senderEmail string, dto *d
 		dto.ChatID,
 		dto.LastMessageDate,
 		dto.BatchSize)
-
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		return nil, err
 	}
@@ -100,6 +102,7 @@ func (storage *MessageStorage) SelectChats(senderEmail string, dto *dto.GetChats
 		senderEmail,
 		dto.BatchSize,
 		dto.Offset)
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		return nil, err
 	}
