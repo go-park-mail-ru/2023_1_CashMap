@@ -369,9 +369,9 @@ var (
 	join userprofile u on g2.user_id = u.id
 	join userprofile u2 on g.owner_id = u2.id
 	where u.link = $1
-	and g.id > $2
+	and g.id > $3
 	order by g.id
-	limit $3
+	limit $2
 	`
 
 	GroupsByUserEmail = `
@@ -387,9 +387,9 @@ var (
 	join userprofile u on g2.user_id = u.id
 	join userprofile u2 on g.owner_id = u2.id
 	where u.email = $1
-	and g.id > $2
+	and g.id > $3
 	order by g.id
-	limit $3
+	limit $2
 	`
 	GetGroups = `
 		select g.title, g.link, g.group_info info, g.privacy,
@@ -401,7 +401,25 @@ var (
 	from groups g 
 		left join photo p on g.avatar_id = p.id
 		join userprofile u on g.owner_id = u.id
-	order by g.subscribers
+	where g.id > $2
+	order by g.subscribers, g.id
+	limit $1
+	`
+
+	GetManaged = `
+	select g.title, g.link, g.group_info info, g.privacy,
+	       g.creation_date, g.hide_author, u.link owner_link,
+	       g.is_deleted, g.subscribers,
+	case when p.url is null 
+           then ''
+           else p.url end avatar
+	from groups g 
+		left join photo p on g.avatar_id = p.id
+		join userprofile u on g.owner_id = u.id
+		where u.email = $1
+		and g.id > $3
+		order by g.id
+		limit $2
 	`
 
 	GroupSubscribers = `

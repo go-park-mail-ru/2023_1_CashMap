@@ -125,7 +125,7 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 	// [API]
 	apiEndpointsGroup := router.Group("/api")
 	apiEndpointsGroup.Use(authMW.Middleware())
-	//apiEndpointsGroup.Use(csrfMiddleware.Middleware())
+	apiEndpointsGroup.Use(csrfMiddleware.Middleware())
 	{
 
 		// [FEED]
@@ -211,6 +211,7 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 				groupLink.GET("/pending", handler.PendingGroupRequests)
 			}
 			groupEndpoints.GET("/self", handler.GetGroups)
+			groupEndpoints.GET("/manage", handler.GetManagedGroups)
 			groupEndpoints.GET("/hot", handler.GetPopularGroups)
 			groupEndpoints.POST("/create", handler.CreateGroup)
 

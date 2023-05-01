@@ -60,6 +60,15 @@ func (g *Group) GetPopularGroups(email string, limit int, offset int) ([]*entiti
 	return groups, nil
 }
 
+func (g *Group) GetManagedGroups(email string, limit int, offset int) ([]*entities.Group, error) {
+	groups, err := g.repo.GetManagedGroups(email, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	groups = addGroupManagement(groups)
+	return groups, nil
+}
+
 func (g *Group) CreateGroup(ownerEmail string, group *dto.Group) (*entities.Group, error) {
 	_, err := g.repo.CreateGroup(ownerEmail, group)
 	if err != nil {

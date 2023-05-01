@@ -90,6 +90,25 @@ func (gr *GroupRepository) GetPopularGroups(email string, limit int, offset int)
 	return groups, nil
 }
 
+func (gr *GroupRepository) GetManagedGroups(email string, limit int, offset int) ([]*entities.Group, error) {
+	var groups []*entities.Group
+	rows, err := gr.db.Queryx(GetManaged, email, limit, offset)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return groups, nil
+		}
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	for rows.Next() {
+		var group = &entities.Group{}
+		if err := rows.StructScan(group); err != nil {
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+		groups = append(groups, group)
+	}
+	return groups, nil
+}
+
 func (gr *GroupRepository) CreateGroup(ownerEmail string, group *dto.Group) (*entities.Group, error) {
 	tx, err := gr.db.Beginx()
 	if err != nil {

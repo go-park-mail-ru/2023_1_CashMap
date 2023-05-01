@@ -10,6 +10,7 @@ type Group interface {
 	GetUserGroupsByLink(link string, limit int, offset int) ([]*entities.Group, error)
 	GetUserGroupsByEmail(email string, limit int, offset int) ([]*entities.Group, error)
 	GetPopularGroups(email string, limit int, offset int) ([]*entities.Group, error)
+	GetManagedGroups(email string, limit int, offset int) ([]*entities.Group, error)
 
 	CreateGroup(ownerEmail string, group *dto.Group) (*entities.Group, error)
 	UpdateGroup(link string, group *dto.UpdateGroup) error

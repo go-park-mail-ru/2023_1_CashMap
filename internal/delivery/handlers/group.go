@@ -99,6 +99,30 @@ func (gh *GroupHandler) GetPopularGroups(ctx *gin.Context) {
 	})
 }
 
+func (gh *GroupHandler) GetManagedGroups(ctx *gin.Context) {
+	limit, offset, err := utils.GetLimitOffset(ctx)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	email, err := utils.GetEmail(ctx)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	groups, err := gh.service.GetManagedGroups(email, limit, offset)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"body": groups,
+	})
+}
+
 func (gh *GroupHandler) CreateGroup(ctx *gin.Context) {
 	body, err := utils.GetBody[dto.Group](ctx)
 	if err != nil {
