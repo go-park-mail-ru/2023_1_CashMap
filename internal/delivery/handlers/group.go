@@ -31,6 +31,9 @@ func (gh *GroupHandler) GetGroup(ctx *gin.Context) {
 		return
 	}
 	isSub, err := gh.service.CheckSub(email, link)
+	if err != nil {
+		_ = ctx.Error(err)
+	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"body": gin.H{
 			"group_info": group,
