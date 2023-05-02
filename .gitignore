@@ -3,5 +3,6 @@ main
 ./internal/static/files/*
 .env
 data/
+git
 c.out
 c.out.tmp

@@ -327,7 +327,7 @@ func (gr *GroupRepository) IsOwner(userEmail, groupLink string) (bool, error) {
 
 func (gr *GroupRepository) CheckSub(email, groupLink string) (bool, error) {
 	var isSub bool
-	err := gr.db.QueryRowx(CheckSub).Scan(&isSub)
+	err := gr.db.QueryRowx(CheckSub, email, groupLink).Scan(&isSub)
 	if err != nil {
 		if err != sql.ErrNoRows {
 			return isSub, apperror.NewServerError(apperror.InternalServerError, err)
