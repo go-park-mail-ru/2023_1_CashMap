@@ -23,4 +23,5 @@ type Group interface {
 	AcceptAllRequests(managerEmail, groupLink string) error
 	DeclineRequest(managerEmail, userLink, groupLink string) error
 	GetPendingRequests(managerEmail, groupLink string, limit, offset int) ([]*entities.User, error)
+	CheckSub(email, groupLink string) (bool, error)
 }

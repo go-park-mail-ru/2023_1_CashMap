@@ -21,15 +21,20 @@ func NewGroupHandler(service usecase.Group) *GroupHandler {
 func (gh *GroupHandler) GetGroup(ctx *gin.Context) {
 	link := ctx.Param("link")
 
+	email, err := utils.GetEmail(ctx)
+	if err != nil {
+		_ = ctx.Error(err)
+	}
 	group, err := gh.service.GetGroup(link)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
-
+	isSub, err := gh.service.CheckSub(email, link)
 	ctx.JSON(http.StatusOK, gin.H{
 		"body": gin.H{
-			"group": group,
+			"group_info": group,
+			"is_sub":     isSub,
 		},
 	})
 }

@@ -18,32 +18,34 @@ import (
 
 func TestGroupHandler_GetGroup(t *testing.T) {
 	tests := []struct {
-		name string
-		link string
-
+		name         string
+		link         string
+		email        string
 		expectedBody gin.H
 		expectedCode int
-		setupMock    func(service *mock_usecase.MockGroup, link string)
+		setupMock    func(service *mock_usecase.MockGroup, email, link string)
 	}{
 		{
-			name: "Success",
-			link: "id123",
-
+			name:  "Success",
+			link:  "id123",
+			email: "e.larkin@mail.ru",
 			expectedBody: gin.H{
 				"body": gin.H{
-					"group": entities.Group{
+					"group_info": entities.Group{
 						Link:  "id123",
 						Title: "Group",
 					},
+					"is_sub": true,
 				},
 			},
 			expectedCode: http.StatusOK,
-			setupMock: func(service *mock_usecase.MockGroup, link string) {
+			setupMock: func(service *mock_usecase.MockGroup, email, link string) {
 				group := &entities.Group{
 					Link:  "id123",
 					Title: "Group",
 				}
 				service.EXPECT().GetGroup(link).Return(group, nil)
+				service.EXPECT().CheckSub(email, link).Return(true, nil)
 			},
 		},
 	}
@@ -59,11 +61,15 @@ func TestGroupHandler_GetGroup(t *testing.T) {
 			groupHandler := GroupHandler{
 				service: mockService,
 			}
-			test.setupMock(mockService, test.link)
+			test.setupMock(mockService, test.email, test.link)
 
 			router := gin.New()
 			router.Use(middleware.ErrorMiddleware())
-
+			if test.email != "" {
+				router.Use(func(context *gin.Context) {
+					context.Set("email", test.email)
+				})
+			}
 			router.GET("/:link", groupHandler.GetGroup)
 
 			req, err := request("GET", "/"+test.link, nil)
