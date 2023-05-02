@@ -49,3 +49,11 @@ func GetMaxLength(slice ...string) int {
 
 	return maxValue
 }
+
+func Reverse[T any](slice []T) {
+	for i := 0; i < len(slice)/2; i++ {
+		elem := slice[i]
+		slice[i] = slice[len(slice)-1-i]
+		slice[len(slice)-1-i] = elem
+	}
+}

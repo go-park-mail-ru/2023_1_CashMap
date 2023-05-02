@@ -379,14 +379,14 @@ func (ur *UserRepository) GetPendingFriendRequests(user *entities.User, limit, o
 //	return pending, nil
 //}
 
-func (ur *UserRepository) SearchUserByName(searchDTO *dto.GlobalSearchDTO) ([]*entities.UserInfo, error) {
-	// TODO: сначала выбрать из друзей
+func (ur *UserRepository) SearchUserByName(email string, searchDTO *dto.GlobalSearchDTO) ([]*entities.UserInfo, error) {
 	searchName := utils.NormalizeString(*searchDTO.SearchQuery)
 	splitSearchName := strings.Split(searchName, " ")
 
 	rows, err := ur.DB.Queryx("SELECT id, first_name, last_name FROM UserProfile AS profile")
+	defer utildb.CloseRows(rows)
 	if err != nil {
-		return nil, err
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
 	distances := make([]int, len(splitSearchName))
@@ -401,7 +401,7 @@ MAIN:
 	for rows.Next() {
 		err := rows.StructScan(&user)
 		if err != nil {
-			return nil, err
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
 		}
 
 		// считаем минимальное расстояние между искомым именем и именем из базы
@@ -440,18 +440,41 @@ MAIN:
 
 	var users = make([]*entities.UserInfo, 0, *searchDTO.BatchSize)
 
+	var userID int
+	err = ur.DB.Get(&userID, "SELECT id FROM userprofile WHERE email = $1", email)
+	if err != nil {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	tx, err := ur.DB.Beginx()
+	if err != nil {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
 	if *searchDTO.Offset >= uint(len(usersBatch)) {
+		err := tx.Rollback()
+		if err != nil {
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
+		}
 		return nil, nil
 	}
+
 	for ind, info := range usersBatch[*searchDTO.Offset:] {
 		users = append(users, nil)
 		users[ind] = new(entities.UserInfo)
-		err = ur.DB.Get(users[ind], "SELECT first_name, last_name, link,  url FROM UserProfile AS profile LEFT JOIN Photo ON profile.avatar_id = photo.id WHERE profile.id = $1", info.ID)
+		err := tx.Get(users[ind], GetUserInfoForSearchQuery, userID, info.ID)
 		if err != nil {
-			return nil, err
+			err := tx.Rollback()
+			if err != nil {
+				return nil, apperror.NewServerError(apperror.InternalServerError, err)
+			}
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
 		}
 	}
-
+	err = tx.Commit()
+	if err != nil {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
 	return users, nil
 }
 
