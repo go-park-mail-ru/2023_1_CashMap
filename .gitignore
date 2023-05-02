@@ -2,5 +2,6 @@
 main
 ./internal/static/files/*
 .env
+data/
 c.out
 c.out.tmp

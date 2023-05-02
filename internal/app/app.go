@@ -16,6 +16,7 @@ import (
 	"depeche/pkg/connector"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/penglongli/gin-metrics/ginmetrics"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"google.golang.org/grpc"
@@ -105,6 +106,12 @@ func initValidator() {
 
 func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, pool *wsPool.ConnectionPool, wsMiddleware *middleware.WsMiddleware, csrfMiddleware *middleware.CSRFMiddleware) *gin.Engine {
 	router := gin.Default()
+	// [METRICS]
+	m := ginmetrics.GetMonitor()
+	m.SetMetricPath("/metrics")
+	m.SetSlowTime(5)
+	m.SetDuration([]float64{0.1, 0.3, 1.2, 5, 10})
+	m.Use(router)
 	// [MIDDLEWARE]
 	router.Use(middleware.CORS())
 	router.Use(middleware.ErrorMiddleware())
