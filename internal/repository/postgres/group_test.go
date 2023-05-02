@@ -546,7 +546,7 @@ func TestGroupRepository_GetPopularGroups(t *testing.T) {
 				},
 			},
 			setupMock: func(mock sqlmock.Sqlmock, email string, limit, offset int, behaviour dbBehaviour) {
-				mock.ExpectQuery(GetGroups).WithArgs(email, limit, offset).WillReturnRows(behaviour.data)
+				mock.ExpectQuery(GetGroups).WithArgs(limit, offset).WillReturnRows(behaviour.data)
 			},
 		},
 		{
@@ -560,7 +560,7 @@ func TestGroupRepository_GetPopularGroups(t *testing.T) {
 			},
 
 			setupMock: func(mock sqlmock.Sqlmock, email string, limit, offset int, behaviour dbBehaviour) {
-				mock.ExpectQuery(GetGroups).WithArgs(email, limit, offset).WillReturnError(behaviour.error)
+				mock.ExpectQuery(GetGroups).WithArgs(limit, offset).WillReturnError(behaviour.error)
 			},
 		},
 		{
@@ -575,7 +575,7 @@ func TestGroupRepository_GetPopularGroups(t *testing.T) {
 			},
 
 			setupMock: func(mock sqlmock.Sqlmock, email string, limit, offset int, behaviour dbBehaviour) {
-				mock.ExpectQuery(GetGroups).WithArgs(email, limit, offset).WillReturnError(behaviour.error)
+				mock.ExpectQuery(GetGroups).WithArgs(limit, offset).WillReturnError(behaviour.error)
 			},
 		},
 	}

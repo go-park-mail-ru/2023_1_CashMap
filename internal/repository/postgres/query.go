@@ -391,6 +391,7 @@ var (
 	order by g.id
 	limit $2
 	`
+	// TODO Сделать таблицу для обновления по крон таске или процедуре
 	GetGroups = `
 		select g.title, g.link, g.group_info info, g.privacy,
 	       g.creation_date, g.hide_author, u.link owner_link,
@@ -401,9 +402,8 @@ var (
 	from groups g 
 		left join photo p on g.avatar_id = p.id
 		join userprofile u on g.owner_id = u.id
-	where g.id > $2
-	order by g.subscribers, g.id
-	limit $1
+	order by g.subscribers
+	limit $1 offset $2
 	`
 
 	GetManaged = `
