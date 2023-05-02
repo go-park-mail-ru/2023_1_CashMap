@@ -5,6 +5,7 @@ import (
 	"depeche/internal/delivery/middleware"
 	"depeche/internal/entities"
 	mock_usecase "depeche/internal/usecase/mocks"
+	"depeche/pkg/apperror"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -561,6 +562,52 @@ func TestGroupHandler_PendingGroupRequests(t *testing.T) {
 					},
 				}
 				service.EXPECT().GetPendingRequests(email, link, limit, offset).Return(users, nil)
+			},
+		},
+		{
+			name:  "Bad request",
+			limit: -1,
+			link:  "id1234",
+			email: "e.larkin@mail.ru",
+
+			expectedCode: http.StatusBadRequest,
+			expectedBody: gin.H{
+				"status":  middleware.Errors[apperror.BadRequest].Code,
+				"message": middleware.Errors[apperror.BadRequest].Message,
+			},
+
+			setupMock: func(service *mock_usecase.MockGroup, email, link string, limit, offset int) {
+
+			},
+		},
+		{
+			name:   "no auth",
+			link:   "id1234",
+			limit:  2,
+			offset: 0,
+
+			expectedCode: http.StatusUnauthorized,
+			expectedBody: gin.H{
+				"status":  middleware.Errors[apperror.NoAuth].Code,
+				"message": middleware.Errors[apperror.NoAuth].Message,
+			},
+
+			setupMock: func(service *mock_usecase.MockGroup, email, link string, limit, offset int) {
+			},
+		},
+		{
+			name:         "internal error",
+			limit:        2,
+			offset:       0,
+			link:         "id1234",
+			email:        "e.larkin@mail.ru",
+			expectedCode: http.StatusInternalServerError,
+			expectedBody: gin.H{
+				"status":  middleware.Errors[apperror.InternalServerError].Code,
+				"message": middleware.Errors[apperror.InternalServerError].Message,
+			},
+			setupMock: func(service *mock_usecase.MockGroup, email, link string, limit, offset int) {
+				service.EXPECT().GetPendingRequests(email, link, limit, offset).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 	}

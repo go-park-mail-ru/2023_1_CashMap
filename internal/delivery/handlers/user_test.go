@@ -1078,6 +1078,185 @@ func TestUserHandler_PendingRequests(t *testing.T) {
 	}
 }
 
+func TestUserHandler_Unsubscribe(t *testing.T) {
+	tests := []struct {
+		name  string
+		email string
+		body  gin.H
+		dto   *dto.Subscribes
+
+		expectedBody gin.H
+		expectedCode int
+
+		setupMock func(service *mock_usecase.MockUser, email string, dto *dto.Subscribes)
+	}{
+		{
+			name:  "Success",
+			email: "e.larkin@mail.ru",
+			dto: &dto.Subscribes{
+				Link: "id123",
+			},
+
+			body: gin.H{
+				"body": gin.H{
+					"user_link": "id123",
+				},
+			},
+
+			expectedCode: http.StatusOK,
+			setupMock: func(service *mock_usecase.MockUser, email string, dto *dto.Subscribes) {
+				service.EXPECT().Unsubscribe(email, dto.Link).Return(nil)
+			},
+		},
+		{
+			name: "Unauthorized",
+			dto: &dto.Subscribes{
+				Link: "id123",
+			},
+
+			body: gin.H{
+				"body": gin.H{
+					"user_link": "id123",
+				},
+			},
+			expectedCode: http.StatusUnauthorized,
+
+			setupMock: func(service *mock_usecase.MockUser, email string, dto *dto.Subscribes) {
+
+			},
+		},
+		{
+			name:         "Bad request",
+			email:        "e.larkin@mail.ru",
+			expectedCode: http.StatusBadRequest,
+			setupMock: func(service *mock_usecase.MockUser, email string, dto *dto.Subscribes) {
+
+			},
+		},
+		{
+			name:  "Internal error",
+			email: "e.larkin@mail.ru",
+			dto: &dto.Subscribes{
+				Link: "id123",
+			},
+
+			body: gin.H{
+				"body": gin.H{
+					"user_link": "id123",
+				},
+			},
+			expectedCode: http.StatusInternalServerError,
+			setupMock: func(service *mock_usecase.MockUser, email string, dto *dto.Subscribes) {
+				service.EXPECT().Unsubscribe(email, dto.Link).Return(apperror.NewServerError(apperror.InternalServerError, nil))
+			},
+		},
+	}
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockService := mock_usecase.NewMockUser(ctrl)
+
+			userHandler := UserHandler{
+				service: mockService,
+			}
+			test.setupMock(mockService, test.email, test.dto)
+
+			router := gin.New()
+			router.Use(middleware.ErrorMiddleware())
+			if test.email != "" {
+				router.Use(func(context *gin.Context) {
+					context.Set("email", test.email)
+				})
+			}
+			router.POST("/", userHandler.Unsubscribe)
+			req, err := request("POST", "/", test.body)
+			require.NoError(t, err)
+
+			rr := httptest.NewRecorder()
+			router.ServeHTTP(rr, req)
+			if test.expectedBody != nil {
+				body, err := json.Marshal(test.expectedBody)
+				require.NoError(t, err)
+				require.Equal(t, body, rr.Body.Bytes())
+			}
+			require.Equal(t, test.expectedCode, rr.Code)
+		})
+	}
+}
+
+func TestUserHandler_Profile(t *testing.T) {
+	tests := []struct {
+		name string
+		link string
+
+		expectedBody gin.H
+		expectedCode int
+
+		setupMock func(service *mock_usecase.MockUser, link string)
+	}{
+		{
+			name: "Success",
+			link: "id123",
+
+			expectedBody: gin.H{
+				"body": gin.H{
+					"profile": dto.Profile{
+						Link:      "id123",
+						FirstName: "Pavel",
+						LastName:  "Repin",
+					},
+				},
+			},
+			expectedCode: http.StatusOK,
+			setupMock: func(service *mock_usecase.MockUser, link string) {
+				profile := &entities.User{
+					Link:      "id123",
+					FirstName: "Pavel",
+					LastName:  "Repin",
+				}
+				service.EXPECT().GetProfileByLink("", link).Return(profile, nil)
+			},
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockService := mock_usecase.NewMockUser(ctrl)
+
+			userHandler := UserHandler{
+				service: mockService,
+			}
+			test.setupMock(mockService, test.link)
+
+			router := gin.New()
+			router.Use(middleware.ErrorMiddleware())
+			router.GET("/:link", userHandler.Profile)
+
+			req, err := request("GET", "/"+test.link, nil)
+			require.NoError(t, err)
+
+			rr := httptest.NewRecorder()
+			router.ServeHTTP(rr, req)
+			if test.expectedBody != nil {
+				body, err := json.Marshal(test.expectedBody)
+				require.NoError(t, err)
+				require.Equal(t, body, rr.Body.Bytes())
+			}
+
+			require.Equal(t, test.expectedCode, rr.Code)
+		})
+	}
+}
+
 func request(method string, url string, data gin.H) (*http.Request, error) {
 	body, err := json.Marshal(data)
 	if err != nil {

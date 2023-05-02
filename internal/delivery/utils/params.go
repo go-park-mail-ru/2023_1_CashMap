@@ -11,11 +11,11 @@ func GetLimitOffset(ctx *gin.Context) (int, int, error) {
 	offsetQ := ctx.Query("offset")
 
 	limit, err := strconv.Atoi(limitQ)
-	if err != nil {
+	if err != nil || limit < 0 {
 		return 0, 0, apperror.NewServerError(apperror.BadRequest, nil)
 	}
 	offset, err := strconv.Atoi(offsetQ)
-	if err != nil {
+	if err != nil || offset < 0 {
 		return 0, 0, apperror.NewServerError(apperror.BadRequest, nil)
 	}
 	return limit, offset, nil
