@@ -190,6 +190,10 @@ func (g *Group) GetPendingRequests(managerEmail, groupLink string, limit, offset
 	return g.repo.GetPendingRequests(groupLink, limit, offset)
 }
 
+func (g *Group) CheckSub(email, groupLink string) (bool, error) {
+	return g.repo.CheckSub(email, groupLink)
+}
+
 func addGroupManagement(groups []*entities.Group) []*entities.Group {
 	for _, group := range groups {
 		if !group.HideOwner {
