@@ -660,7 +660,7 @@ var (
 		WHERE msg.chat_id = (SELECT id FROM Chat WHERE id = $1)
 		  AND msg.creation_date > $2
 		  AND msg.is_deleted = false
-		ORDER BY msg.creation_date
+		ORDER BY msg.creation_date DESC
 		LIMIT $3
 	`
 
@@ -705,5 +705,39 @@ var (
 				 JOIN Chat as chat on chat.id = member.chat_id
 		WHERE chat_id = $1
 		  AND member.user_id = (SELECT id FROM UserProfile WHERE email = $2)
+	`
+)
+
+var (
+	GetUserInfoForSearchQuery = `
+		WITH isFriend AS (
+			select exists(select * from friendrequests f1
+											join friendrequests f2 on
+						f1.subscribed = f2.subscriber and
+						f2.subscribed = f1.subscriber
+						  where f1.subscriber = $2 and f1.subscribed = $1) as is_friend
+		), isSubscriber AS (
+			select exists(select * from friendrequests f1
+											left join friendrequests f2 on
+						f1.subscribed = f2.subscriber and
+						f2.subscribed = f1.subscriber
+						  where f1.subscriber = $1 and f1.subscribed = $1 and
+							  f2 is null) as is_subscriber
+		), isSubscribed AS (
+			select exists(select * from friendrequests f1
+											left join friendrequests f2 on
+						f1.subscribed = f2.subscriber and
+						f2.subscribed = f1.subscriber
+						  where f1.subscriber = $1 and f1.subscribed = $2 and
+							  f2 is null and
+							  not f1.rejected) as is_subscribed
+		)
+		SELECT first_name, last_name, link, url, is_friend, is_subscriber, is_subscribed
+		FROM UserProfile AS profile
+				 LEFT JOIN Photo ON profile.avatar_id = photo.id
+				 CROSS JOIN isFriend
+				 CROSS JOIN isSubscriber
+				 CROSS JOIN isSubscribed
+		WHERE profile.id = $2;
 	`
 )

@@ -84,6 +84,8 @@ func (storage *MessageStorage) SelectMessagesByChatID(senderEmail string, dto *d
 		return nil, err
 	}
 
+	utils.Reverse(messages)
+
 	for _, message := range messages {
 		info, err := storage.GetUserInfoByMessageId(*message.Id)
 		if err != nil {
@@ -143,6 +145,7 @@ func (storage *MessageStorage) CreateChat(senderEmail string, dto *dto.CreateCha
 		}
 
 		query := "INSERT INTO Chat (id, members_number) VALUES (DEFAULT, $1) RETURNING id"
+
 		err = tx.GetContext(context.Background(), &chatID, query, len(dto.UserLinks)+1)
 		if err != nil {
 			if err := tx.Rollback(); err != nil {
@@ -247,7 +250,10 @@ func (storage *MessageStorage) addChatMembers(senderEmail string, userLinks []st
 	if err != nil {
 		return err
 	}
-	userLinks = append(userLinks, senderLink)
+
+	if senderLink != userLinks[0] {
+		userLinks = append(userLinks, senderLink)
+	}
 	for i := 0; i < len(userLinks); i++ {
 		var userID uint
 		err = tx.Get(&userID, "SELECT id FROM UserProfile WHERE link = $1", userLinks[i])
