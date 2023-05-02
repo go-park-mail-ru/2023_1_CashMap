@@ -28,7 +28,9 @@ func (gh *GroupHandler) GetGroup(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"body": group,
+		"body": gin.H{
+			"group": group,
+		},
 	})
 }
 
@@ -51,7 +53,9 @@ func (gh *GroupHandler) GetGroups(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{
-		"body": groups,
+		"body": gin.H{
+			"groups": groups,
+		},
 	})
 }
 
@@ -71,7 +75,9 @@ func (gh *GroupHandler) GetUserGroups(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"body": groups,
+		"body": gin.H{
+			"groups": groups,
+		},
 	})
 }
 
@@ -95,7 +101,9 @@ func (gh *GroupHandler) GetPopularGroups(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"body": groups,
+		"body": gin.H{
+			"groups": groups,
+		},
 	})
 }
 
@@ -119,7 +127,9 @@ func (gh *GroupHandler) GetManagedGroups(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"body": groups,
+		"body": gin.H{
+			"groups": groups,
+		},
 	})
 }
 
@@ -135,7 +145,7 @@ func (gh *GroupHandler) CreateGroup(ctx *gin.Context) {
 		return
 	}
 
-	_, err = gh.service.CreateGroup(email, body)
+	err = gh.service.CreateGroup(email, body)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -199,7 +209,9 @@ func (gh *GroupHandler) GetSubscribers(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"body": profiles,
+		"body": gin.H{
+			"profiles": profiles,
+		},
 	})
 }
 
@@ -308,6 +320,8 @@ func (gh *GroupHandler) PendingGroupRequests(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"body": profiles,
+		"body": gin.H{
+			"profiles": profiles,
+		},
 	})
 }

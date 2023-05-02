@@ -69,12 +69,12 @@ func (g *Group) GetManagedGroups(email string, limit int, offset int) ([]*entiti
 	return groups, nil
 }
 
-func (g *Group) CreateGroup(ownerEmail string, group *dto.Group) (*entities.Group, error) {
+func (g *Group) CreateGroup(ownerEmail string, group *dto.Group) error {
 	_, err := g.repo.CreateGroup(ownerEmail, group)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return nil, nil
+	return nil
 }
 
 func (g *Group) UpdateGroup(link string, ownerEmail string, group *dto.UpdateGroup) error {

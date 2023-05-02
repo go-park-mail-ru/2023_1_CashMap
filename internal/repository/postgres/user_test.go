@@ -101,9 +101,13 @@ func TestUserRepository_GetUserById(t *testing.T) {
 			}
 
 			_, err = userRepo.GetUserById(test.id)
-			uerr, ok := err.(*apperror.ServerError)
-			require.Equal(t, true, ok)
-			require.Equal(t, test.expectedError, uerr.UserErr)
+			if test.expectedError != nil {
+				uerr, ok := err.(*apperror.ServerError)
+				require.Equal(t, true, ok)
+				require.Equal(t, test.expectedError, uerr.UserErr)
+			} else {
+				require.Equal(t, test.expectedError, err)
+			}
 		})
 	}
 }
@@ -195,9 +199,13 @@ func TestUserRepository_GetUserByLink(t *testing.T) {
 			}
 
 			_, err = userRepo.GetUserByLink(test.link)
-			uerr, ok := err.(*apperror.ServerError)
-			require.Equal(t, true, ok)
-			require.Equal(t, test.expectedError, uerr.UserErr)
+			if test.expectedError != nil {
+				uerr, ok := err.(*apperror.ServerError)
+				require.Equal(t, true, ok)
+				require.Equal(t, test.expectedError, uerr.UserErr)
+			} else {
+				require.Equal(t, test.expectedError, err)
+			}
 		})
 	}
 }
@@ -255,9 +263,14 @@ func TestUserRepository_UpdateUser(t *testing.T) {
 				DB: sqlxDB,
 			}
 			_, err = userRepo.UpdateUser(test.email, test.user)
-			uerr, ok := err.(*apperror.ServerError)
-			require.Equal(t, true, ok)
-			require.Equal(t, test.expectedError, uerr.UserErr)
+
+			if test.expectedError != nil {
+				uerr, ok := err.(*apperror.ServerError)
+				require.Equal(t, true, ok)
+				require.Equal(t, test.expectedError, uerr.UserErr)
+			} else {
+				require.Equal(t, test.expectedError, err)
+			}
 		})
 	}
 }

@@ -219,51 +219,6 @@ func (mr *MockUserRepositoryMockRecorder) GetUsers(arg0, arg1, arg2 interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsers", reflect.TypeOf((*MockUserRepository)(nil).GetUsers), arg0, arg1, arg2)
 }
 
-// HasPendingRequest mocks base method.
-func (m *MockUserRepository) HasPendingRequest(arg0, arg1 *entities.User) (bool, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HasPendingRequest", arg0, arg1)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// HasPendingRequest indicates an expected call of HasPendingRequest.
-func (mr *MockUserRepositoryMockRecorder) HasPendingRequest(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasPendingRequest", reflect.TypeOf((*MockUserRepository)(nil).HasPendingRequest), arg0, arg1)
-}
-
-// IsFriend mocks base method.
-func (m *MockUserRepository) IsFriend(arg0, arg1 *entities.User) (bool, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsFriend", arg0, arg1)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// IsFriend indicates an expected call of IsFriend.
-func (mr *MockUserRepositoryMockRecorder) IsFriend(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsFriend", reflect.TypeOf((*MockUserRepository)(nil).IsFriend), arg0, arg1)
-}
-
-// IsSubscriber mocks base method.
-func (m *MockUserRepository) IsSubscriber(arg0, arg1 *entities.User) (bool, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsSubscriber", arg0, arg1)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// IsSubscriber indicates an expected call of IsSubscriber.
-func (mr *MockUserRepositoryMockRecorder) IsSubscriber(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsSubscriber", reflect.TypeOf((*MockUserRepository)(nil).IsSubscriber), arg0, arg1)
-}
-
 // RejectFriendRequest mocks base method.
 func (m *MockUserRepository) RejectFriendRequest(arg0, arg1 string) error {
 	m.ctrl.T.Helper()
@@ -276,6 +231,21 @@ func (m *MockUserRepository) RejectFriendRequest(arg0, arg1 string) error {
 func (mr *MockUserRepositoryMockRecorder) RejectFriendRequest(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RejectFriendRequest", reflect.TypeOf((*MockUserRepository)(nil).RejectFriendRequest), arg0, arg1)
+}
+
+// SearchUserByName mocks base method.
+func (m *MockUserRepository) SearchUserByName(arg0 *dto.GlobalSearchDTO) ([]*entities.UserInfo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchUserByName", arg0)
+	ret0, _ := ret[0].([]*entities.UserInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchUserByName indicates an expected call of SearchUserByName.
+func (mr *MockUserRepositoryMockRecorder) SearchUserByName(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchUserByName", reflect.TypeOf((*MockUserRepository)(nil).SearchUserByName), arg0)
 }
 
 // Subscribe mocks base method.

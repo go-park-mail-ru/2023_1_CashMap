@@ -36,7 +36,9 @@ func main() {
 	api.RegisterCSRFServiceServer(srv, csrfHandler)
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.AuthMs.Port))
-
+	if err != nil {
+		log.Fatal(err)
+	}
 	if err := srv.Serve(listener); err != nil {
 		log.Fatal(err)
 	}

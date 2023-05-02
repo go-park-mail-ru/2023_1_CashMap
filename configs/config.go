@@ -23,10 +23,10 @@ type Config struct {
 func InitCfg(config *Config) error {
 
 	cmd := exec.Command("ls", "-a")
-	stdout, err := cmd.Output()
+	stdout, _ := cmd.Output()
 	fmt.Println(string(stdout))
 
-	err = godotenv.Load(".env/backend", ".env/postgres", ".env/redis")
+	err := godotenv.Load(".env/backend", ".env/postgres", ".env/redis")
 	if err != nil {
 		return err
 	}

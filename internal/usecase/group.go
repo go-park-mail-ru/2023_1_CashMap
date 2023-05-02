@@ -12,7 +12,7 @@ type Group interface {
 	GetPopularGroups(email string, limit int, offset int) ([]*entities.Group, error)
 	GetManagedGroups(email string, limit int, offset int) ([]*entities.Group, error)
 
-	CreateGroup(ownerEmail string, group *dto.Group) (*entities.Group, error)
+	CreateGroup(ownerEmail string, group *dto.Group) error
 	UpdateGroup(link string, ownerEmail string, group *dto.UpdateGroup) error
 	DeleteGroup(ownerEmail string, link string) error
 

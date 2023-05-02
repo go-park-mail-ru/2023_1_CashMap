@@ -7,6 +7,7 @@ import (
 	"depeche/internal/utils"
 	"depeche/internal/utils/testUtils"
 	"depeche/pkg/apperror"
+	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -44,7 +45,7 @@ func TestUserService_SignIn(t *testing.T) {
 			expectedError: apperror.UserNotFound,
 
 			setupMock: func(repo *mock_repository.MockUserRepository, in *dto.SignIn) {
-				repo.EXPECT().GetUserByEmail(in.Email).Return(nil, apperror.UserNotFound)
+				repo.EXPECT().GetUserByEmail(in.Email).Return(nil, apperror.NewServerError(apperror.UserNotFound, nil))
 			},
 		},
 		{
@@ -75,7 +76,14 @@ func TestUserService_SignIn(t *testing.T) {
 			}
 			test.setupMock(mockRepository, test.inputDTO)
 			_, err := userService.SignIn(test.inputDTO)
-			require.Equal(t, test.expectedError, err)
+			if test.expectedError != nil {
+				fmt.Println(err)
+				uerr, ok := err.(*apperror.ServerError)
+				require.Equal(t, true, ok)
+				require.Equal(t, test.expectedError, uerr.UserErr)
+			} else {
+				require.Equal(t, test.expectedError, err)
+			}
 
 		})
 	}
@@ -102,7 +110,7 @@ func TestUserService_SignUp(t *testing.T) {
 			expectedError: nil,
 
 			setupMock: func(repo *mock_repository.MockUserRepository, in *dto.SignUp) {
-				repo.EXPECT().GetUserByEmail(in.Email).Return(nil, apperror.UserNotFound)
+				repo.EXPECT().GetUserByEmail(in.Email).Return(nil, apperror.NewServerError(apperror.UserNotFound, nil))
 				repo.EXPECT().CreateUser(&entities.User{
 					Email:     in.Email,
 					Password:  utils.Hash(in.Password),
@@ -138,7 +146,7 @@ func TestUserService_SignUp(t *testing.T) {
 			expectedError: apperror.InternalServerError,
 
 			setupMock: func(repo *mock_repository.MockUserRepository, in *dto.SignUp) {
-				repo.EXPECT().GetUserByEmail(in.Email).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetUserByEmail(in.Email).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 		{
@@ -153,13 +161,13 @@ func TestUserService_SignUp(t *testing.T) {
 			expectedError: apperror.InternalServerError,
 
 			setupMock: func(repo *mock_repository.MockUserRepository, in *dto.SignUp) {
-				repo.EXPECT().GetUserByEmail(in.Email).Return(nil, apperror.UserNotFound)
+				repo.EXPECT().GetUserByEmail(in.Email).Return(nil, apperror.NewServerError(apperror.UserNotFound, nil))
 				repo.EXPECT().CreateUser(&entities.User{
 					Email:     in.Email,
 					Password:  utils.Hash(in.Password),
 					FirstName: in.FirstName,
 					LastName:  in.LastName,
-				}).Return(nil, apperror.InternalServerError)
+				}).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 	}
@@ -177,7 +185,13 @@ func TestUserService_SignUp(t *testing.T) {
 			}
 			test.setupMock(mockRepository, test.inputDTO)
 			_, err := userService.SignUp(test.inputDTO)
-			require.Equal(t, test.expectedError, err)
+			if test.expectedError != nil {
+				uerr, ok := err.(*apperror.ServerError)
+				require.Equal(t, true, ok)
+				require.Equal(t, test.expectedError, uerr.UserErr)
+			} else {
+				require.Equal(t, test.expectedError, err)
+			}
 		})
 	}
 }
@@ -208,7 +222,7 @@ func TestUserService_GetProfileByEmail(t *testing.T) {
 			expectedError: apperror.UserNotFound,
 
 			setupMock: func(repo *mock_repository.MockUserRepository, email string) {
-				repo.EXPECT().GetUserByEmail(email).Return(nil, apperror.UserNotFound)
+				repo.EXPECT().GetUserByEmail(email).Return(nil, apperror.NewServerError(apperror.UserNotFound, nil))
 			},
 		},
 		{
@@ -218,7 +232,7 @@ func TestUserService_GetProfileByEmail(t *testing.T) {
 			expectedError: apperror.InternalServerError,
 
 			setupMock: func(repo *mock_repository.MockUserRepository, email string) {
-				repo.EXPECT().GetUserByEmail(email).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetUserByEmail(email).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 	}
@@ -236,7 +250,13 @@ func TestUserService_GetProfileByEmail(t *testing.T) {
 			}
 			test.setupMock(mockRepository, test.email)
 			_, err := userService.GetProfileByEmail(test.email)
-			require.Equal(t, test.expectedError, err)
+			if test.expectedError != nil {
+				uerr, ok := err.(*apperror.ServerError)
+				require.Equal(t, true, ok)
+				require.Equal(t, test.expectedError, uerr.UserErr)
+			} else {
+				require.Equal(t, test.expectedError, err)
+			}
 		})
 	}
 }
@@ -297,7 +317,7 @@ func TestUserService_GetProfileByLink(t *testing.T) {
 			numericLink:   false,
 
 			setupMockCustomLink: func(repo *mock_repository.MockUserRepository, link string) {
-				repo.EXPECT().GetUserByLink(link).Return(nil, apperror.UserNotFound)
+				repo.EXPECT().GetUserByLink(link).Return(nil, apperror.NewServerError(apperror.UserNotFound, nil))
 			},
 		},
 		{
@@ -310,7 +330,7 @@ func TestUserService_GetProfileByLink(t *testing.T) {
 			numericLink: true,
 
 			setupMockNumericLink: func(repo *mock_repository.MockUserRepository, id uint) {
-				repo.EXPECT().GetUserById(id).Return(nil, apperror.UserNotFound)
+				repo.EXPECT().GetUserById(id).Return(nil, apperror.NewServerError(apperror.UserNotFound, nil))
 			},
 		},
 	}
@@ -330,12 +350,24 @@ func TestUserService_GetProfileByLink(t *testing.T) {
 			if test.numericLink {
 				test.setupMockNumericLink(mockRepository, test.id)
 				_, err := userService.GetProfileByLink(test.email, test.link)
-				require.Equal(t, test.expectedError, err)
+				if test.expectedError != nil {
+					uerr, ok := err.(*apperror.ServerError)
+					require.Equal(t, true, ok)
+					require.Equal(t, test.expectedError, uerr.UserErr)
+				} else {
+					require.Equal(t, test.expectedError, err)
+				}
 				return
 			}
 			test.setupMockCustomLink(mockRepository, test.link)
 			_, err := userService.GetProfileByLink(test.email, test.link)
-			require.Equal(t, test.expectedError, err)
+			if test.expectedError != nil {
+				uerr, ok := err.(*apperror.ServerError)
+				require.Equal(t, true, ok)
+				require.Equal(t, test.expectedError, uerr.UserErr)
+			} else {
+				require.Equal(t, test.expectedError, err)
+			}
 		})
 	}
 }
@@ -380,7 +412,7 @@ func TestUserService_GetAllUsers(t *testing.T) {
 			expectedError: apperror.InternalServerError,
 
 			setupMock: func(repo *mock_repository.MockUserRepository, email string, limit, offset int) {
-				repo.EXPECT().GetUsers(email, limit, offset).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetUsers(email, limit, offset).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 	}
@@ -398,8 +430,12 @@ func TestUserService_GetAllUsers(t *testing.T) {
 			}
 			test.setupMock(mockRepository, test.email, test.limit, test.offset)
 			users, err := userService.GetAllUsers(test.email, test.limit, test.offset)
-			require.Equal(t, test.expectedError, err)
-			if test.expectedError == nil {
+			if test.expectedError != nil {
+				uerr, ok := err.(*apperror.ServerError)
+				require.Equal(t, true, ok)
+				require.Equal(t, test.expectedError, uerr.UserErr)
+			} else {
+				require.Equal(t, test.expectedError, err)
 				require.Equal(t, test.limit, len(users))
 			}
 		})
@@ -439,7 +475,7 @@ func TestUserService_EditProfile(t *testing.T) {
 			expectedError: apperror.InternalServerError,
 
 			setupMock: func(repo *mock_repository.MockUserRepository, email, avatar, link string, profile *dto.EditProfile) {
-				repo.EXPECT().UpdateUser(email, profile).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().UpdateUser(email, profile).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 		{
@@ -464,7 +500,7 @@ func TestUserService_EditProfile(t *testing.T) {
 			expectedError: apperror.InternalServerError,
 
 			setupMock: func(repo *mock_repository.MockUserRepository, email, avatar, link string, profile *dto.EditProfile) {
-				repo.EXPECT().UpdateAvatar(email, avatar).Return(apperror.InternalServerError)
+				repo.EXPECT().UpdateAvatar(email, avatar).Return(apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 		{
@@ -498,7 +534,7 @@ func TestUserService_EditProfile(t *testing.T) {
 			expectedError: apperror.InternalServerError,
 
 			setupMock: func(repo *mock_repository.MockUserRepository, email, avatar, link string, profile *dto.EditProfile) {
-				repo.EXPECT().GetUserByEmail(email).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetUserByEmail(email).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 		{
@@ -546,7 +582,7 @@ func TestUserService_EditProfile(t *testing.T) {
 			expectedError: apperror.InternalServerError,
 
 			setupMock: func(repo *mock_repository.MockUserRepository, email, avatar, link string, profile *dto.EditProfile) {
-				repo.EXPECT().CheckLinkExists(link).Return(false, apperror.InternalServerError)
+				repo.EXPECT().CheckLinkExists(link).Return(false, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 	}
@@ -565,7 +601,13 @@ func TestUserService_EditProfile(t *testing.T) {
 
 			test.setupMock(mockRepository, test.email, test.avatar, test.link, test.profile)
 			err := userService.EditProfile(test.email, test.profile)
-			require.Equal(t, test.expectedError, err)
+			if test.expectedError != nil {
+				uerr, ok := err.(*apperror.ServerError)
+				require.Equal(t, true, ok)
+				require.Equal(t, test.expectedError, uerr.UserErr)
+			} else {
+				require.Equal(t, test.expectedError, err)
+			}
 		})
 	}
 }
@@ -655,7 +697,7 @@ func TestUserService_Unsubscribe(t *testing.T) {
 			expectedError: apperror.InternalServerError,
 
 			setupMock: func(repo *mock_repository.MockUserRepository, subEmail, followLink string) {
-				repo.EXPECT().Unsubscribe(subEmail, followLink).Return(false, apperror.InternalServerError)
+				repo.EXPECT().Unsubscribe(subEmail, followLink).Return(false, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 	}
@@ -674,7 +716,13 @@ func TestUserService_Unsubscribe(t *testing.T) {
 
 			test.setupMock(mockRepository, test.email, test.followLink)
 			err := userService.Unsubscribe(test.email, test.followLink)
-			require.Equal(t, test.expectedError, err)
+			if test.expectedError != nil {
+				uerr, ok := err.(*apperror.ServerError)
+				require.Equal(t, true, ok)
+				require.Equal(t, test.expectedError, uerr.UserErr)
+			} else {
+				require.Equal(t, test.expectedError, err)
+			}
 		})
 	}
 }
@@ -708,7 +756,7 @@ func TestUserService_Reject(t *testing.T) {
 			expectedError: apperror.InternalServerError,
 
 			setupMock: func(repo *mock_repository.MockUserRepository, rejectEmail, followerLink string) {
-				repo.EXPECT().RejectFriendRequest(rejectEmail, followerLink).Return(apperror.InternalServerError)
+				repo.EXPECT().RejectFriendRequest(rejectEmail, followerLink).Return(apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 	}
@@ -727,7 +775,13 @@ func TestUserService_Reject(t *testing.T) {
 
 			test.setupMock(mockRepository, test.rejectEmail, test.followerLink)
 			err := userService.Reject(test.rejectEmail, test.followerLink)
-			require.Equal(t, test.expectedError, err)
+			if test.expectedError != nil {
+				uerr, ok := err.(*apperror.ServerError)
+				require.Equal(t, true, ok)
+				require.Equal(t, test.expectedError, uerr.UserErr)
+			} else {
+				require.Equal(t, test.expectedError, err)
+			}
 		})
 	}
 }
@@ -778,7 +832,7 @@ func TestUserService_GetFriendsByEmail(t *testing.T) {
 			expectedUsers: nil,
 
 			setupMock: func(repo *mock_repository.MockUserRepository, email string, limit, offset int, expectedUsers []*entities.User) {
-				repo.EXPECT().GetUserByEmail(email).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetUserByEmail(email).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 		{
@@ -795,7 +849,7 @@ func TestUserService_GetFriendsByEmail(t *testing.T) {
 					Email: email,
 				}
 				repo.EXPECT().GetUserByEmail(email).Return(returnedUser, nil)
-				repo.EXPECT().GetFriends(returnedUser, limit, offset).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetFriends(returnedUser, limit, offset).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 	}
@@ -814,7 +868,13 @@ func TestUserService_GetFriendsByEmail(t *testing.T) {
 
 			test.setupMock(mockRepository, test.email, test.limit, test.offset, test.expectedUsers)
 			users, err := userService.GetFriendsByEmail(test.email, test.limit, test.offset)
-			require.Equal(t, test.expectedError, err)
+			if test.expectedError != nil {
+				uerr, ok := err.(*apperror.ServerError)
+				require.Equal(t, true, ok)
+				require.Equal(t, test.expectedError, uerr.UserErr)
+			} else {
+				require.Equal(t, test.expectedError, err)
+			}
 			if test.expectedUsers != nil {
 				require.Equal(t, test.limit, len(users))
 			}
@@ -868,7 +928,7 @@ func TestUserService_GetSubscribesByEmail(t *testing.T) {
 			expectedUsers: nil,
 
 			setupMock: func(repo *mock_repository.MockUserRepository, email string, limit, offset int, expectedUsers []*entities.User) {
-				repo.EXPECT().GetUserByEmail(email).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetUserByEmail(email).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 		{
@@ -885,7 +945,7 @@ func TestUserService_GetSubscribesByEmail(t *testing.T) {
 					Email: email,
 				}
 				repo.EXPECT().GetUserByEmail(email).Return(returnedUser, nil)
-				repo.EXPECT().GetSubscribes(returnedUser, limit, offset).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetSubscribes(returnedUser, limit, offset).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 	}
@@ -904,7 +964,13 @@ func TestUserService_GetSubscribesByEmail(t *testing.T) {
 
 			test.setupMock(mockRepository, test.email, test.limit, test.offset, test.expectedUsers)
 			users, err := userService.GetSubscribesByEmail(test.email, test.limit, test.offset)
-			require.Equal(t, test.expectedError, err)
+			if test.expectedError != nil {
+				uerr, ok := err.(*apperror.ServerError)
+				require.Equal(t, true, ok)
+				require.Equal(t, test.expectedError, uerr.UserErr)
+			} else {
+				require.Equal(t, test.expectedError, err)
+			}
 			if test.expectedUsers != nil {
 				require.Equal(t, test.limit, len(users))
 			}
@@ -958,7 +1024,7 @@ func TestUserService_GetSubscribersByEmail(t *testing.T) {
 			expectedUsers: nil,
 
 			setupMock: func(repo *mock_repository.MockUserRepository, email string, limit, offset int, expectedUsers []*entities.User) {
-				repo.EXPECT().GetUserByEmail(email).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetUserByEmail(email).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 		{
@@ -975,7 +1041,7 @@ func TestUserService_GetSubscribersByEmail(t *testing.T) {
 					Email: email,
 				}
 				repo.EXPECT().GetUserByEmail(email).Return(returnedUser, nil)
-				repo.EXPECT().GetSubscribers(returnedUser, limit, offset).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetSubscribers(returnedUser, limit, offset).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 	}
@@ -994,7 +1060,13 @@ func TestUserService_GetSubscribersByEmail(t *testing.T) {
 
 			test.setupMock(mockRepository, test.email, test.limit, test.offset, test.expectedUsers)
 			users, err := userService.GetSubscribersByEmail(test.email, test.limit, test.offset)
-			require.Equal(t, test.expectedError, err)
+			if test.expectedError != nil {
+				uerr, ok := err.(*apperror.ServerError)
+				require.Equal(t, true, ok)
+				require.Equal(t, test.expectedError, uerr.UserErr)
+			} else {
+				require.Equal(t, test.expectedError, err)
+			}
 			if test.expectedUsers != nil {
 				require.Equal(t, test.limit, len(users))
 			}
@@ -1048,7 +1120,7 @@ func TestUserService_GetPendingRequestsByEmail(t *testing.T) {
 			expectedUsers: nil,
 
 			setupMock: func(repo *mock_repository.MockUserRepository, email string, limit, offset int, expectedUsers []*entities.User) {
-				repo.EXPECT().GetUserByEmail(email).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetUserByEmail(email).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 		{
@@ -1065,7 +1137,7 @@ func TestUserService_GetPendingRequestsByEmail(t *testing.T) {
 					Email: email,
 				}
 				repo.EXPECT().GetUserByEmail(email).Return(returnedUser, nil)
-				repo.EXPECT().GetPendingFriendRequests(returnedUser, limit, offset).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetPendingFriendRequests(returnedUser, limit, offset).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 	}
@@ -1084,7 +1156,13 @@ func TestUserService_GetPendingRequestsByEmail(t *testing.T) {
 
 			test.setupMock(mockRepository, test.email, test.limit, test.offset, test.expectedUsers)
 			users, err := userService.GetPendingRequestsByEmail(test.email, test.limit, test.offset)
-			require.Equal(t, test.expectedError, err)
+			if test.expectedError != nil {
+				uerr, ok := err.(*apperror.ServerError)
+				require.Equal(t, true, ok)
+				require.Equal(t, test.expectedError, uerr.UserErr)
+			} else {
+				require.Equal(t, test.expectedError, err)
+			}
 			if test.expectedUsers != nil {
 				require.Equal(t, test.limit, len(users))
 			}
@@ -1163,7 +1241,7 @@ func TestUserService_GetFriendsByLink(t *testing.T) {
 			expectedUsers: nil,
 
 			setupMock: func(repo *mock_repository.MockUserRepository, requestEmail, targetLink string, limit, offset int, isNumeric bool, id uint, expectedUsers []*entities.User) {
-				repo.EXPECT().GetUserById(id).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetUserById(id).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 		{
@@ -1181,7 +1259,7 @@ func TestUserService_GetFriendsByLink(t *testing.T) {
 			setupMock: func(repo *mock_repository.MockUserRepository, requestEmail, targetLink string, limit, offset int, isNumeric bool, id uint, expectedUsers []*entities.User) {
 				returnedUser := &entities.User{Link: targetLink}
 				repo.EXPECT().GetUserById(id).Return(returnedUser, nil)
-				repo.EXPECT().GetFriends(returnedUser, limit, offset).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetFriends(returnedUser, limit, offset).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 		{
@@ -1218,7 +1296,7 @@ func TestUserService_GetFriendsByLink(t *testing.T) {
 			expectedError: apperror.InternalServerError,
 			expectedUsers: nil,
 			setupMock: func(repo *mock_repository.MockUserRepository, requestEmail, targetLink string, limit, offset int, isNumeric bool, id uint, expectedUsers []*entities.User) {
-				repo.EXPECT().GetUserByLink(targetLink).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetUserByLink(targetLink).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 		{
@@ -1234,7 +1312,7 @@ func TestUserService_GetFriendsByLink(t *testing.T) {
 			setupMock: func(repo *mock_repository.MockUserRepository, requestEmail, targetLink string, limit, offset int, isNumeric bool, id uint, expectedUsers []*entities.User) {
 				returnedUser := &entities.User{Link: targetLink}
 				repo.EXPECT().GetUserByLink(targetLink).Return(returnedUser, nil)
-				repo.EXPECT().GetFriends(returnedUser, limit, offset).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetFriends(returnedUser, limit, offset).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 	}
@@ -1256,7 +1334,13 @@ func TestUserService_GetFriendsByLink(t *testing.T) {
 					test.isNumericLink, test.id,
 					test.expectedUsers)
 				users, err := userService.GetFriendsByLink(test.requestEmail, test.targetLink, test.limit, test.offset)
-				require.Equal(t, test.expectedError, err)
+				if test.expectedError != nil {
+					uerr, ok := err.(*apperror.ServerError)
+					require.Equal(t, true, ok)
+					require.Equal(t, test.expectedError, uerr.UserErr)
+				} else {
+					require.Equal(t, test.expectedError, err)
+				}
 				if test.expectedUsers != nil {
 					require.Equal(t, test.limit, len(users))
 				}
@@ -1336,7 +1420,7 @@ func TestUserService_GetSubscribesByLink(t *testing.T) {
 			expectedUsers: nil,
 
 			setupMock: func(repo *mock_repository.MockUserRepository, requestEmail, targetLink string, limit, offset int, isNumeric bool, id uint, expectedUsers []*entities.User) {
-				repo.EXPECT().GetUserById(id).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetUserById(id).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 		{
@@ -1354,7 +1438,7 @@ func TestUserService_GetSubscribesByLink(t *testing.T) {
 			setupMock: func(repo *mock_repository.MockUserRepository, requestEmail, targetLink string, limit, offset int, isNumeric bool, id uint, expectedUsers []*entities.User) {
 				returnedUser := &entities.User{Link: targetLink}
 				repo.EXPECT().GetUserById(id).Return(returnedUser, nil)
-				repo.EXPECT().GetSubscribes(returnedUser, limit, offset).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetSubscribes(returnedUser, limit, offset).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 		{
@@ -1391,7 +1475,7 @@ func TestUserService_GetSubscribesByLink(t *testing.T) {
 			expectedError: apperror.InternalServerError,
 			expectedUsers: nil,
 			setupMock: func(repo *mock_repository.MockUserRepository, requestEmail, targetLink string, limit, offset int, isNumeric bool, id uint, expectedUsers []*entities.User) {
-				repo.EXPECT().GetUserByLink(targetLink).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetUserByLink(targetLink).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 		{
@@ -1407,7 +1491,7 @@ func TestUserService_GetSubscribesByLink(t *testing.T) {
 			setupMock: func(repo *mock_repository.MockUserRepository, requestEmail, targetLink string, limit, offset int, isNumeric bool, id uint, expectedUsers []*entities.User) {
 				returnedUser := &entities.User{Link: targetLink}
 				repo.EXPECT().GetUserByLink(targetLink).Return(returnedUser, nil)
-				repo.EXPECT().GetSubscribes(returnedUser, limit, offset).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetSubscribes(returnedUser, limit, offset).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 	}
@@ -1429,7 +1513,13 @@ func TestUserService_GetSubscribesByLink(t *testing.T) {
 					test.isNumericLink, test.id,
 					test.expectedUsers)
 				users, err := userService.GetSubscribesByLink(test.requestEmail, test.targetLink, test.limit, test.offset)
-				require.Equal(t, test.expectedError, err)
+				if test.expectedError != nil {
+					uerr, ok := err.(*apperror.ServerError)
+					require.Equal(t, true, ok)
+					require.Equal(t, test.expectedError, uerr.UserErr)
+				} else {
+					require.Equal(t, test.expectedError, err)
+				}
 				if test.expectedUsers != nil {
 					require.Equal(t, test.limit, len(users))
 				}
@@ -1509,7 +1599,7 @@ func TestUserService_GetSubscribersByLink(t *testing.T) {
 			expectedUsers: nil,
 
 			setupMock: func(repo *mock_repository.MockUserRepository, requestEmail, targetLink string, limit, offset int, isNumeric bool, id uint, expectedUsers []*entities.User) {
-				repo.EXPECT().GetUserById(id).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetUserById(id).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 		{
@@ -1527,7 +1617,7 @@ func TestUserService_GetSubscribersByLink(t *testing.T) {
 			setupMock: func(repo *mock_repository.MockUserRepository, requestEmail, targetLink string, limit, offset int, isNumeric bool, id uint, expectedUsers []*entities.User) {
 				returnedUser := &entities.User{Link: targetLink}
 				repo.EXPECT().GetUserById(id).Return(returnedUser, nil)
-				repo.EXPECT().GetSubscribers(returnedUser, limit, offset).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetSubscribers(returnedUser, limit, offset).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 		{
@@ -1564,7 +1654,7 @@ func TestUserService_GetSubscribersByLink(t *testing.T) {
 			expectedError: apperror.InternalServerError,
 			expectedUsers: nil,
 			setupMock: func(repo *mock_repository.MockUserRepository, requestEmail, targetLink string, limit, offset int, isNumeric bool, id uint, expectedUsers []*entities.User) {
-				repo.EXPECT().GetUserByLink(targetLink).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetUserByLink(targetLink).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 		{
@@ -1580,7 +1670,7 @@ func TestUserService_GetSubscribersByLink(t *testing.T) {
 			setupMock: func(repo *mock_repository.MockUserRepository, requestEmail, targetLink string, limit, offset int, isNumeric bool, id uint, expectedUsers []*entities.User) {
 				returnedUser := &entities.User{Link: targetLink}
 				repo.EXPECT().GetUserByLink(targetLink).Return(returnedUser, nil)
-				repo.EXPECT().GetSubscribers(returnedUser, limit, offset).Return(nil, apperror.InternalServerError)
+				repo.EXPECT().GetSubscribers(returnedUser, limit, offset).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 	}
@@ -1602,7 +1692,13 @@ func TestUserService_GetSubscribersByLink(t *testing.T) {
 					test.isNumericLink, test.id,
 					test.expectedUsers)
 				users, err := userService.GetSubscribersByLink(test.requestEmail, test.targetLink, test.limit, test.offset)
-				require.Equal(t, test.expectedError, err)
+				if test.expectedError != nil {
+					uerr, ok := err.(*apperror.ServerError)
+					require.Equal(t, true, ok)
+					require.Equal(t, test.expectedError, uerr.UserErr)
+				} else {
+					require.Equal(t, test.expectedError, err)
+				}
 				if test.expectedUsers != nil {
 					require.Equal(t, test.limit, len(users))
 				}

@@ -175,8 +175,9 @@ var groupMapNames = map[string]string{
 func (gr *GroupRepository) UpdateGroup(link string, group *dto.UpdateGroup) error {
 	query := "update groups set "
 	var fields []interface{}
-	for name, el := range structs.Map(group) {
-		field, ok := el.(*string)
+	fieldsMap := structs.Map(group)
+	for _, name := range structs.Names(group) {
+		field, ok := fieldsMap[name].(*string)
 		if !ok {
 			continue
 		}

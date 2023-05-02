@@ -272,13 +272,13 @@ func (storage *PostStorage) SetLike(email string, postID uint) error {
 	_, err = tx.Exec(SetLikeQuery, postID, email)
 	if err != nil {
 		// TODO: выделить отдельно ошибку при нарушении констрэнта unique
-		tx.Rollback()
+		_ = tx.Rollback()
 		return apperror.NewServerError(apperror.AlreadyLiked, err)
 	}
 
 	_, err = tx.Exec("UPDATE Post SET likes_amount = likes_amount + 1 WHERE id = $1", postID)
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
@@ -300,7 +300,7 @@ func (storage *PostStorage) CancelLike(email string, postID uint) error {
 	execResult, err := tx.Exec(CancelLikeQuery, postID, email)
 	if err != nil {
 		// TODO: выделить отдельно ошибку при нарушении констрэнта unique
-		tx.Rollback()
+		_ = tx.Rollback()
 		return apperror.NewServerError(apperror.AlreadyLiked, err)
 	}
 
