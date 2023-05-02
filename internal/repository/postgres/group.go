@@ -325,6 +325,17 @@ func (gr *GroupRepository) IsOwner(userEmail, groupLink string) (bool, error) {
 	return isOwner, nil
 }
 
+func (gr *GroupRepository) CheckSub(email, groupLink string) (bool, error) {
+	var isSub bool
+	err := gr.db.QueryRowx(CheckSub).Scan(&isSub)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			return isSub, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+	}
+	return isSub, nil
+}
+
 //func (gr *GroupRepository) AddManager(manager *dto.AddManager) error {
 //	//TODO implement me
 //	panic("implement me")

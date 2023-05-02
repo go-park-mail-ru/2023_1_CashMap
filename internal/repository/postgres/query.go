@@ -531,6 +531,16 @@ var (
 		then true
 		else false end is_owner
 	`
+	CheckSub = `
+		select case when 
+	    exists(select u.id 
+	           from userprofile u 
+			   join groupsubscriber g on u.id = g.user_id
+	           join groups g2 on g.group_id = g2.id
+	           where u.email = $1 and g2.link = $2)
+		then true
+		else false end is_sub
+	`
 )
 
 var (
