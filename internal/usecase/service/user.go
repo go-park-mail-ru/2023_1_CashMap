@@ -257,7 +257,7 @@ func (us *UserService) GetSubscribersByLink(requestEmail, targetLink string, lim
 	return users, nil
 }
 
-func (us *UserService) GlobalSearch(dto *dto.GlobalSearchDTO) ([]*entities.UserInfo, error) {
+func (us *UserService) GlobalSearch(email string, dto *dto.GlobalSearchDTO) ([]*entities.UserInfo, error) {
 	if dto.SearchQuery == nil || strings.TrimSpace(*dto.SearchQuery) == "" {
 		return nil, apperror.NewServerError(apperror.BadRequest, errors.New("search query is required"))
 	}
@@ -272,7 +272,7 @@ func (us *UserService) GlobalSearch(dto *dto.GlobalSearchDTO) ([]*entities.UserI
 		*dto.Offset = 0
 	}
 
-	return us.repo.SearchUserByName(dto)
+	return us.repo.SearchUserByName(email, dto)
 }
 
 func (us *UserService) getUser(link string) (*entities.User, error) {

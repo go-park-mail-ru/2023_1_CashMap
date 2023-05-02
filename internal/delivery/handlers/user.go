@@ -10,7 +10,6 @@ import (
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -602,15 +601,19 @@ func (uh *UserHandler) GetGlobalSearchResult(ctx *gin.Context) {
 		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse search dto from query")))
 		return
 	}
-	searchResult, err := uh.service.GlobalSearch(dto)
+
+	email, err := utils.GetEmail(ctx)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
-	for _, user := range searchResult {
-		fmt.Println(*user.LastName)
+	searchResult, err := uh.service.GlobalSearch(email, dto)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
 	}
+
 	ctx.JSON(http.StatusOK, gin.H{
 		"body": gin.H{
 			"users": searchResult,

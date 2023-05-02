@@ -34,5 +34,5 @@ type UserRepository interface {
 	UpdateUser(email string, user *dto.EditProfile) (*entities.User, error)
 	DeleteUser(email string) error
 
-	SearchUserByName(searchDTO *dto.GlobalSearchDTO) ([]*entities.UserInfo, error)
+	SearchUserByName(email string, searchDTO *dto.GlobalSearchDTO) ([]*entities.UserInfo, error)
 }

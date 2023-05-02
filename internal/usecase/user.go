@@ -28,5 +28,5 @@ type User interface {
 	GetSubscribesByLink(requestEmail, targetLink string, limit, offset int) ([]*entities.User, error)
 	GetSubscribersByLink(requestEmail, targetLink string, limit, offset int) ([]*entities.User, error)
 
-	GlobalSearch(dto *dto.GlobalSearchDTO) ([]*entities.UserInfo, error)
+	GlobalSearch(email string, dto *dto.GlobalSearchDTO) ([]*entities.UserInfo, error)
 }
