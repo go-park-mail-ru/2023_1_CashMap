@@ -29,7 +29,7 @@ func (gh *GroupHandler) GetGroup(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"body": gin.H{
-			"group": group,
+			"group_info": group,
 		},
 	})
 }

@@ -616,7 +616,7 @@ var (
 				 JOIN UserProfile AS author ON post.author_id = author.id
 				 LEFT JOIN groups as community on post.group_id = community.id
 				 LEFT JOIN PostLike as like_table ON like_table.user_id = (SELECT id FROM UserProfile WHERE email = $4) AND like_table.post_id = post.id
-		WHERE post.group_id = (SELECT id FROM Community WHERE link = $1)
+		WHERE post.group_id = (SELECT id FROM groups WHERE link = $1)
 		  AND post.creation_date > $2
 		  AND post.is_deleted = false
 		ORDER BY post.creation_date DESC
