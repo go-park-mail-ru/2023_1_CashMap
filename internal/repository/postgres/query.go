@@ -435,9 +435,9 @@ var (
 	join groupsubscriber g on u.id = g.user_id and g.accepted 
 	join groups gr on g.group_id = gr.id
 	where gr.link = $1
-	and u.id > $2
+	and u.id > $3
 	order by u.id
-	limit $3
+	limit $2
 	`
 
 	PendingGroupRequests = `
@@ -452,9 +452,9 @@ var (
          left join photo p on u.avatar_id = p.id
 	join groupsubscriber g on u.id = g.user_id and not g.accepted
 	where u.id = $1
-	and u.id > $2
+	and u.id > $3
 	order by u.id
-	limit $3`
+	limit $2`
 
 	AcceptRequest = `
 	update groupsubscriber g

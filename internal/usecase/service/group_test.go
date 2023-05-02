@@ -141,6 +141,17 @@ func TestGroup_GetUserGroupsByEmail(t *testing.T) {
 				repo.EXPECT().GetUserGroupsByEmail(email, limit, offset).Return(groups, nil)
 			},
 		},
+		{
+			name:   "Internal Error",
+			email:  "e.larkin@mail.ru",
+			limit:  2,
+			offset: 0,
+
+			expectedError: apperror.InternalServerError,
+			setupMock: func(repo *mock_repository.MockGroup, email string, limit, offset int) {
+				repo.EXPECT().GetUserGroupsByEmail(email, limit, offset).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
+			},
+		},
 	}
 	for _, test := range tests {
 		test := test
@@ -231,6 +242,17 @@ func TestGroup_GetPopularGroups(t *testing.T) {
 					},
 				}
 				repo.EXPECT().GetPopularGroups(email, limit, offset).Return(groups, nil)
+			},
+		},
+		{
+			name:   "Internal Error",
+			email:  "e.larkin@mail.ru",
+			limit:  2,
+			offset: 0,
+
+			expectedError: apperror.InternalServerError,
+			setupMock: func(repo *mock_repository.MockGroup, email string, limit, offset int) {
+				repo.EXPECT().GetPopularGroups(email, limit, offset).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
 			},
 		},
 	}
@@ -325,6 +347,17 @@ func TestGroup_GetManagedGroups(t *testing.T) {
 				repo.EXPECT().GetManagedGroups(email, limit, offset).Return(groups, nil)
 			},
 		},
+		{
+			name:   "Internal Error",
+			email:  "e.larkin@mail.ru",
+			limit:  2,
+			offset: 0,
+
+			expectedError: apperror.InternalServerError,
+			setupMock: func(repo *mock_repository.MockGroup, email string, limit, offset int) {
+				repo.EXPECT().GetManagedGroups(email, limit, offset).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
+			},
+		},
 	}
 	for _, test := range tests {
 		test := test
@@ -417,6 +450,17 @@ func TestGroup_GetUserGroupsByLink(t *testing.T) {
 				repo.EXPECT().GetUserGroupsByLink(link, limit, offset).Return(groups, nil)
 			},
 		},
+		{
+			name:   "Internal Error",
+			link:   "id123",
+			limit:  2,
+			offset: 0,
+
+			expectedError: apperror.InternalServerError,
+			setupMock: func(repo *mock_repository.MockGroup, link string, limit, offset int) {
+				repo.EXPECT().GetUserGroupsByLink(link, limit, offset).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
+			},
+		},
 	}
 	for _, test := range tests {
 		test := test
@@ -502,6 +546,315 @@ func TestGroup_CreateGroup(t *testing.T) {
 				require.Equal(t, true, ok)
 				require.Equal(t, test.expectedError, uerr.UserErr)
 			} else {
+				require.Equal(t, test.expectedError, err)
+			}
+		})
+	}
+}
+
+func TestGroup_AcceptRequest(t *testing.T) {
+	tests := []struct {
+		name         string
+		managerEmail string
+		userLink     string
+		groupLink    string
+
+		expectedError error
+
+		setupMock func(repo *mock_repository.MockGroup,
+			managerEmail, userLink, groupLink string)
+	}{
+		{
+			name:         "Success",
+			managerEmail: "e.larkin@mail.ru",
+			userLink:     "id123",
+			groupLink:    "id1234",
+
+			setupMock: func(repo *mock_repository.MockGroup, managerEmail, userLink, groupLink string) {
+				repo.EXPECT().IsOwner(managerEmail, groupLink).Return(true, nil)
+				repo.EXPECT().AcceptRequest(userLink, groupLink).Return(nil)
+			},
+		},
+		{
+			name:         "Forbidden",
+			managerEmail: "notamanager@mail.ru",
+			userLink:     "id123",
+			groupLink:    "id1234",
+
+			expectedError: apperror.Forbidden,
+
+			setupMock: func(repo *mock_repository.MockGroup, managerEmail, userLink, groupLink string) {
+				repo.EXPECT().IsOwner(managerEmail, groupLink).Return(false, nil)
+			},
+		},
+	}
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepository := mock_repository.NewMockGroup(ctrl)
+
+			groupService := Group{
+				repo: mockRepository,
+			}
+
+			test.setupMock(mockRepository, test.managerEmail, test.userLink, test.groupLink)
+			err := groupService.AcceptRequest(test.managerEmail, test.userLink, test.groupLink)
+			if test.expectedError != nil {
+				uerr, ok := err.(*apperror.ServerError)
+				require.Equal(t, true, ok)
+				require.Equal(t, test.expectedError, uerr.UserErr)
+			} else {
+				require.Equal(t, test.expectedError, err)
+			}
+		})
+	}
+}
+
+func TestGroup_AcceptAllRequestsRequest(t *testing.T) {
+	tests := []struct {
+		name         string
+		managerEmail string
+		groupLink    string
+
+		expectedError error
+
+		setupMock func(repo *mock_repository.MockGroup,
+			managerEmail, groupLink string)
+	}{
+		{
+			name:         "Success",
+			managerEmail: "e.larkin@mail.ru",
+			groupLink:    "id1234",
+
+			setupMock: func(repo *mock_repository.MockGroup, managerEmail, groupLink string) {
+				repo.EXPECT().IsOwner(managerEmail, groupLink).Return(true, nil)
+				repo.EXPECT().AcceptAllRequests(groupLink).Return(nil)
+			},
+		},
+		{
+			name:         "Forbidden",
+			managerEmail: "notamanager@mail.ru",
+			groupLink:    "id1234",
+
+			expectedError: apperror.Forbidden,
+
+			setupMock: func(repo *mock_repository.MockGroup, managerEmail, groupLink string) {
+				repo.EXPECT().IsOwner(managerEmail, groupLink).Return(false, nil)
+			},
+		},
+	}
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepository := mock_repository.NewMockGroup(ctrl)
+
+			groupService := Group{
+				repo: mockRepository,
+			}
+
+			test.setupMock(mockRepository, test.managerEmail, test.groupLink)
+			err := groupService.AcceptAllRequests(test.managerEmail, test.groupLink)
+			if test.expectedError != nil {
+				uerr, ok := err.(*apperror.ServerError)
+				require.Equal(t, true, ok)
+				require.Equal(t, test.expectedError, uerr.UserErr)
+			} else {
+				require.Equal(t, test.expectedError, err)
+			}
+		})
+	}
+}
+
+func TestGroup_GetSubscribers(t *testing.T) {
+	tests := []struct {
+		name   string
+		link   string
+		limit  int
+		offset int
+
+		expectedError error
+		expectedUsers []*entities.User
+
+		setupMock func(repo *mock_repository.MockGroup, link string,
+			limit, offset int)
+	}{
+		{
+			name:   "Success",
+			link:   "id1234",
+			limit:  2,
+			offset: 0,
+
+			expectedError: nil,
+			expectedUsers: []*entities.User{
+				{
+					Link:      "id1",
+					FirstName: "Egor",
+					LastName:  "Larkin",
+				},
+				{
+					Link:      "id2",
+					FirstName: "Pavel",
+					LastName:  "Repin",
+				},
+			},
+			setupMock: func(repo *mock_repository.MockGroup, link string, limit, offset int) {
+				users := []*entities.User{
+					{
+						Link:      "id1",
+						FirstName: "Egor",
+						LastName:  "Larkin",
+					},
+					{
+						Link:      "id2",
+						FirstName: "Pavel",
+						LastName:  "Repin",
+					},
+				}
+				repo.EXPECT().GetSubscribers(link, limit, offset).Return(users, nil)
+			},
+		},
+		{
+			name:   "Error GetSubscribers",
+			link:   "id1234",
+			limit:  2,
+			offset: 0,
+
+			expectedError: apperror.InternalServerError,
+			setupMock: func(repo *mock_repository.MockGroup, link string, limit, offset int) {
+				repo.EXPECT().GetSubscribers(link, limit, offset).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
+			},
+		},
+	}
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepository := mock_repository.NewMockGroup(ctrl)
+
+			groupService := Group{
+				repo: mockRepository,
+			}
+
+			test.setupMock(mockRepository, test.link, test.limit, test.offset)
+			users, err := groupService.GetSubscribers(test.link, test.limit, test.offset)
+			if test.expectedError != nil {
+				uerr, ok := err.(*apperror.ServerError)
+				require.Equal(t, true, ok)
+				require.Equal(t, test.expectedError, uerr.UserErr)
+			} else {
+				require.Equal(t, test.expectedUsers, users)
+				require.Equal(t, test.expectedError, err)
+			}
+		})
+	}
+}
+
+func TestGroup_GetPendingRequests(t *testing.T) {
+	tests := []struct {
+		name   string
+		email  string
+		link   string
+		limit  int
+		offset int
+
+		expectedError error
+		expectedUsers []*entities.User
+
+		setupMock func(repo *mock_repository.MockGroup, email, link string,
+			limit, offset int)
+	}{
+		{
+			name:   "Success",
+			link:   "id1234",
+			limit:  2,
+			offset: 0,
+
+			expectedError: nil,
+			expectedUsers: []*entities.User{
+				{
+					Link:      "id1",
+					FirstName: "Egor",
+					LastName:  "Larkin",
+				},
+				{
+					Link:      "id2",
+					FirstName: "Pavel",
+					LastName:  "Repin",
+				},
+			},
+			setupMock: func(repo *mock_repository.MockGroup, email, link string, limit, offset int) {
+				repo.EXPECT().IsOwner(email, link).Return(true, nil)
+				users := []*entities.User{
+					{
+						Link:      "id1",
+						FirstName: "Egor",
+						LastName:  "Larkin",
+					},
+					{
+						Link:      "id2",
+						FirstName: "Pavel",
+						LastName:  "Repin",
+					},
+				}
+				repo.EXPECT().GetPendingRequests(link, limit, offset).Return(users, nil)
+			},
+		},
+		{
+			name:   "Error GetPendingRequests",
+			link:   "id1234",
+			limit:  2,
+			offset: 0,
+
+			expectedError: apperror.InternalServerError,
+			setupMock: func(repo *mock_repository.MockGroup, email, link string, limit, offset int) {
+				repo.EXPECT().IsOwner(email, link).Return(true, nil)
+				repo.EXPECT().GetPendingRequests(link, limit, offset).Return(nil, apperror.NewServerError(apperror.InternalServerError, nil))
+			},
+		},
+		{
+			name:   "Forbidden",
+			link:   "id1234",
+			limit:  2,
+			offset: 0,
+
+			expectedError: apperror.Forbidden,
+			setupMock: func(repo *mock_repository.MockGroup, email, link string, limit, offset int) {
+				repo.EXPECT().IsOwner(email, link).Return(false, nil)
+			},
+		},
+	}
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepository := mock_repository.NewMockGroup(ctrl)
+
+			groupService := Group{
+				repo: mockRepository,
+			}
+
+			test.setupMock(mockRepository, test.email, test.link, test.limit, test.offset)
+			users, err := groupService.GetPendingRequests(test.email, test.link, test.limit, test.offset)
+			if test.expectedError != nil {
+				uerr, ok := err.(*apperror.ServerError)
+				require.Equal(t, true, ok)
+				require.Equal(t, test.expectedError, uerr.UserErr)
+			} else {
+				require.Equal(t, test.expectedUsers, users)
 				require.Equal(t, test.expectedError, err)
 			}
 		})

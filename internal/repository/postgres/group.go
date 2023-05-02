@@ -225,7 +225,7 @@ func (gr *GroupRepository) DeleteGroup(link string) error {
 
 func (gr *GroupRepository) GetSubscribers(groupLink string, limit int, offset int) ([]*entities.User, error) {
 	var users []*entities.User
-	rows, err := gr.db.Queryx(GroupSubscribers, groupLink, offset, limit)
+	rows, err := gr.db.Queryx(GroupSubscribers, groupLink, limit, offset)
 	defer utildb.CloseRows(rows)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -295,7 +295,7 @@ func (gr *GroupRepository) DeclineRequest(userLink, groupLink string) error {
 
 func (gr *GroupRepository) GetPendingRequests(groupLink string, limit, offset int) ([]*entities.User, error) {
 	var users []*entities.User
-	rows, err := gr.db.Queryx(PendingGroupRequests, groupLink, offset, limit)
+	rows, err := gr.db.Queryx(PendingGroupRequests, groupLink, limit, offset)
 	defer utildb.CloseRows(rows)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -315,7 +315,7 @@ func (gr *GroupRepository) GetPendingRequests(groupLink string, limit, offset in
 
 func (gr *GroupRepository) IsOwner(userEmail, groupLink string) (bool, error) {
 	var isOwner bool
-	err := gr.db.QueryRowx(IsOwner, groupLink).Scan(&isOwner)
+	err := gr.db.QueryRowx(IsOwner, userEmail, groupLink).Scan(&isOwner)
 	if err != nil {
 		if err != sql.ErrNoRows {
 			return isOwner, apperror.NewServerError(apperror.InternalServerError, err)
@@ -324,12 +324,12 @@ func (gr *GroupRepository) IsOwner(userEmail, groupLink string) (bool, error) {
 	return isOwner, nil
 }
 
-func (gr *GroupRepository) AddManager(manager *dto.AddManager) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (gr *GroupRepository) RemoveManager(link string) error {
-	//TODO implement me
-	panic("implement me")
-}
+//func (gr *GroupRepository) AddManager(manager *dto.AddManager) error {
+//	//TODO implement me
+//	panic("implement me")
+//}
+//
+//func (gr *GroupRepository) RemoveManager(link string) error {
+//	//TODO implement me
+//	panic("implement me")
+//}
