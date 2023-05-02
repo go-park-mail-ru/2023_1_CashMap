@@ -76,7 +76,8 @@ func (gr *GroupRepository) GetUserGroupsByEmail(email string, limit int, offset 
 }
 func (gr *GroupRepository) GetPopularGroups(email string, limit int, offset int) ([]*entities.Group, error) {
 	var groups []*entities.Group
-	rows, err := gr.db.Queryx(GetGroups, email, limit, offset)
+	// TODO добавить групы на которые не подписан
+	rows, err := gr.db.Queryx(GetGroups, limit, offset)
 	defer utildb.CloseRows(rows)
 	if err != nil {
 		if err == sql.ErrNoRows {

@@ -349,11 +349,12 @@ func (uh *UserHandler) Reject(ctx *gin.Context) {
 func (uh *UserHandler) Profile(ctx *gin.Context) {
 	link := ctx.Param("link")
 
-	profile, err := uh.service.GetProfileByLink("", link)
+	user, err := uh.service.GetProfileByLink("", link)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
+	profile := dto.NewProfileFromUser(user)
 	ctx.JSON(http.StatusOK, gin.H{
 		"body": gin.H{
 			"profile": profile,

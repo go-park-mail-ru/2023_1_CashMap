@@ -494,12 +494,12 @@ var (
 
 	UpdateGroupAvatar = `
 	with inserted as (
-    insert into photo (url) values (?1)
+    insert into photo (url) values ($1)
         returning id p_id
 	)
 	update groups p1
 	set avatar_id = av.p_id
-	from inserted av where p1.id = ?2
+	from inserted av where p1.id = $2
 	`
 	DeleteGroup = `
 	update groups 

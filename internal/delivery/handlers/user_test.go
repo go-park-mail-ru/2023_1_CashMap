@@ -1221,6 +1221,21 @@ func TestUserHandler_Profile(t *testing.T) {
 				service.EXPECT().GetProfileByLink("", link).Return(profile, nil)
 			},
 		},
+		{
+			name: "Not found",
+			link: "id123",
+
+			expectedBody: gin.H{
+				"status":  middleware.Errors[apperror.UserNotFound].Code,
+				"message": middleware.Errors[apperror.UserNotFound].Message,
+			},
+
+			expectedCode: http.StatusNotFound,
+
+			setupMock: func(service *mock_usecase.MockUser, link string) {
+				service.EXPECT().GetProfileByLink("", link).Return(nil, apperror.NewServerError(apperror.UserNotFound, nil))
+			},
+		},
 	}
 
 	for _, test := range tests {
@@ -1242,6 +1257,117 @@ func TestUserHandler_Profile(t *testing.T) {
 			router.GET("/:link", userHandler.Profile)
 
 			req, err := request("GET", "/"+test.link, nil)
+			require.NoError(t, err)
+
+			rr := httptest.NewRecorder()
+			router.ServeHTTP(rr, req)
+			if test.expectedBody != nil {
+				body, err := json.Marshal(test.expectedBody)
+				require.NoError(t, err)
+				require.Equal(t, body, rr.Body.Bytes())
+			}
+
+			require.Equal(t, test.expectedCode, rr.Code)
+		})
+	}
+}
+
+func TestUserHandler_Reject(t *testing.T) {
+	tests := []struct {
+		name  string
+		email string
+
+		body gin.H
+		dto  *dto.Subscribes
+
+		expectedBody gin.H
+
+		expectedCode int
+		setupMock    func(service *mock_usecase.MockUser, email, link string)
+	}{
+		{
+			name:  "Success",
+			email: "e.larkin@mail.ru",
+
+			body: gin.H{
+				"body": gin.H{
+					"user_link": "id1",
+				},
+			},
+			dto: &dto.Subscribes{
+				Link: "id1",
+			},
+
+			expectedCode: http.StatusOK,
+
+			setupMock: func(service *mock_usecase.MockUser, email, link string) {
+				service.EXPECT().Reject(email, link).Return(nil)
+			},
+		},
+		{
+			name: "No auth",
+			body: gin.H{
+				"body": gin.H{
+					"user_link": "id1",
+				},
+			},
+			dto: &dto.Subscribes{
+				Link: "id1",
+			},
+			expectedCode: http.StatusUnauthorized,
+
+			expectedBody: gin.H{
+				"status":  middleware.Errors[apperror.NoAuth].Code,
+				"message": middleware.Errors[apperror.NoAuth].Message,
+			},
+
+			setupMock: func(service *mock_usecase.MockUser, email, link string) {
+
+			},
+		},
+		{
+			name: "Bad Request",
+			body: gin.H{
+				"request": "link",
+			},
+			dto: &dto.Subscribes{
+				Link: "link",
+			},
+
+			expectedBody: gin.H{
+				"status":  middleware.Errors[apperror.BadRequest].Code,
+				"message": middleware.Errors[apperror.BadRequest].Message,
+			},
+			expectedCode: http.StatusBadRequest,
+			setupMock: func(service *mock_usecase.MockUser, email, link string) {
+
+			},
+		},
+	}
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockService := mock_usecase.NewMockUser(ctrl)
+
+			userHandler := UserHandler{
+				service: mockService,
+			}
+
+			test.setupMock(mockService, test.email, test.dto.Link)
+
+			router := gin.New()
+			router.Use(middleware.ErrorMiddleware())
+			if test.email != "" {
+				router.Use(func(context *gin.Context) {
+					context.Set("email", test.email)
+				})
+			}
+			router.POST("/", userHandler.Reject)
+			req, err := request("POST", "/", test.body)
 			require.NoError(t, err)
 
 			rr := httptest.NewRecorder()
