@@ -3,3 +3,4 @@ main
 ./internal/static/files/*
 .env
 c.out
+c.out.tmp
