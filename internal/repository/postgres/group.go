@@ -261,7 +261,7 @@ func (gr *GroupRepository) Subscribe(email, groupLink string) error {
 }
 
 func (gr *GroupRepository) Unsubscribe(email, groupLink string) error {
-	err := gr.db.QueryRowx(GroupUnsubscribe, email, groupLink).Scan()
+	_, err := gr.db.Exec(GroupUnsubscribe, email, groupLink)
 	if err != nil {
 		if err != sql.ErrNoRows {
 			return apperror.NewServerError(apperror.InternalServerError, err)

@@ -518,8 +518,8 @@ var (
 
 	GroupUnsubscribe = `
 		delete from groupsubscriber g 
-		where g.group_id in (select id from groups g2 where g2.link = $1 )
-		and g.user_id in (select id from userprofile u where u.email = $2)
+		where g.group_id = (select id from groups g2 where g2.link = $1 )
+		and g.user_id = (select id from userprofile u where u.email = $2)
 	`
 
 	IsOwner = `
