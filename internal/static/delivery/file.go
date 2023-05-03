@@ -105,7 +105,6 @@ func (fileHandler *FileHandler) LoadFile(ctx *gin.Context) {
 
 	outputFiles, err := fileHandler.FileUsecase.CreateFile(inputFiles, inputFilesReadStreams)
 	if err != nil {
-		fmt.Println(err)
 		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
 		return
 	}

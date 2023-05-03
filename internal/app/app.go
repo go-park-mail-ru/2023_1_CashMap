@@ -11,6 +11,7 @@ import (
 	httpserver "depeche/internal/server"
 	"depeche/internal/session/client"
 	staticDelivery "depeche/internal/static/delivery"
+	"depeche/internal/static/repository"
 	staticService "depeche/internal/static/service"
 	"depeche/internal/usecase/service"
 	"depeche/pkg/connector"
@@ -59,12 +60,13 @@ func Run() {
 	postStorage := postgres.NewPostRepository(db)
 	messageStorage := postgres.NewMessageRepository(db)
 	groupStorage := postgres.NewGroupRepository(db)
+	fileStorage := repository.NewFileRepository()
 
 	userService := service.NewUserService(userStorage)
 	authorizationService := client.NewAuthService(authClient)
 	csrfService := client.NewCSRFService(csrfClient)
 	feedService := service.NewFeedService(feedStorage, postStorage)
-	fileService := staticService.NewFileUsecase()
+	fileService := staticService.NewFileUsecase(fileStorage)
 	postService := service.NewPostService(postStorage)
 	groupService := service.NewGroupService(groupStorage)
 	msgService := service.NewMessageService(messageStorage, userStorage)

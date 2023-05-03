@@ -83,6 +83,11 @@ func (fs *FileStorage) WriteFile(file *entities.UserFile, inputFileDescriptor io
 
 	readWriter := bufio.NewReadWriter(bufio.NewReader(inputFileDescriptor), bufio.NewWriter(outputFileDescriptor))
 
+	_, err = io.Copy(readWriter.Writer, readWriter.Reader)
+	if err != nil {
+		errorChan <- err
+	}
+
 	errorChan <- nil
 	select {
 	case <-cancelCtx.Done():
@@ -91,15 +96,10 @@ func (fs *FileStorage) WriteFile(file *entities.UserFile, inputFileDescriptor io
 			errorChan <- err
 		}
 	case <-finishCtx.Done():
-		// TODO: Удалять файл, если тут вылетела ошибка
-		_, err := io.Copy(readWriter.Writer, readWriter.Reader)
-		if err != nil {
-			return
-		}
-
 		err = readWriter.Flush()
 		if err != nil {
 			errorChan <- err
+			return
 		}
 	}
 }

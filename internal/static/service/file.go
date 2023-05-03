@@ -21,9 +21,9 @@ type FileService struct {
 	repository.FileRepository
 }
 
-func NewFileUsecase() FileUsecase {
+func NewFileUsecase(repo repository.FileRepository) FileUsecase {
 	return &FileService{
-		repository.NewFileRepository(),
+		repo,
 	}
 }
 
