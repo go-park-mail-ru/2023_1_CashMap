@@ -4,6 +4,7 @@ import (
 	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
 	mock_repository "depeche/internal/repository/mocks"
+	"depeche/pkg/apperror"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -80,12 +81,35 @@ func TestFeedService_CollectPosts(t *testing.T) {
 
 			},
 		},
+
+		{
+			Name:  "Batch size = 0",
+			Email: "test@gmail.com",
+			Dto: &dto.FeedDTO{
+				BatchSize: 0,
+			},
+
+			ExpectedOutput: nil,
+			ExpectedErr:    apperror.BadRequest,
+
+			SetupFeedMock: func(repo *mock_repository.MockFeedRepository, email string, dto *dto.FeedDTO) {
+				repo.EXPECT().GetGroupsPosts(email, dto).Return(nil, nil).AnyTimes()
+
+				repo.EXPECT().GetFriendsPosts(email, dto).Return(nil, nil).AnyTimes()
+			},
+
+			SetupPostMock: func(repo *mock_repository.MockPostRepository) {
+				for ind, _ := range somePosts {
+					repo.EXPECT().GetPostSenderInfo(uint(ind)+1).Return(nil, nil, nil).AnyTimes()
+				}
+
+			},
+		},
 	}
 
 	for _, test := range tests {
 		test := test
 		t.Run(test.Name, func(t *testing.T) {
-			t.Parallel()
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
@@ -99,8 +123,12 @@ func TestFeedService_CollectPosts(t *testing.T) {
 
 			test.SetupFeedMock(mockFeedRepository, test.Email, test.Dto)
 			test.SetupPostMock(mockPostRepository)
-			posts, _ := feedService.CollectPosts(test.Email, test.Dto)
-			require.Equal(t, test.ExpectedOutput, posts)
+			posts, err := feedService.CollectPosts(test.Email, test.Dto)
+			if err != nil {
+				require.ErrorIs(t, err, test.ExpectedErr)
+			} else {
+				require.Equal(t, test.ExpectedOutput, posts)
+			}
 		})
 	}
 }

@@ -1,11 +1,10 @@
 package delivery
 
 import (
-	"depeche/internal/static/entities"
-	"depeche/internal/static/service"
 	"depeche/pkg/apperror"
+	"depeche/static/entities"
+	"depeche/static/service"
 	"errors"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
 	"math"
@@ -96,7 +95,6 @@ func (fileHandler *FileHandler) LoadFile(ctx *gin.Context) {
 
 		inputFileStream, err := file.Open()
 		if err != nil {
-			fmt.Println(6)
 			_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
 			return
 		}

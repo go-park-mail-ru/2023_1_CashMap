@@ -115,7 +115,7 @@ func (service *PostService) CreatePost(email string, dto *dto.PostCreate) (*enti
 		return nil, errors.New("too many data (community_link and owner_link can't come together)")
 	}
 	if dto.CommunityLink == nil && dto.OwnerLink == nil {
-		return nil, errors.New("now enough input data")
+		return nil, errors.New("not enough input data")
 	}
 
 	hasAccess, err := service.PostRepository.CheckWriteAccess(email, dto)

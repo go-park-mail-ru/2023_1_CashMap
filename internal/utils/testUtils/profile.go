@@ -1,6 +1,9 @@
 package testUtils
 
-import "depeche/internal/delivery/dto"
+import (
+	"depeche/internal/delivery/dto"
+	"depeche/internal/entities"
+)
 
 func InitProfilePasswordFail(new string) *dto.EditProfile {
 	return &dto.EditProfile{
@@ -32,5 +35,26 @@ func InitProfileBasic(fName, lName, bio string) *dto.EditProfile {
 		FirstName: &fName,
 		LastName:  &lName,
 		Bio:       &bio,
+	}
+}
+
+func InitUserProfile(firstName, lastName string) *entities.UserInfo {
+	return &entities.UserInfo{
+		FirstName: &firstName,
+		LastName:  &lastName,
+	}
+}
+
+func InitPostCreateDtoForCommunity(communityLink string) *dto.PostCreate {
+	return &dto.PostCreate{
+		CommunityLink: &communityLink,
+		OwnerLink:     nil,
+	}
+}
+
+func InitPostCreateDtoForUser(ownerLink string) *dto.PostCreate {
+	return &dto.PostCreate{
+		CommunityLink: nil,
+		OwnerLink:     &ownerLink,
 	}
 }

@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"depeche/internal/static/entities"
-	"depeche/internal/static/repository"
+	"depeche/static/entities"
+	"depeche/static/repository"
 	"errors"
 	"github.com/google/uuid"
 	"io"
@@ -68,7 +68,8 @@ func (fileService *FileService) CreateFile(userFiles []*entities.UserFile, input
 		err = <-errorChan
 		if err != nil {
 			cancelWriting()
-			break
+			wg.Wait()
+			return nil, err
 		}
 	}
 

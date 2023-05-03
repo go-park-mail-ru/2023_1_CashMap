@@ -656,8 +656,8 @@ var (
 
 	CreatePostQuery = `
 		INSERT INTO Post (group_id, author_id, owner_id, show_author, text_content, creation_date, change_date)
-		VALUES (:community_id, (SELECT id FROM UserProfile WHERE email = :sender_email), :owner_id, :show_author, :text,
-				:init_time, :change_time)
+		VALUES ($1, (SELECT id FROM UserProfile WHERE email = $2), $3, $4, $5,
+				$6, $7)
 		RETURNING id
 	`
 )

@@ -276,35 +276,88 @@ func TestUserRepository_UpdateUser(t *testing.T) {
 }
 
 func TestUserRepository_SearchUserByName(t *testing.T) {
-	//var cfg configs.Config
-	//err := configs.InitCfg(&cfg)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//
-	//postgresDefault, err := connector.GetPostgresConnector(&cfg.DB)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//
-	//db := connector.GetSqlxConnector(postgresDefault, cfg.DBMSName)
-	//// TODO: как обработать ошибку в дефере нормаль?...
-	//defer db.Close()
-	//
-	//repo := postgres.NewPostgresUserRepo(db)
-	//
-	//dto := dto2.GlobalSearchDTO{
-	//	SearchQuery: "All Repin qw",
-	//	BatchSize:   40,
-	//	Offset:      100,
-	//}
-	//name, err := repo.SearchUserByName(&dto)
-	//if err != nil {
-	//	t.Error(err)
-	//}
-	//
-	//for _, a := range name {
-	//	fmt.Println(*a.FirstName + " " + *a.LastName)
-	//	fmt.Println("--------------------")
-	//}
+	type dbBehaviour struct {
+		commonUsers   *sqlmock.Rows
+		selectedUsers *sqlmock.Rows
+		error         error
+	}
+	tests := []struct {
+		name  string
+		email string
+		id    uint
+		query string
+
+		expectedUsers []*entities.UserInfo
+		expectedError error
+
+		dbBehaviour
+
+		setupMock func(mock sqlmock.Sqlmock, email string, query string, behaviour dbBehaviour, id uint)
+	}{
+		{
+			name:  "Query with spaces",
+			email: "e-larkin@mail.ru",
+			id:    3,
+			query: "  Pqvel  ",
+
+			expectedError: nil,
+			expectedUsers: []*entities.UserInfo{
+				testUtils.InitUserProfile("Pavel", "Repin"),
+				testUtils.InitUserProfile(" petr", "pavl"),
+			},
+
+			dbBehaviour: dbBehaviour{
+				error: nil,
+				commonUsers: sqlmock.NewRows([]string{
+					"id", "first_name", "last_name",
+				}).AddRow(1, "Pavel", "Repin").AddRow(2, " petr", "pavl").AddRow(4, "egor", "lakrin ").AddRow(5, "fedya", "bazaleev"),
+
+				selectedUsers: sqlmock.NewRows([]string{}),
+			},
+
+			setupMock: func(mock sqlmock.Sqlmock, email string, query string, behaviour dbBehaviour, id uint) {
+				mock.ExpectQuery("SELECT id, first_name, last_name FROM UserProfile AS profile").WillReturnRows(behaviour.commonUsers)
+				mock.ExpectQuery("SELECT id FROM userprofile WHERE email = $1").WithArgs(email).WillReturnRows(sqlmock.NewRows([]string{
+					"id",
+				}).AddRow(id))
+				mock.ExpectBegin()
+
+				mock.ExpectQuery(GetUserInfoForSearchQuery).WithArgs(id, 1).WillReturnRows(sqlmock.NewRows([]string{
+					"first_name", "last_name",
+				}).AddRow("Pavel", "Repin"))
+				mock.ExpectQuery(GetUserInfoForSearchQuery).WithArgs(id, 2).WillReturnRows(sqlmock.NewRows([]string{
+					"first_name", "last_name",
+				}).AddRow(" petr", "pavl"))
+
+				mock.ExpectCommit()
+			},
+		},
+	}
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+			require.NoError(t, err)
+			defer func(db *sql.DB) {
+				_ = db.Close()
+			}(db)
+
+			test.setupMock(mock, test.email, test.query, test.dbBehaviour, test.id)
+
+			sqlxDB := sqlx.NewDb(db, "sqlmock")
+			userRepo := &UserRepository{
+				DB: sqlxDB,
+			}
+			var batchSize uint = 2
+			var offset uint = 0
+			searchDTO := dto.GlobalSearchDTO{
+				SearchQuery: &test.query,
+				BatchSize:   &batchSize,
+				Offset:      &offset,
+			}
+			searchResults, err := userRepo.SearchUserByName(test.email, &searchDTO)
+
+			require.Equal(t, test.expectedUsers, searchResults)
+		})
+	}
 }

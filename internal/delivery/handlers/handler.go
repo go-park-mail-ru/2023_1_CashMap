@@ -1,6 +1,8 @@
 package handlers
 
-import staticDelivery "depeche/internal/static/delivery"
+import (
+	staticDelivery "depeche/static/delivery"
+)
 
 type Handler struct {
 	*UserHandler

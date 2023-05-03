@@ -6,7 +6,7 @@ package mock_repository
 
 import (
 	context "context"
-	entities "depeche/internal/static/entities"
+	"depeche/static/entities"
 	io "io"
 	reflect "reflect"
 

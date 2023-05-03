@@ -3,16 +3,17 @@ package repository
 import (
 	"bufio"
 	"context"
-	"depeche/internal/static/entities"
+	"depeche/static/entities"
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 )
 
 const (
-	IMG_STATIC_PATH = "/internal/static/files/img/"
-	DOC_STATIC_PATH = "/internal/static/files/doc/"
+	IMG_STATIC_PATH = "/static/files/img/"
+	DOC_STATIC_PATH = "/static/files/doc/"
 )
 
 var BASE_PATH, _ = os.Getwd()
@@ -26,6 +27,25 @@ type FileRepository interface {
 type FileStorage struct{}
 
 func NewFileRepository() FileRepository {
+	// TODO: настроить  chmod
+	path := BASE_PATH + IMG_STATIC_PATH[:len(IMG_STATIC_PATH)]
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		err := os.Mkdir(BASE_PATH+IMG_STATIC_PATH[:len(IMG_STATIC_PATH)-1], 0700)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	path = BASE_PATH + DOC_STATIC_PATH[:len(DOC_STATIC_PATH)]
+	_, err = os.Stat(path)
+	if os.IsNotExist(err) {
+		err = os.Mkdir(BASE_PATH+DOC_STATIC_PATH[:len(DOC_STATIC_PATH)-1], 0700)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	return &FileStorage{}
 }
 
@@ -52,7 +72,6 @@ func (fs *FileStorage) ReadFile(file *entities.UserFile, outputStreamWriter io.W
 	_, err = io.Copy(outputStreamWriter, fileReader)
 	if err != nil {
 		// TODO: ВЫЛЕТАКЕТ invalid ARGUMENT
-		fmt.Println(err)
 		return err
 	}
 
@@ -74,6 +93,7 @@ func (fs *FileStorage) WriteFile(file *entities.UserFile, inputFileDescriptor io
 	case entities.DOCUMENT:
 		filePath = BASE_PATH + DOC_STATIC_PATH + file.Name
 	}
+	fmt.Println("qwww", filePath)
 	outputFileDescriptor, err = os.Create(filePath)
 
 	if err != nil {

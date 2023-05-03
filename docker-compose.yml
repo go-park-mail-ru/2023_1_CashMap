@@ -14,7 +14,7 @@ services:
       postgres:
         condition: service_started
     volumes:
-      - static_files:/depeche_backend/internal/static/files
+      - static_files:/depeche_backend/static/files
   redis:
     image: redis:latest
     container_name: depeche_redis

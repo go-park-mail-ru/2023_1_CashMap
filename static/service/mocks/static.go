@@ -5,7 +5,7 @@
 package mock_service
 
 import (
-	entities "depeche/internal/static/entities"
+	"depeche/static/entities"
 	io "io"
 	reflect "reflect"
 

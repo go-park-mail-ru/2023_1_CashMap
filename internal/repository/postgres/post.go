@@ -176,7 +176,7 @@ func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) 
 
 	}
 
-	query, err := tx.PrepareNamed(CreatePostQuery)
+	query, err := tx.Prepare(CreatePostQuery)
 	if err != nil {
 		if err := tx.Rollback(); err != nil {
 			return 0, apperror.NewServerError(apperror.InternalServerError, err)
@@ -185,17 +185,21 @@ func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) 
 	}
 
 	var postID uint
-	err = query.Get(&postID, map[string]interface{}{
-		"owner_id":     ownerID,
-		"sender_email": senderEmail,
-		"community_id": communityID,
-		"show_author":  dto.ShouldShowAuthor,
-		"text":         dto.Text,
-		"init_time":    currentTime,
-		"change_time":  currentTime,
-	})
+	rows, err := query.Query(communityID, senderEmail, ownerID, dto.ShouldShowAuthor, dto.Text, currentTime, currentTime)
+	defer func() {
+		if rows != nil {
+			rows.Close()
+		}
+	}()
 	if err == sql.ErrNoRows {
 		return 0, apperror.NewServerError(apperror.InternalServerError, errors.New("just created post not found"))
+	}
+	if err != nil {
+		return 0, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	if rows.Next() {
+		rows.Scan(&postID)
 	}
 	if err != nil {
 		return 0, apperror.NewServerError(apperror.InternalServerError, err)
