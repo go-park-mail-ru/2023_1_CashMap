@@ -608,7 +608,7 @@ func (uh *UserHandler) GetGlobalSearchResult(ctx *gin.Context) {
 		return
 	}
 
-	searchResult, err := uh.service.GlobalSearch(email, dto)
+	userSearchResult, communitiesSearchResult, err := uh.service.GlobalSearch(email, dto)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -616,7 +616,8 @@ func (uh *UserHandler) GetGlobalSearchResult(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"body": gin.H{
-			"users": searchResult,
+			"users":        userSearchResult,
+			"communitites": communitiesSearchResult,
 		},
 	})
 }

@@ -19,7 +19,8 @@ type Post struct {
 }
 
 type CommunityInfo struct {
-	Title     *string `db:"title" json:"title"`
-	AvatarUrl *string `db:"url" json:"url"`
-	Link      *string `db:"link" json:"link"`
+	Title        *string `db:"title" json:"title"`
+	AvatarUrl    *string `db:"url" json:"url"`
+	Link         *string `db:"link" json:"link"`
+	IsSubscribed *bool   `db:"is_subscribed" json:"isSubscribed"`
 }

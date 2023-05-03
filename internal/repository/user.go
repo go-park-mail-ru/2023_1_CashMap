@@ -35,4 +35,5 @@ type UserRepository interface {
 	DeleteUser(email string) error
 
 	SearchUserByName(email string, searchDTO *dto.GlobalSearchDTO) ([]*entities.UserInfo, error)
+	SearchCommunitiesByTitle(email string, searchDTO *dto.GlobalSearchDTO) ([]*entities.CommunityInfo, error)
 }

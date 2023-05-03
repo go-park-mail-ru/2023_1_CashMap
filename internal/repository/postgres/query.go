@@ -762,4 +762,14 @@ var (
 				 CROSS JOIN isSubscribed
 		WHERE profile.id = $2;
 	`
+
+	GetCommunityInfoForSearchQuery = `
+		WITH isSubscribed as (SELECT CASE WHEN COUNT(*) = 0 THEN FALSE ELSE TRUE END as is_subscribed
+						  FROM GroupSubscriber WHERE user_id = (SELECT id FROM userprofile WHERE email = $2) AND group_id = $1)
+		SELECT title, url, link, is_subscribed
+		FROM groups
+			 LEFT JOIN Photo ON groups.avatar_id = photo.id
+			 CROSS JOIN isSubscribed
+		WHERE groups.id = $1
+	`
 )

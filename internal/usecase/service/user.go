@@ -8,6 +8,7 @@ import (
 	"depeche/internal/utils"
 	"depeche/pkg/apperror"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -257,9 +258,9 @@ func (us *UserService) GetSubscribersByLink(requestEmail, targetLink string, lim
 	return users, nil
 }
 
-func (us *UserService) GlobalSearch(email string, dto *dto.GlobalSearchDTO) ([]*entities.UserInfo, error) {
+func (us *UserService) GlobalSearch(email string, dto *dto.GlobalSearchDTO) ([]*entities.UserInfo, []*entities.CommunityInfo, error) {
 	if dto.SearchQuery == nil || strings.TrimSpace(*dto.SearchQuery) == "" {
-		return nil, apperror.NewServerError(apperror.BadRequest, errors.New("search query is required"))
+		return nil, nil, apperror.NewServerError(apperror.BadRequest, errors.New("search query is required"))
 	}
 
 	if dto.BatchSize == nil {
@@ -272,7 +273,18 @@ func (us *UserService) GlobalSearch(email string, dto *dto.GlobalSearchDTO) ([]*
 		*dto.Offset = 0
 	}
 
-	return us.repo.SearchUserByName(email, dto)
+	users, err := us.repo.SearchUserByName(email, dto)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	communities, err := us.repo.SearchCommunitiesByTitle(email, dto)
+	if err != nil {
+		fmt.Println(err)
+		return nil, nil, err
+	}
+
+	return users, communities, nil
 }
 
 func (us *UserService) getUser(link string) (*entities.User, error) {

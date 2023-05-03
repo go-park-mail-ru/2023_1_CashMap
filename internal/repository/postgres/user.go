@@ -484,3 +484,109 @@ type userForSearch struct {
 	LastName  string `db:"last_name"`
 	Distance  float64
 }
+
+func (ur *UserRepository) SearchCommunitiesByTitle(email string, searchDTO *dto.GlobalSearchDTO) ([]*entities.CommunityInfo, error) {
+	searchName := utils.NormalizeString(*searchDTO.SearchQuery)
+	splitSearchQuery := strings.Split(searchName, " ")
+
+	rows, err := ur.DB.Queryx("SELECT id, title FROM groups")
+	defer utildb.CloseRows(rows)
+	if err != nil {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	distances := make([]int, len(splitSearchQuery))
+
+	community := communityForSearch{}
+	communityBatch := make([]communityForSearch, 0, *searchDTO.BatchSize)
+	var communityAmount uint
+
+	maxLevenshteinDistance := float64(utils.GetMaxLength(splitSearchQuery...)) * 0.5
+
+MAIN:
+	for rows.Next() {
+		err := rows.StructScan(&community)
+		if err != nil {
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+
+		// считаем минимальное расстояние между искомым именем и именем из базы
+		splittedTitle := strings.Split(community.Title, " ")
+		for i := 0; i < len(splitSearchQuery); i++ {
+			titleDistances := make([]int, len(splittedTitle))
+			for ind, part := range splittedTitle {
+				titleDistances[ind] = levenshtein.Distance(strings.ToLower(part), splitSearchQuery[i])
+			}
+
+			distances[i] = utils.SliceMin(titleDistances)
+		}
+
+		community.Distance = float64(utils.SliceMin(distances))
+		if community.Distance > maxLevenshteinDistance {
+			continue
+		}
+
+		// обновляем список с наилучшими мэтчами по имени
+		var i uint
+		for i = 0; i < communityAmount; i++ {
+			if community.Distance < communityBatch[i].Distance {
+				if communityAmount < *searchDTO.BatchSize+*searchDTO.Offset {
+					communityBatch = append(communityBatch, communityForSearch{})
+				}
+
+				utils.ShiftRight(communityBatch, int(i), 1)
+				communityBatch[i] = community
+				communityAmount++
+				continue MAIN
+			}
+		}
+
+		if communityAmount < *searchDTO.BatchSize {
+			communityBatch = append(communityBatch, community)
+			communityAmount++
+		}
+	}
+
+	if len(communityBatch) == 0 {
+		return nil, nil
+	}
+
+	var communities = make([]*entities.CommunityInfo, 0, *searchDTO.BatchSize)
+
+	tx, err := ur.DB.Beginx()
+	if err != nil {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	if *searchDTO.Offset >= uint(len(communityBatch)) {
+		err := tx.Rollback()
+		if err != nil {
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	for ind, info := range communityBatch[*searchDTO.Offset:] {
+		communities = append(communities, nil)
+		communities[ind] = new(entities.CommunityInfo)
+		err := tx.Get(communities[ind], GetCommunityInfoForSearchQuery, info.ID, email)
+		if err != nil {
+			err2 := tx.Rollback()
+			if err2 != nil {
+				return nil, apperror.NewServerError(apperror.InternalServerError, err2)
+			}
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	return communities, nil
+}
+
+type communityForSearch struct {
+	ID       uint   `db:"id"`
+	Title    string `db:"title"`
+	Distance float64
+}
