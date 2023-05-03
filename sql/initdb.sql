@@ -52,7 +52,7 @@ CREATE TABLE groups
     owner_id      int REFERENCES UserProfile(id),
     avatar_id     int REFERENCES Photo (id),
     group_info           text DEFAULT '',
-    privacy       text    NOT NULL DEFAULT 'open' CHECK ( privacy IN ('open', 'default', 'close') ),
+    privacy       text    NOT NULL DEFAULT 'open' CHECK ( privacy IN ('open', 'close') ),
     creation_date text    NOT NULL,
     hide_author   boolean default false,
     is_deleted    boolean NOT NULL DEFAULT false,
