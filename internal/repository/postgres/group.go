@@ -322,7 +322,7 @@ func (gr *GroupRepository) GetPendingRequests(groupLink string, limit, offset in
 
 func (gr *GroupRepository) IsOwner(userEmail, groupLink string) (bool, error) {
 	var isOwner bool
-	err := gr.db.QueryRowx(IsOwner, userEmail, groupLink).Scan(&isOwner)
+	err := gr.db.Get(&isOwner, IsOwner, userEmail, groupLink)
 	if err != nil {
 		if err != sql.ErrNoRows {
 			return isOwner, apperror.NewServerError(apperror.InternalServerError, err)
