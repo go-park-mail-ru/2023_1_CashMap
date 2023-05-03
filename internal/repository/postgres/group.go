@@ -174,7 +174,7 @@ func (gr *GroupRepository) CreateGroup(ownerEmail string, group *dto.Group) (*en
 
 var groupMapNames = map[string]string{
 	"Title":     "title",
-	"Info":      "info",
+	"Info":      "group_info",
 	"Privacy":   "privacy",
 	"HideOwner": "hide_owner",
 }
