@@ -63,6 +63,21 @@ func (mr *MockGroupMockRecorder) AcceptRequest(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AcceptRequest", reflect.TypeOf((*MockGroup)(nil).AcceptRequest), arg0, arg1)
 }
 
+// CheckAdmin mocks base method.
+func (m *MockGroup) CheckAdmin(arg0, arg1 string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckAdmin", arg0, arg1)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CheckAdmin indicates an expected call of CheckAdmin.
+func (mr *MockGroupMockRecorder) CheckAdmin(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckAdmin", reflect.TypeOf((*MockGroup)(nil).CheckAdmin), arg0, arg1)
+}
+
 // CheckSub mocks base method.
 func (m *MockGroup) CheckSub(arg0, arg1 string) (bool, error) {
 	m.ctrl.T.Helper()

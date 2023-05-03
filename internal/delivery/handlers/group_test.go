@@ -35,7 +35,8 @@ func TestGroupHandler_GetGroup(t *testing.T) {
 						Link:  "id123",
 						Title: "Group",
 					},
-					"is_sub": true,
+					"is_sub":   true,
+					"is_admin": true,
 				},
 			},
 			expectedCode: http.StatusOK,
@@ -46,6 +47,7 @@ func TestGroupHandler_GetGroup(t *testing.T) {
 				}
 				service.EXPECT().GetGroup(link).Return(group, nil)
 				service.EXPECT().CheckSub(email, link).Return(true, nil)
+				service.EXPECT().CheckAdmin(email, link).Return(true, nil)
 			},
 		},
 	}

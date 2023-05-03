@@ -77,7 +77,7 @@ func (handler *MessageHandler) NewChat(ctx *gin.Context) {
 		dto.CreateChatDTO `json:"body"`
 	}{}
 
-	err := ctx.ShouldBind(&request)
+	err := ctx.ShouldBindJSON(&request)
 	if err != nil {
 		_ = ctx.Error(apperror.BadRequest)
 		return
