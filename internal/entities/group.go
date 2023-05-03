@@ -6,7 +6,7 @@ type Group struct {
 	Title        string            `json:"title"                db:"title"`
 	Info         string            `json:"info"                 db:"info"`
 	Privacy      string            `json:"privacy"              db:"privacy"`
-	Avatar       string            `json:"avatar"               db:"avatar"`
+	Avatar       string            `json:"avatar_url"           db:"avatar"`
 	MembersCount int               `json:"subscribers"          db:"subscribers"`
 	CreationDate string            `json:"creation_date"        db:"creation_date"`
 	OwnerLink    string            `json:"-"                    db:"owner_link"`
