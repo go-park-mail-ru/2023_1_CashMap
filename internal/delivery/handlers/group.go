@@ -195,7 +195,7 @@ func (gh *GroupHandler) DeleteGroup(ctx *gin.Context) {
 		_ = ctx.Error(err)
 		return
 	}
-	err = gh.service.DeleteGroup(link, email)
+	err = gh.service.DeleteGroup(email, link)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
