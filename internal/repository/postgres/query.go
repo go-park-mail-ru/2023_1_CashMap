@@ -501,6 +501,17 @@ var (
 	set avatar_id = av.p_id
 	from inserted av where p1.id = $2
 	`
+
+	UpdateAvatarGroupByLink = `
+	with inserted as (
+    insert into photo (url) values ($1)
+        returning id p_id
+	)
+	update groups p1
+	set avatar_id = av.p_id
+	from inserted av where p1.link = $2
+		
+`
 	DeleteGroup = `
 	update groups 
 		set is_deleted = true

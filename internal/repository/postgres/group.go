@@ -211,7 +211,7 @@ func (gr *GroupRepository) UpdateGroup(link string, group *dto.UpdateGroup) erro
 }
 
 func (gr *GroupRepository) UpdateGroupAvatar(url, link string) error {
-	err := gr.db.QueryRowx(UpdateAvatar, url, link).Scan()
+	err := gr.db.QueryRowx(UpdateAvatarGroupByLink, url, link).Scan()
 	if err != nil {
 		if err != sql.ErrNoRows {
 			return apperror.NewServerError(apperror.InternalServerError, err)
