@@ -509,7 +509,7 @@ var (
 	GroupSubscribe = `
 		insert into groupsubscriber (user_id, group_id, accepted) 
 		select u.id, g.id, 
-		       case when g.privacy == 'open'
+		       case when g.privacy = 'open'
 			   then true
 			   else false end accepted
 		from userprofile u cross join groups g 
@@ -547,6 +547,11 @@ var (
 		FROM GroupManagement
 		WHERE user_id = (SELECT id FROM UserProfile WHERE email = $1)
 		  AND group_id = (SELECT id FROM Groups WHERE link = $2)
+	`
+
+	InsertNewAdminQuery = `
+		INSERT INTO GroupManagement (user_id, group_id, user_role)
+		VALUES ((SELECT id FROM UserProfile WHERE email = $1), $2, $3)
 	`
 )
 

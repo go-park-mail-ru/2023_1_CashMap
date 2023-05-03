@@ -155,6 +155,12 @@ func (gr *GroupRepository) CreateGroup(ownerEmail string, group *dto.Group) (*en
 		}
 	}
 
+	userRole := "admin"
+	_, err = tx.Exec(InsertNewAdminQuery, ownerEmail, id, userRole)
+	if err != nil {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
 	err = tx.Commit()
 	if err != nil {
 		errRB := tx.Rollback()
