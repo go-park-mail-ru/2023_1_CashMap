@@ -10,7 +10,7 @@ type Group struct {
 
 type UpdateGroup struct {
 	Title     *string `json:"title"`
-	Info      *string `json:"group_info"`
+	Info      *string `structs:"group_info" json:"group_info"`
 	Link      *string `json:"link"`
 	Avatar    *string `json:"avatar"`
 	Privacy   *string `json:"privacy"`
