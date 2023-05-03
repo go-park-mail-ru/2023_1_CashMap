@@ -336,6 +336,16 @@ func (gr *GroupRepository) CheckSub(email, groupLink string) (bool, error) {
 	return isSub, nil
 }
 
+func (gr *GroupRepository) CheckAdmin(email, groupLink string) (bool, error) {
+	var isAdmin bool
+	err := gr.db.Get(&isAdmin, CheckAdminQuery, email, groupLink)
+	if err != nil {
+		return false, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	return isAdmin, nil
+}
+
 //func (gr *GroupRepository) AddManager(manager *dto.AddManager) error {
 //	//TODO implement me
 //	panic("implement me")

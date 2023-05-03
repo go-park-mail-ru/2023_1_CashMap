@@ -541,6 +541,13 @@ var (
 		then true
 		else false end is_sub
 	`
+
+	CheckAdminQuery = `
+		SELECT CASE WHEN COUNT(*) = 0 THEN FALSE ELSE TRUE END
+		FROM GroupManagement
+		WHERE user_id = (SELECT id FROM UserProfile WHERE email = $1)
+		  AND group_id = (SELECT id FROM Groups WHERE link = $2)
+	`
 )
 
 var (

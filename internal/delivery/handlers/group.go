@@ -34,10 +34,15 @@ func (gh *GroupHandler) GetGroup(ctx *gin.Context) {
 	if err != nil {
 		_ = ctx.Error(err)
 	}
+	isAdmin, err := gh.service.CheckAdmin(email, link)
+	if err != nil {
+		_ = ctx.Error(err)
+	}
 	ctx.JSON(http.StatusOK, gin.H{
 		"body": gin.H{
 			"group_info": group,
 			"is_sub":     isSub,
+			"is_admin":   isAdmin,
 		},
 	})
 }

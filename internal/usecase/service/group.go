@@ -194,6 +194,10 @@ func (g *Group) CheckSub(email, groupLink string) (bool, error) {
 	return g.repo.CheckSub(email, groupLink)
 }
 
+func (g *Group) CheckAdmin(email, groupLink string) (bool, error) {
+	return g.repo.CheckAdmin(email, groupLink)
+}
+
 func addGroupManagement(groups []*entities.Group) []*entities.Group {
 	for _, group := range groups {
 		if !group.HideOwner {
