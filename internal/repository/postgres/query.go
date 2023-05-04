@@ -621,11 +621,14 @@ var (
 		`
 
 	CommunityPostInfoQuery = `
-		SELECT community.title, community.link
+		SELECT community.title, community.link,
+		case when p.url is null 
+           then ''
+           else p.url end url
 		FROM Post as post
 				 JOIN groups as community
 					  ON post.group_id = community.id
-		
+				  left join photo p on community.avatar_id = p.id
 		WHERE post.id = $1
 		`
 
