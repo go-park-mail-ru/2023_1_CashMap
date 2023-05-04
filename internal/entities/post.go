@@ -20,7 +20,7 @@ type Post struct {
 
 type CommunityInfo struct {
 	Title        *string `db:"title" json:"title"`
-	AvatarUrl    *string `db:"url" json:"url"`
+	AvatarUrl    *string `db:"url" json:"avatar_url"`
 	Link         *string `db:"link" json:"link"`
 	IsSubscribed *bool   `db:"is_subscribed" json:"isSubscribed"`
 }
