@@ -30,23 +30,28 @@ func (feed *FeedService) CollectPosts(email string, dto *dto.FeedDTO) ([]*entiti
 	if dto.BatchSize == 0 {
 		return nil, apperror.BadRequest
 	}
-	friendsPosts, err := feed.repository.GetFriendsPosts(email, dto)
+	//friendsPosts, err := feed.repository.GetFriendsPosts(email, dto)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//groupsPosts, err := feed.repository.GetGroupsPosts(email, dto)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//var posts []*entities.Post
+	//if friendsPosts != nil {
+	//	posts = append(posts, friendsPosts...)
+	//}
+	//if groupsPosts != nil {
+	//	posts = append(posts, groupsPosts...)
+	//}
+	posts, err := feed.repository.GetFeedPosts(email, dto)
 	if err != nil {
 		return nil, err
 	}
 
-	groupsPosts, err := feed.repository.GetGroupsPosts(email, dto)
-	if err != nil {
-		return nil, err
-	}
-
-	var posts []*entities.Post
-	if friendsPosts != nil {
-		posts = append(posts, friendsPosts...)
-	}
-	if groupsPosts != nil {
-		posts = append(posts, groupsPosts...)
-	}
 	for _, post := range posts {
 		// TODO: поменять энтити поста (засылать даныне автора поста а не овнера)
 		post.OwnerInfo, post.CommunityInfo, err = feed.postRepo.GetPostSenderInfo(post.ID)
