@@ -10,6 +10,7 @@ import (
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -601,7 +602,7 @@ func (uh *UserHandler) GetGlobalSearchResult(ctx *gin.Context) {
 		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse search dto from query")))
 		return
 	}
-
+	fmt.Println(*dto.SearchQuery)
 	email, err := utils.GetEmail(ctx)
 	if err != nil {
 		_ = ctx.Error(err)

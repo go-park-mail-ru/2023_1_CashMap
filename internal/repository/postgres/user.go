@@ -393,7 +393,6 @@ func (ur *UserRepository) SearchUserByName(email string, searchDTO *dto.GlobalSe
 
 	user := userForSearch{}
 	usersBatch := make([]userForSearch, 0, *searchDTO.BatchSize)
-	var usersAmount uint
 
 	maxLevenshteinDistance := float64(utils.GetMaxLength(splitSearchName...)) * 0.5
 
@@ -418,23 +417,21 @@ MAIN:
 		}
 
 		// обновляем список с наилучшими мэтчами по имени
-		var i uint
-		for i = 0; i < usersAmount; i++ {
+		var i int
+		for i = 0; i < len(usersBatch); i++ {
 			if user.Distance < usersBatch[i].Distance {
-				if usersAmount < *searchDTO.BatchSize+*searchDTO.Offset {
+				if len(usersBatch) < int(*searchDTO.BatchSize+*searchDTO.Offset) {
 					usersBatch = append(usersBatch, userForSearch{})
 				}
 
 				utils.ShiftRight(usersBatch, int(i), 1)
 				usersBatch[i] = user
-				usersAmount++
 				continue MAIN
 			}
 		}
 
-		if usersAmount < *searchDTO.BatchSize {
+		if len(usersBatch) < int(*searchDTO.BatchSize) {
 			usersBatch = append(usersBatch, user)
-			usersAmount++
 		}
 	}
 
