@@ -368,8 +368,8 @@ var (
 	join groupsubscriber g2 on g.id = g2.group_id and g2.accepted
 	join userprofile u on g2.user_id = u.id
 	join userprofile u2 on g.owner_id = u2.id
-	where u.link = $1
-	and g.id > $3
+	where u.link = $1 and g.is_deleted = false
+	and g.id > $3 
 	order by g.id
 	limit $2
 	`
@@ -386,8 +386,8 @@ var (
 	join groupsubscriber g2 on g.id = g2.group_id and g2.accepted
 	join userprofile u on g2.user_id = u.id
 	join userprofile u2 on g.owner_id = u2.id
-	where u.email = $1
-	and g.id > $3
+	where u.email = $1 and g.is_deleted = false
+	and g.id > $3 
 	order by g.id
 	limit $2
 	`
@@ -402,6 +402,7 @@ var (
 	from groups g 
 		left join photo p on g.avatar_id = p.id
 		join userprofile u on g.owner_id = u.id
+		where g.is_deleted = false
 	order by g.subscribers
 	limit $1 offset $2
 	`
@@ -416,7 +417,7 @@ var (
 	from groups g 
 		left join photo p on g.avatar_id = p.id
 		join userprofile u on g.owner_id = u.id
-		where u.email = $1
+		where u.email = $1 and g.is_deleted = false
 		and g.id > $3
 		order by g.id
 		limit $2
@@ -552,12 +553,15 @@ var (
 		then true
 		else false end is_sub
 	`
-
+	// TODO
 	CheckAdminQuery = `
-		SELECT CASE WHEN COUNT(*) = 0 THEN FALSE ELSE TRUE END
-		FROM GroupManagement
-		WHERE user_id = (SELECT id FROM UserProfile WHERE email = $1)
-		  AND group_id = (SELECT id FROM Groups WHERE link = $2)
+		select case when 
+	    exists(select u.id 
+	           from userprofile u 
+			   join groups g on u.id = g.owner_id
+	           where u.email = $1 and g.link = $2)
+		then true
+		else false end is_sub
 	`
 
 	InsertNewAdminQuery = `

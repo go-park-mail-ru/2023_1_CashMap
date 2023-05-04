@@ -11,3 +11,15 @@ db:
 auth_ms:
   host: "localhost"
   port: 8081
+
+#session:
+#  host: "localhost"
+#  port: 6379
+#  db: 0
+#db:
+#  host: "localhost"
+#  port: 5432
+#  database: "depeche_db"
+#auth_ms:
+#  host: "localhost"
+#  port: 8081

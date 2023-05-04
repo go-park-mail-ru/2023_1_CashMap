@@ -200,18 +200,19 @@ func (mr *MockUserMockRecorder) GetSubscribesByLink(arg0, arg1, arg2, arg3 inter
 }
 
 // GlobalSearch mocks base method.
-func (m *MockUser) GlobalSearch(arg0 *dto.GlobalSearchDTO) ([]*entities.UserInfo, error) {
+func (m *MockUser) GlobalSearch(arg0 string, arg1 *dto.GlobalSearchDTO) ([]*entities.UserInfo, []*entities.CommunityInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GlobalSearch", arg0)
+	ret := m.ctrl.Call(m, "GlobalSearch", arg0, arg1)
 	ret0, _ := ret[0].([]*entities.UserInfo)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].([]*entities.CommunityInfo)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GlobalSearch indicates an expected call of GlobalSearch.
-func (mr *MockUserMockRecorder) GlobalSearch(arg0 interface{}) *gomock.Call {
+func (mr *MockUserMockRecorder) GlobalSearch(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GlobalSearch", reflect.TypeOf((*MockUser)(nil).GlobalSearch), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GlobalSearch", reflect.TypeOf((*MockUser)(nil).GlobalSearch), arg0, arg1)
 }
 
 // Reject mocks base method.
