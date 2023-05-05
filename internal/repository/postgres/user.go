@@ -496,7 +496,6 @@ func (ur *UserRepository) SearchCommunitiesByTitle(email string, searchDTO *dto.
 
 	community := communityForSearch{}
 	communityBatch := make([]communityForSearch, 0, *searchDTO.BatchSize)
-	var communityAmount uint
 
 	maxLevenshteinDistance := float64(utils.GetMaxLength(splitSearchQuery...)) * 0.5
 
@@ -524,23 +523,21 @@ MAIN:
 		}
 
 		// обновляем список с наилучшими мэтчами по имени
-		var i uint
-		for i = 0; i < communityAmount; i++ {
+		var i int
+		for i = 0; i < len(communityBatch); i++ {
 			if community.Distance < communityBatch[i].Distance {
-				if communityAmount < *searchDTO.BatchSize+*searchDTO.Offset {
+				if len(communityBatch) < int(*searchDTO.BatchSize+*searchDTO.Offset) {
 					communityBatch = append(communityBatch, communityForSearch{})
 				}
 
-				utils.ShiftRight(communityBatch, int(i), 1)
+				utils.ShiftRight(communityBatch, i, 1)
 				communityBatch[i] = community
-				communityAmount++
 				continue MAIN
 			}
 		}
 
-		if communityAmount < *searchDTO.BatchSize {
+		if len(communityBatch) < int(*searchDTO.BatchSize) {
 			communityBatch = append(communityBatch, community)
-			communityAmount++
 		}
 	}
 
