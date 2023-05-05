@@ -728,15 +728,24 @@ var (
 	`
 
 	IsChatExistsQuery = `
-		WITH CommonChats AS (SELECT DISTINCT first.chat_id as chat_id
-							 FROM ChatMember first
-									  JOIN ChatMember second ON first.chat_id = second.chat_id
-							 WHERE first.user_id = (SELECT id FROM UserProfile WHERE link = $1)
-							   AND second.user_id = (SELECT id FROM UserProfile WHERE email = $2))
-		SELECT chat.id as chat_id
-		FROM Chat as chat
-				 JOIN CommonChats as common ON common.chat_id = chat.id
-		WHERE chat.members_number = 2
+		SELECT f.chat_id
+		FROM chatmember AS f
+				 JOIN chatmember AS S on f.chat_id = s.chat_id
+				 JOIN chat c on c.id = f.chat_id
+		WHERE f.user_id = (SELECT id FROM userprofile WHERE link = $1)
+		  and s.user_id = (SELECT id FROM userprofile WHERE email = $2)
+		  AND f.user_id != s.user_id
+		  AND c.members_number = 2
+	`
+
+	IsPersonalChatExistsQuery = `
+		SELECT f.chat_id
+       FROM chatmember AS f
+                JOIN chatmember AS S on f.chat_id = s.chat_id
+                JOIN chat c on c.id = f.chat_id
+       WHERE s.user_id = (SELECT id FROM userprofile WHERE link = $1)
+       group by f.chat_id
+       having COUNT(*) = 1
 	`
 
 	IsChatMemberQuery = `

@@ -131,7 +131,7 @@ func (storage *MessageStorage) CreateChat(senderEmail string, dto *dto.CreateCha
 	case 0:
 		return 0, errors.New("empty list of users")
 	case 1:
-		exists, err := storage.isPersonalChatExists(senderEmail, dto.UserLinks[0])
+		exists, err := storage.isChatExists(senderEmail, dto.UserLinks[0])
 		if err != nil {
 			return 0, err
 		}
@@ -176,7 +176,7 @@ func (storage *MessageStorage) CreateChat(senderEmail string, dto *dto.CreateCha
 }
 
 func (storage *MessageStorage) HasDialog(senderEmail string, dto *dto.HasDialogDTO) (*int, error) {
-	chatId, err := storage.isPersonalChatExists(senderEmail, *dto.UserLink)
+	chatId, err := storage.isChatExists(senderEmail, *dto.UserLink)
 	if err != nil {
 		return nil, nil
 	}
@@ -209,9 +209,31 @@ func (storage *MessageStorage) GetUserInfoByMessageId(messageID uint) (*entities
 	return senderInfo, nil
 }
 
-func (storage *MessageStorage) isPersonalChatExists(email string, userLink string) (*int, error) {
+func (storage *MessageStorage) isChatExists(email string, userLink string) (*int, error) {
 	var chatId int
-	err := storage.db.Get(
+
+	var link string
+	err := storage.db.Get(&link, "SELECT link FROM userprofile where email = $1", email)
+	if err != nil {
+		return nil, err
+	}
+
+	if link == userLink {
+		err = storage.db.Get(
+			&chatId,
+			IsPersonalChatExistsQuery,
+			userLink)
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+
+		return &chatId, nil
+	}
+
+	err = storage.db.Get(
 		&chatId,
 		IsChatExistsQuery,
 		userLink,
