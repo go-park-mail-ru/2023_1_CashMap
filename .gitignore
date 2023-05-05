@@ -3,7 +3,8 @@ main
 ./internal/static/files/*
 .env
 data/
-static/files/img
 git
 c.out
 c.out.tmp
+static/
+

@@ -1,25 +1,25 @@
-#host: ""
-#port: 8080
-#session:
-#  host: "redis"
-#  port: 6379
-#  db: 0
-#db:
-#  host: "postgres"
-#  port: 5432
-#  database: "depeche_db"
-#auth_ms:
-#  host: "auth"
-#  port: 8081
-
+host: ""
+port: 8080
 session:
-  host: "localhost"
+  host: "redis"
   port: 6379
   db: 0
 db:
-  host: "localhost"
+  host: "postgres"
   port: 5432
   database: "depeche_db"
 auth_ms:
-  host: "localhost"
+  host: "auth"
   port: 8081
+
+#session:
+#  host: "localhost"
+#  port: 6379
+#  db: 0
+#db:
+#  host: "localhost"
+#  port: 5432
+#  database: "depeche_db"
+#auth_ms:
+#  host: "localhost"
+#  port: 8081
