@@ -829,4 +829,10 @@ and post.creation_date > $3
 order by creation_date
 limit $2
 	`
+
+	GetPostAttachments = `
+	select a.url url from attachment a
+    	join postattachment p on a.id = p.att_id
+	where p.post_id = $1
+	`
 )

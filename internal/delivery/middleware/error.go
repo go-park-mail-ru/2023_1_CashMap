@@ -110,4 +110,8 @@ var Errors = map[error]ErrorResponse{
 		http.StatusConflict,
 		"Сообщество с таким идентификатором уже существует.",
 	},
+	apperror.TooMuchAttachments: {
+		http.StatusRequestEntityTooLarge,
+		"Нельзя добавлять более 10 вложений.",
+	},
 }

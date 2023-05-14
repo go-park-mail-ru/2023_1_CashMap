@@ -35,14 +35,10 @@ func (service *PostService) GetPostById(email string, postDTO *dto.PostGetByID) 
 		return nil, err
 	}
 
-	owner, community, err := service.PostRepository.GetPostSenderInfo(post.ID)
+	err = service.addPostData(post)
 	if err != nil {
 		return nil, err
 	}
-
-	post.OwnerInfo = owner
-	post.CommunityInfo = community
-
 	return post, nil
 }
 
@@ -62,13 +58,10 @@ func (service *PostService) GetPostsByCommunityLink(email string, dto *dto.Posts
 	}
 
 	for _, post := range posts {
-		owner, community, err := service.PostRepository.GetPostSenderInfo(post.ID)
+		err = service.addPostData(post)
 		if err != nil {
 			return nil, err
 		}
-
-		post.OwnerInfo = owner
-		post.CommunityInfo = community
 	}
 
 	return posts, nil
@@ -94,13 +87,10 @@ func (service *PostService) GetPostsByUserLink(email string, dto *dto.PostsGetBy
 	}
 
 	for _, post := range posts {
-		owner, community, err := service.PostRepository.GetPostSenderInfo(post.ID)
+		err = service.addPostData(post)
 		if err != nil {
 			return nil, err
 		}
-
-		post.OwnerInfo = owner
-		post.CommunityInfo = community
 	}
 
 	return posts, nil
@@ -108,7 +98,7 @@ func (service *PostService) GetPostsByUserLink(email string, dto *dto.PostsGetBy
 
 func (service *PostService) CreatePost(email string, dto *dto.PostCreate) (*entities.Post, error) {
 	if dto.Text == "" && dto.Attachments == nil {
-		return nil, errors.New("empty input data")
+		return nil, apperror.NewBadRequest()
 	}
 
 	if dto.CommunityLink != nil && dto.OwnerLink != nil {
@@ -130,7 +120,25 @@ func (service *PostService) CreatePost(email string, dto *dto.PostCreate) (*enti
 	if err != nil {
 		return nil, err
 	}
-	return service.PostRepository.SelectPostById(postID, email)
+	if dto.Attachments != nil && len(dto.Attachments) != 0 {
+		if len(dto.Attachments) > 10 {
+			return nil, apperror.NewServerError(apperror.TooMuchAttachments, nil)
+		}
+		err = service.PostRepository.AddPostAttachments(postID, dto.Attachments)
+		if err != nil {
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+	}
+
+	post, err := service.PostRepository.SelectPostById(postID, email)
+	if err != nil {
+		return nil, err
+	}
+	err = service.addPostData(post)
+	if err != nil {
+		return nil, err
+	}
+	return post, nil
 }
 
 func (service *PostService) UpdatePost(email string, dto *dto.PostUpdate) error {
@@ -184,4 +192,21 @@ func (service *PostService) CancelLike(email string, dto *dto.LikeDTO) error {
 func (service *PostService) Repost() {
 	//TODO: рк3
 	panic("implement me")
+}
+
+func (service *PostService) addPostData(post *entities.Post) error {
+	owner, community, err := service.PostRepository.GetPostSenderInfo(post.ID)
+	if err != nil {
+		return err
+	}
+
+	post.OwnerInfo = owner
+	post.CommunityInfo = community
+
+	attachments, err := service.PostRepository.GetPostAttachments(post.ID)
+	if err != nil {
+		return err
+	}
+	post.Attachments = attachments
+	return nil
 }

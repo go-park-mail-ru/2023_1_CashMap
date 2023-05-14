@@ -14,12 +14,12 @@ type PostsGetByLink struct {
 }
 
 type PostCreate struct {
-	CommunityLink    *string         `form:"community_link" json:"community_link"`
-	OwnerLink        *string         `form:"owner_link" json:"owner_link"`
-	UserLink         string          `form:"author_link" json:"author_link"`
-	ShouldShowAuthor bool            `form:"show_author" json:"show_author"`
-	Text             string          `form:"text" json:"text"`
-	Attachments      []io.ReadCloser `form:"attachments" json:"attachments"`
+	CommunityLink    *string  `form:"community_link" json:"community_link"`
+	OwnerLink        *string  `form:"owner_link" json:"owner_link"`
+	UserLink         string   `form:"author_link" json:"author_link"`
+	ShouldShowAuthor bool     `form:"show_author" json:"show_author"`
+	Text             string   `form:"text" json:"text"`
+	Attachments      []string `form:"attachments" json:"attachments"`
 }
 
 type PostDelete struct {

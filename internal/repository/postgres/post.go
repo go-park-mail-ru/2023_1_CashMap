@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"strings"
 )
 
 type PostStorage struct {
@@ -46,6 +47,24 @@ func (storage *PostStorage) GetPostSenderInfo(postID uint) (*entities.UserInfo, 
 	}
 
 	return author, community, nil
+}
+
+func (storage *PostStorage) GetPostAttachments(postID uint) ([]string, error) {
+	var attachments []string
+	rows, err := storage.db.Queryx(GetPostAttachments, postID)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	for rows.Next() {
+		var attach string
+		err := rows.Scan(&attach)
+		if err != nil {
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+		attachments = append(attachments, attach)
+	}
+	fmt.Println(postID, attachments)
+	return attachments, nil
 }
 
 func (storage *PostStorage) SelectPostById(postId uint, email string) (*entities.Post, error) {
@@ -208,6 +227,52 @@ func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) 
 
 	// TODO: может выстрелить в ногу
 	return postID, nil
+}
+
+func (storage *PostStorage) AddPostAttachments(postId uint, attachments []string) error {
+	query := `insert into attachment (url) values `
+	for i := 1; i < len(attachments)+1; i++ {
+		query += fmt.Sprintf("($%d), ", i)
+	}
+	query, _ = strings.CutSuffix(query, ", ")
+	query += "returning id"
+
+	postAttachments := make([]interface{}, len(attachments))
+	for i, att := range attachments {
+		postAttachments[i] = att
+	}
+
+	rows, err := storage.db.Queryx(query, postAttachments...)
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	var attachmentIds []uint
+
+	for rows.Next() {
+		var id uint
+		err := rows.Scan(&id)
+		if err != nil {
+			return apperror.NewServerError(apperror.InternalServerError, err)
+		}
+		attachmentIds = append(attachmentIds, id)
+	}
+
+	postAttQuery := `insert into postattachment (att_id, post_id) values `
+	for i := 2; i < len(attachmentIds)+2; i++ {
+		postAttQuery += fmt.Sprintf("($%d, $1), ", i)
+	}
+	postAttQuery, _ = strings.CutSuffix(postAttQuery, ", ")
+	params := make([]interface{}, len(attachmentIds)+1)
+	params[0] = postId
+	for i, id := range attachmentIds {
+		params[i+1] = id
+	}
+	err = storage.db.QueryRowx(postAttQuery, params...).Scan()
+	if err != nil && err != sql.ErrNoRows {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	return nil
 }
 
 func (storage *PostStorage) UpdatePost(senderEmail string, dto *dto.PostUpdate) error {

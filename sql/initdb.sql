@@ -94,7 +94,7 @@ CREATE TABLE Post
 );
 
 
-CREATE TABLE Documents
+CREATE TABLE Attachment
 (
     id         serial,
     url        text,
@@ -102,17 +102,13 @@ CREATE TABLE Documents
     PRIMARY KEY (id)
 );
 
-CREATE TABLE PostDocument
+CREATE TABLE PostAttachment
 (
-    doc_id  int REFERENCES Documents (id),
+    att_id  int REFERENCES Attachment (id),
     post_id int REFERENCES Post (id)
 );
 
-CREATE TABLE PostPhoto
-(
-    photo_id int REFERENCES Photo (id),
-    post_id  int REFERENCES Post (id)
-);
+
 
 CREATE TABLE PostLike
 (
@@ -205,15 +201,9 @@ CREATE TABLE Message
     PRIMARY KEY (id)
 );
 
-CREATE TABLE MessageDocument
+CREATE TABLE MessageAttachment
 (
-    doc_id     int REFERENCES Documents (id),
-    message_id int REFERENCES Message (id)
-);
-
-CREATE TABLE PhotoDocument
-(
-    photo_id   int REFERENCES Photo (id),
+    doc_id     int REFERENCES Attachment (id),
     message_id int REFERENCES Message (id)
 );
 

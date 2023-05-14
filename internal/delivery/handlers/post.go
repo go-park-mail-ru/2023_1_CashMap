@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"depeche/internal/delivery/dto"
+	"depeche/internal/delivery/utils"
 	"depeche/internal/entities"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
@@ -132,14 +133,14 @@ func (handler *PostHandler) GetPostsById(ctx *gin.Context) {
 		return
 	}
 
-	email, exists := ctx.Get("email")
-	if !exists {
-		_ = ctx.Error(apperror.NoAuth)
+	email, err := utils.GetEmail(ctx)
+	if err != nil {
+		_ = ctx.Error(err)
 		return
 	}
 
 	var post *entities.Post
-	post, err = handler.PostUsecase.GetPostById(email.(string), &postDTO)
+	post, err = handler.PostUsecase.GetPostById(email, &postDTO)
 	if err != nil {
 		fmt.Println(err)
 		_ = ctx.Error(apperror.InternalServerError)
@@ -165,28 +166,21 @@ func (handler *PostHandler) GetPostsById(ctx *gin.Context) {
 //	@Failure		500
 //	@Router			/api/posts/create [post]
 func (handler *PostHandler) CreatePost(ctx *gin.Context) {
-	var request = struct {
-		dto.PostCreate `json:"body"`
-	}{}
-
-	err := ctx.ShouldBind(&request)
+	body, err := utils.GetBody[dto.PostCreate](ctx)
 	if err != nil {
-		fmt.Println(err)
-		_ = ctx.Error(apperror.BadRequest)
+		_ = ctx.Error(err)
 		return
 	}
 
-	email, exists := ctx.Get("email")
-	if !exists {
-		fmt.Println(err)
-		_ = ctx.Error(apperror.NoAuth)
+	email, err := utils.GetEmail(ctx)
+	if err != nil {
+		_ = ctx.Error(err)
 		return
 	}
 
-	post, err := handler.PostUsecase.CreatePost(email.(string), &request.PostCreate)
+	post, err := handler.PostUsecase.CreatePost(email, body)
 	if err != nil {
-		fmt.Println(err)
-		_ = ctx.Error(apperror.InternalServerError)
+		_ = ctx.Error(err)
 		return
 	}
 
@@ -209,22 +203,19 @@ func (handler *PostHandler) CreatePost(ctx *gin.Context) {
 //	@Failure		500
 //	@Router			/api/posts/delete [delete]
 func (handler *PostHandler) DeletePost(ctx *gin.Context) {
-	var request = struct {
-		dto.PostDelete `json:"body"`
-	}{}
-
-	err := ctx.ShouldBind(&request)
+	body, err := utils.GetBody[dto.PostDelete](ctx)
 	if err != nil {
-		_ = ctx.Error(apperror.BadRequest)
-		return
-	}
-	email, exists := ctx.Get("email")
-	if !exists {
-		_ = ctx.Error(apperror.NoAuth)
+		_ = ctx.Error(err)
 		return
 	}
 
-	err = handler.PostUsecase.DeletePost(email.(string), &request.PostDelete)
+	email, err := utils.GetEmail(ctx)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	err = handler.PostUsecase.DeletePost(email, body)
 	if err != nil {
 		fmt.Println(err)
 		_ = ctx.Error(apperror.InternalServerError)
