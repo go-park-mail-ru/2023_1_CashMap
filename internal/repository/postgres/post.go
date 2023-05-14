@@ -63,7 +63,6 @@ func (storage *PostStorage) GetPostAttachments(postID uint) ([]string, error) {
 		}
 		attachments = append(attachments, attach)
 	}
-	fmt.Println(postID, attachments)
 	return attachments, nil
 }
 

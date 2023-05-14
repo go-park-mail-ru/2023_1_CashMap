@@ -6,6 +6,7 @@ import (
 	"depeche/internal/repository"
 	"depeche/internal/usecase"
 	"depeche/internal/utils"
+	"depeche/pkg/apperror"
 	"errors"
 	"github.com/asaskevich/govalidator"
 )
@@ -25,6 +26,7 @@ func (service *MessageService) Send(email string, message *dto.NewMessageDTO) (*
 		return nil, err
 	}
 	message.UserId = user.ID
+
 	message = utils.Escaping(message)
 	msg, err := service.MessageRepository.SaveMsg(message)
 	if err != nil {
@@ -35,6 +37,17 @@ func (service *MessageService) Send(email string, message *dto.NewMessageDTO) (*
 		return nil, err
 	}
 	msg.SenderInfo = info
+
+	if message.Attachments != nil {
+		if len(message.Attachments) > 10 {
+			return nil, apperror.NewServerError(apperror.TooMuchAttachments, nil)
+		}
+		err := service.MessageRepository.AddMessageAttachments(*msg.Id, msg.Attachments)
+		if err != nil {
+			return msg, err
+		}
+		msg.Attachments = message.Attachments
+	}
 
 	return msg, nil
 }
@@ -57,7 +70,18 @@ func (service *MessageService) GetMessagesByChatID(senderEmail string, dto *dto.
 		*dto.LastMessageDate = "0"
 	}
 
-	return service.MessageRepository.SelectMessagesByChatID(senderEmail, dto)
+	messages, err := service.MessageRepository.SelectMessagesByChatID(senderEmail, dto)
+	if err != nil {
+		return nil, err
+	}
+	for _, message := range messages {
+		attachments, err := service.MessageRepository.GetMessageAttachments(*message.Id)
+		if err != nil {
+			return nil, err
+		}
+		message.Attachments = attachments
+	}
+	return messages, nil
 }
 
 func (service *MessageService) GetChatsList(senderEmail string, dto *dto.GetChatsDTO) ([]*entities.Chat, error) {

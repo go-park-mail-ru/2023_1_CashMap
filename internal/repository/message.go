@@ -14,4 +14,6 @@ type MessageRepository interface {
 	GetMembersByChatId(chatId uint) ([]*entities.User, error)
 	GetUsersInfoByChatID(chatID uint) ([]*entities.UserInfo, error)
 	GetUserInfoByMessageId(messageID uint) (*entities.UserInfo, error)
+	AddMessageAttachments(messageID uint, attachments []string) error
+	GetMessageAttachments(messageID uint) ([]string, error)
 }

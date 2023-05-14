@@ -1,11 +1,12 @@
 package dto
 
 type NewMessageDTO struct {
-	UserId      uint   `json:"-"`
-	ChatId      uint   `json:"chat_id"`
-	ContentType string `json:"message_content_type"`
-	Text        string `json:"text_content"`
-	ReplyTo     *uint  `json:"reply_to"`
+	UserId      uint     `json:"-"`
+	ChatId      uint     `json:"chat_id"`
+	ContentType string   `json:"message_content_type"`
+	Text        string   `json:"text_content"`
+	ReplyTo     *uint    `json:"reply_to"`
+	Attachments []string `json:"attachments"`
 }
 
 type GetMessagesDTO struct {

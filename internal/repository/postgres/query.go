@@ -835,4 +835,10 @@ limit $2
     	join postattachment p on a.id = p.att_id
 	where p.post_id = $1
 	`
+
+	GetMsgAttachments = `
+	select a.url url from attachment a
+    	join messageattachment m on a.id = m.doc_id
+	where m.message_id = $1
+	`
 )

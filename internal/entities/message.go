@@ -11,4 +11,5 @@ type Message struct {
 	ChangedAt   *string   `json:"change_date" db:"change_date"`
 	ReplyTo     *uint     `json:"reply_to" db:"reply_to"`
 	IsDeleted   *bool     `json:"is_deleted" db:"is_deleted"`
+	Attachments []string  `json:"attachments" db:"attachments"`
 }

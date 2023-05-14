@@ -10,7 +10,9 @@ import (
 	"depeche/internal/utils"
 	"depeche/pkg/apperror"
 	"errors"
+	"fmt"
 	"github.com/jmoiron/sqlx"
+	"strings"
 )
 
 type MessageStorage struct {
@@ -264,6 +266,71 @@ func (storage *MessageStorage) isChatMember(email string, chatID uint) (bool, er
 	}
 
 	return true, nil
+}
+
+func (storage *MessageStorage) AddMessageAttachments(messageID uint, attachments []string) error {
+
+	query := `insert into attachment (url) values `
+	for i := 1; i < len(attachments)+1; i++ {
+		query += fmt.Sprintf("($%d), ", i)
+	}
+	query, _ = strings.CutSuffix(query, ", ")
+	query += "returning id"
+
+	msgAttachments := make([]interface{}, len(attachments))
+	for i, att := range attachments {
+		msgAttachments[i] = att
+	}
+
+	rows, err := storage.db.Queryx(query, msgAttachments...)
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	var attachmentIds []uint
+
+	for rows.Next() {
+		var id uint
+		err := rows.Scan(&id)
+		if err != nil {
+			return apperror.NewServerError(apperror.InternalServerError, err)
+		}
+		attachmentIds = append(attachmentIds, id)
+	}
+
+	msgAttQuery := `insert into messageattachment (doc_id, message_id) values `
+	for i := 2; i < len(attachmentIds)+2; i++ {
+		msgAttQuery += fmt.Sprintf("($%d, $1), ", i)
+	}
+	msgAttQuery, _ = strings.CutSuffix(msgAttQuery, ", ")
+	params := make([]interface{}, len(attachmentIds)+1)
+	params[0] = messageID
+	for i, id := range attachmentIds {
+		params[i+1] = id
+	}
+	err = storage.db.QueryRowx(msgAttQuery, params...).Scan()
+	if err != nil && err != sql.ErrNoRows {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	return nil
+}
+
+func (storage *MessageStorage) GetMessageAttachments(messageID uint) ([]string, error) {
+	var attachments []string
+	rows, err := storage.db.Queryx(GetMsgAttachments, messageID)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	for rows.Next() {
+		var attach string
+		err := rows.Scan(&attach)
+		if err != nil {
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+		attachments = append(attachments, attach)
+	}
+
+	return attachments, nil
 }
 
 func (storage *MessageStorage) addChatMembers(senderEmail string, userLinks []string, chatID uint, tx *sqlx.Tx) error {
