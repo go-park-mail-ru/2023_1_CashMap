@@ -10,10 +10,9 @@ import (
 	"depeche/internal/repository/postgres"
 	httpserver "depeche/internal/server"
 	"depeche/internal/session/client"
-	staticDelivery "depeche/internal/static/delivery"
-	staticService "depeche/internal/static/service"
 	"depeche/internal/usecase/service"
 	"depeche/pkg/connector"
+	middleware2 "depeche/pkg/middleware"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/penglongli/gin-metrics/ginmetrics"
@@ -64,19 +63,17 @@ func Run() {
 	authorizationService := client.NewAuthService(authClient)
 	csrfService := client.NewCSRFService(csrfClient)
 	feedService := service.NewFeedService(feedStorage, postStorage)
-	fileService := staticService.NewFileUsecase()
 	postService := service.NewPostService(postStorage)
 	groupService := service.NewGroupService(groupStorage)
 	msgService := service.NewMessageService(messageStorage, userStorage)
 
-	staticHandler := staticDelivery.NewFileHandler(fileService)
 	userHandler := handlers.NewUserHandler(userService, authorizationService, csrfService)
 	feedHandler := handlers.NewFeedHandler(feedService)
 	postHandler := handlers.NewPostHandler(postService)
 	messageHandler := handlers.NewMessageHandler(msgService)
 	groupHandler := handlers.NewGroupHandler(groupService)
 
-	handler := handlers.NewHandler(userHandler, feedHandler, postHandler, staticHandler, messageHandler, groupHandler)
+	handler := handlers.NewHandler(userHandler, feedHandler, postHandler, messageHandler, groupHandler)
 
 	authMiddleware := middleware.NewAuthMiddleware(authorizationService)
 
@@ -90,10 +87,10 @@ func Run() {
 
 	initValidator()
 
-	server := httpserver.NewServer(router)
+	server := httpserver.NewServer(router, cfg.Port)
 	err = server.ListenAndServe()
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 		return
 	}
 }
@@ -113,8 +110,8 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 	m.SetDuration([]float64{0.1, 0.3, 1.2, 5, 10})
 	m.Use(router)
 	// [MIDDLEWARE]
-	router.Use(middleware.CORS())
-	router.Use(middleware.ErrorMiddleware())
+	router.Use(middleware2.CORS())
+	router.Use(middleware2.ErrorMiddleware())
 
 	// [SWAGGER]
 	docs.SwaggerInfo.BasePath = "/api"
@@ -159,14 +156,6 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 			postEndpoints.PATCH("/edit", handler.EditPost)
 			postEndpoints.POST("/like/set", handler.LikePost)
 			postEndpoints.POST("/like/cancel", handler.CancelPostLike)
-		}
-
-		// [STATIC]
-		staticEndpointsGroup := router.Group("/static")
-		{
-			staticEndpointsGroup.POST("/upload", handler.LoadFile)
-			staticEndpointsGroup.GET("/download", handler.GetFile)
-			staticEndpointsGroup.DELETE("/remove", handler.DeleteFile)
 		}
 
 		// [USER]

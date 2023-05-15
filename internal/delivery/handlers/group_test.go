@@ -6,6 +6,7 @@ import (
 	"depeche/internal/entities"
 	mock_usecase "depeche/internal/usecase/mocks"
 	"depeche/pkg/apperror"
+	middleware2 "depeche/pkg/middleware"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -66,7 +67,7 @@ func TestGroupHandler_GetGroup(t *testing.T) {
 			test.setupMock(mockService, test.email, test.link)
 
 			router := gin.New()
-			router.Use(middleware.ErrorMiddleware())
+			router.Use(middleware2.ErrorMiddleware())
 			if test.email != "" {
 				router.Use(func(context *gin.Context) {
 					context.Set("email", test.email)
@@ -153,7 +154,7 @@ func TestGroupHandler_GetGroups(t *testing.T) {
 			test.setupMock(mockService, test.email, test.limit, test.offset)
 
 			router := gin.New()
-			router.Use(middleware.ErrorMiddleware())
+			router.Use(middleware2.ErrorMiddleware())
 			if test.email != "" {
 				router.Use(func(context *gin.Context) {
 					context.Set("email", test.email)
@@ -240,7 +241,7 @@ func TestGroupHandler_GetUserGroups(t *testing.T) {
 			test.setupMock(mockService, test.link, test.limit, test.offset)
 
 			router := gin.New()
-			router.Use(middleware.ErrorMiddleware())
+			router.Use(middleware2.ErrorMiddleware())
 
 			router.GET("/", groupHandler.GetUserGroups)
 			query := fmt.Sprintf("?link=%s&limit=%d&offset=%d", test.link, test.limit, test.offset)
@@ -323,7 +324,7 @@ func TestGroupHandler_GetPopularGroups(t *testing.T) {
 			test.setupMock(mockService, test.email, test.limit, test.offset)
 
 			router := gin.New()
-			router.Use(middleware.ErrorMiddleware())
+			router.Use(middleware2.ErrorMiddleware())
 			if test.email != "" {
 				router.Use(func(context *gin.Context) {
 					context.Set("email", test.email)
@@ -410,7 +411,7 @@ func TestGroupHandler_GetManagedGroups(t *testing.T) {
 			test.setupMock(mockService, test.email, test.limit, test.offset)
 
 			router := gin.New()
-			router.Use(middleware.ErrorMiddleware())
+			router.Use(middleware2.ErrorMiddleware())
 			if test.email != "" {
 				router.Use(func(context *gin.Context) {
 					context.Set("email", test.email)
@@ -499,7 +500,7 @@ func TestGroupHandler_GetSubscribers(t *testing.T) {
 			test.setupMock(mockService, test.link, test.limit, test.offset)
 
 			router := gin.New()
-			router.Use(middleware.ErrorMiddleware())
+			router.Use(middleware2.ErrorMiddleware())
 			if test.email != "" {
 				router.Use(func(context *gin.Context) {
 					context.Set("email", test.email)
@@ -634,7 +635,7 @@ func TestGroupHandler_PendingGroupRequests(t *testing.T) {
 			test.setupMock(mockService, test.email, test.link, test.limit, test.offset)
 
 			router := gin.New()
-			router.Use(middleware.ErrorMiddleware())
+			router.Use(middleware2.ErrorMiddleware())
 			if test.email != "" {
 				router.Use(func(context *gin.Context) {
 					context.Set("email", test.email)

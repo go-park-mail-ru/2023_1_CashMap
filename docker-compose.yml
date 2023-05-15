@@ -13,8 +13,6 @@ services:
     depends_on:
       postgres:
         condition: service_started
-    volumes:
-      - static_files:/depeche_backend/internal/static/files
   redis:
     image: redis:latest
     container_name: depeche_redis
@@ -56,6 +54,19 @@ services:
     depends_on:
       redis:
         condition: service_started
+
+  static:
+    container_name: depeche_static
+    build:
+      context: ./
+      dockerfile: Dockerfile-static
+    links:
+      - "auth:auth"
+    ports:
+      - "8082:8082"
+    volumes:
+      - static_files:/depeche_backend/static/files
+
 volumes:
   db_data:
   static_files:
