@@ -671,7 +671,8 @@ var (
 			   post.show_author,
 			   post.creation_date,
 			   post.change_date,
-			   CASE WHEN like_table.post_id is null THEN FALSE ELSE TRUE END as is_liked
+			   CASE WHEN like_table.post_id is null THEN FALSE ELSE TRUE END as is_liked,
+			   post.comments_amount
 		FROM Post AS post
 				 JOIN UserProfile AS author ON post.author_id = author.id
 				 LEFT JOIN groups as community on post.group_id = community.id
@@ -810,6 +811,7 @@ var (
        post.show_author,
        post.creation_date,
        post.change_date,
+	   post.comments_amount,
        CASE WHEN like_table.post_id is null THEN FALSE ELSE TRUE END as is_liked
 		FROM Post AS post
          JOIN UserProfile AS author ON post.author_id = author.id
@@ -828,5 +830,75 @@ where sub.email = $1
 and post.creation_date > $3
 order by creation_date
 limit $2
+	`
+)
+
+var (
+	GetCommentByIdQuery = `
+		SELECT id,
+			   post_id,
+			   text_content,
+			   creation_date,
+			   change_date,
+			   is_deleted
+		FROM Comment as c
+		WHERE c.id = $1 AND is_deleted = false;
+	`
+
+	GetCommentSenderInfoQuery = `
+		SELECT first_name, last_name, link, url as avatar_url
+ 				FROM UserProfile as p
+ 						 LEFT JOIN Photo as ph ON avatar_id = ph.id
+ 				JOIN comment AS c ON c.user_id = p.id AND c.id = $1
+	`
+
+	GetReplyReceiverInfoQuery = `
+		SELECT first_name, last_name, link, url as avatar_url
+ 				FROM UserProfile as p
+ 						 LEFT JOIN Photo as ph ON avatar_id = ph.id
+ 				JOIN comment AS c ON c.reply_to = p.id AND c.id = $1
+	`
+
+	GetCommentsByPostIdQuery = `
+		SELECT id,
+			   post_id,
+			   text_content,
+			   creation_date,
+			   change_date,
+			   is_deleted,
+			   CASE WHEN (SELECT email FROM UserProfile WHERE id = user_id) = $4 THEN true else false end as is_author
+		FROM Comment as c
+		WHERE c.post_id = $1 AND is_deleted = false AND creation_date > $3
+		ORDER BY creation_date
+		LIMIT $2
+	`
+
+	CreateCommentQuery = `
+		INSERT INTO Comment(post_id, user_id, reply_to, text_content, creation_date, change_date, is_deleted)
+		VALUES ($1, (SELECT id FROM UserProfile WHERE email = $2), (SELECT id FROM UserProfile WHERE link = $3), $4, $5, $5, FALSE) RETURNING id
+	`
+
+	DeleteCommentQuery = `
+		UPDATE Comment
+		SET is_deleted = true
+		WHERE id = $1;	
+	`
+
+	UpdateCommentQuery = `
+		UPDATE Comment
+		SET text_content = $2, change_date = $3
+		WHERE id = $1;
+	`
+
+	HasNextCommentsQuery = `
+		SELECT CASE WHEN COUNT(*) <> 0 THEN true ELSE false END FROM Comment WHERE creation_date > $1
+	`
+
+	IsCommentAuthor = `
+		SELECT CASE WHEN (SELECT COUNT(*) FROM comment AS c JOIN UserProfile as u on u.id = c.user_id WHERE c.id = $1 AND email = $2) = 0 then False else True end;
+	`
+
+	IsCommentDeleted = `
+		SELECT is_deleted FROM Comment WHERE id = $1
 	`
 )

@@ -59,6 +59,7 @@ func Run() {
 	postStorage := postgres.NewPostRepository(db)
 	messageStorage := postgres.NewMessageRepository(db)
 	groupStorage := postgres.NewGroupRepository(db)
+	commentStorage := postgres.NewCommentStorage(db)
 
 	userService := service.NewUserService(userStorage)
 	authorizationService := client.NewAuthService(authClient)
@@ -68,6 +69,7 @@ func Run() {
 	postService := service.NewPostService(postStorage)
 	groupService := service.NewGroupService(groupStorage)
 	msgService := service.NewMessageService(messageStorage, userStorage)
+	commentService := service.NewCommentService(commentStorage)
 
 	staticHandler := staticDelivery.NewFileHandler(fileService)
 	userHandler := handlers.NewUserHandler(userService, authorizationService, csrfService)
@@ -75,8 +77,9 @@ func Run() {
 	postHandler := handlers.NewPostHandler(postService)
 	messageHandler := handlers.NewMessageHandler(msgService)
 	groupHandler := handlers.NewGroupHandler(groupService)
+	commentHandler := handlers.NewCommentHandler(commentService)
 
-	handler := handlers.NewHandler(userHandler, feedHandler, postHandler, staticHandler, messageHandler, groupHandler)
+	handler := handlers.NewHandler(userHandler, feedHandler, postHandler, staticHandler, messageHandler, groupHandler, commentHandler)
 
 	authMiddleware := middleware.NewAuthMiddleware(authorizationService)
 
@@ -134,6 +137,16 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 	apiEndpointsGroup.Use(authMW.Middleware())
 	apiEndpointsGroup.Use(csrfMiddleware.Middleware())
 	{
+
+		// [COMMENT]
+		commentEndpointsGroup := apiEndpointsGroup.Group("comment")
+		{
+			commentEndpointsGroup.GET("/:id", handler.GetCommentById)
+			commentEndpointsGroup.GET("/post/:id", handler.GetCommentByPostId)
+			commentEndpointsGroup.POST("/create", handler.CreateComment)
+			commentEndpointsGroup.PATCH("/edit", handler.EditComment)
+			commentEndpointsGroup.POST("/delete/:id", handler.DeleteComment)
+		}
 
 		// [FEED]
 		apiEndpointsGroup.GET("/feed", handler.GetFeed)
