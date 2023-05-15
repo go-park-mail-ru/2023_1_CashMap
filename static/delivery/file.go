@@ -1,9 +1,9 @@
 package delivery
 
 import (
-	"depeche/internal/static/entities"
-	"depeche/internal/static/service"
 	"depeche/pkg/apperror"
+	"depeche/static/entities"
+	"depeche/static/service"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"

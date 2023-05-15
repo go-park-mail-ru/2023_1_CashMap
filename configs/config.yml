@@ -11,6 +11,9 @@ db:
 auth_ms:
   host: "auth"
   port: 8081
+static_ms:
+  host: "static"
+  port: 8082
 
 #session:
 #  host: "localhost"
@@ -23,3 +26,6 @@ auth_ms:
 #auth_ms:
 #  host: "localhost"
 #  port: 8081
+#static_ms:
+#  host: "localhost"
+#  port: 8082

@@ -49,8 +49,8 @@ func (csrf *CSRFMiddleware) Middleware() gin.HandlerFunc {
 }
 
 func RejectInMiddleware(ctx *gin.Context, err error) {
-	ctx.AbortWithStatusJSON(Errors[err].Code, gin.H{
-		"status":  Errors[err].Code,
-		"message": Errors[err].Message,
+	ctx.AbortWithStatusJSON(apperror.Errors[err].Code, gin.H{
+		"status":  apperror.Errors[err].Code,
+		"message": apperror.Errors[err].Message,
 	})
 }

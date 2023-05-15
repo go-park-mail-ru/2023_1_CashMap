@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"depeche/internal/delivery/dto"
-	"depeche/internal/delivery/middleware"
 	"depeche/internal/entities"
 	mock_usecase "depeche/internal/usecase/mocks"
+	"depeche/pkg/middleware"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"

@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"depeche/internal/static/entities"
-	"depeche/internal/static/repository"
+	"depeche/static/entities"
+	"depeche/static/repository"
 	"errors"
 	"github.com/google/uuid"
 	"io"
@@ -21,9 +21,9 @@ type FileService struct {
 	repository.FileRepository
 }
 
-func NewFileUsecase() FileUsecase {
+func NewFileUsecase(repo repository.FileRepository) FileUsecase {
 	return &FileService{
-		repository.NewFileRepository(),
+		repo,
 	}
 }
 

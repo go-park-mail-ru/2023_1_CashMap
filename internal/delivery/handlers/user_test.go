@@ -9,6 +9,7 @@ import (
 	"depeche/internal/entities"
 	mock_usecase "depeche/internal/usecase/mocks"
 	"depeche/pkg/apperror"
+	middleware2 "depeche/pkg/middleware"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -191,7 +192,7 @@ func TestUserHandler_SignUp(t *testing.T) {
 			test.setupMock(mockService, mockAuth, mockCSRF, test.dto, test.cookie, test.csrfToken)
 
 			router := gin.New()
-			router.Use(middleware.ErrorMiddleware())
+			router.Use(middleware2.ErrorMiddleware())
 			router.POST("/", userHandler.SignUp)
 			req, err := request(test.method, "/", test.body)
 			require.NoError(t, err)
@@ -372,7 +373,7 @@ func TestUserHandler_SignIn(t *testing.T) {
 			test.setupMock(mockService, mockAuth, mockCSRF, test.dto, test.cookie, test.csrfToken)
 
 			router := gin.New()
-			router.Use(middleware.ErrorMiddleware())
+			router.Use(middleware2.ErrorMiddleware())
 			router.POST("/", userHandler.SignIn)
 			req, err := request(test.method, "/", test.body)
 			require.NoError(t, err)
@@ -469,7 +470,7 @@ func TestUserHandler_LogOut(t *testing.T) {
 			test.setupMock(mockService, mockAuth, mockCSRF, test.cookie, test.csrfToken, test.email)
 
 			router := gin.New()
-			router.Use(middleware.ErrorMiddleware())
+			router.Use(middleware2.ErrorMiddleware())
 			router.POST("/", userHandler.LogOut)
 			req, err := request(test.method, "/", nil)
 			require.NoError(t, err)
@@ -625,7 +626,7 @@ func TestUserHandler_Subscribe(t *testing.T) {
 			test.setupMock(mockService, test.email, test.dto.Link)
 
 			router := gin.New()
-			router.Use(middleware.ErrorMiddleware())
+			router.Use(middleware2.ErrorMiddleware())
 			if test.setEmail {
 				router.Use(func(context *gin.Context) {
 					context.Set("email", test.email)
@@ -721,7 +722,7 @@ func TestUserHandler_Friends(t *testing.T) {
 			test.setupMock(mockService, test.email, test.link, test.limit, test.offset)
 
 			router := gin.New()
-			router.Use(middleware.ErrorMiddleware())
+			router.Use(middleware2.ErrorMiddleware())
 			if test.email != "" {
 				router.Use(func(context *gin.Context) {
 					context.Set("email", test.email)
@@ -863,7 +864,7 @@ func TestUserHandler_Subscribes(t *testing.T) {
 			test.setupMock(mockService, test.email, test.link, test.limit, test.offset)
 
 			router := gin.New()
-			router.Use(middleware.ErrorMiddleware())
+			router.Use(middleware2.ErrorMiddleware())
 			if test.email != "" {
 				router.Use(func(context *gin.Context) {
 					context.Set("email", test.email)
@@ -958,7 +959,7 @@ func TestUserHandler_RandomUsers(t *testing.T) {
 			test.setupMock(mockService, test.email, test.limit, test.offset)
 
 			router := gin.New()
-			router.Use(middleware.ErrorMiddleware())
+			router.Use(middleware2.ErrorMiddleware())
 			if test.email != "" {
 				router.Use(func(context *gin.Context) {
 					context.Set("email", test.email)
@@ -1053,7 +1054,7 @@ func TestUserHandler_PendingRequests(t *testing.T) {
 			test.setupMock(mockService, test.email, test.limit, test.offset)
 
 			router := gin.New()
-			router.Use(middleware.ErrorMiddleware())
+			router.Use(middleware2.ErrorMiddleware())
 			if test.email != "" {
 				router.Use(func(context *gin.Context) {
 					context.Set("email", test.email)
@@ -1166,7 +1167,7 @@ func TestUserHandler_Unsubscribe(t *testing.T) {
 			test.setupMock(mockService, test.email, test.dto)
 
 			router := gin.New()
-			router.Use(middleware.ErrorMiddleware())
+			router.Use(middleware2.ErrorMiddleware())
 			if test.email != "" {
 				router.Use(func(context *gin.Context) {
 					context.Set("email", test.email)
@@ -1253,7 +1254,7 @@ func TestUserHandler_Profile(t *testing.T) {
 			test.setupMock(mockService, test.link)
 
 			router := gin.New()
-			router.Use(middleware.ErrorMiddleware())
+			router.Use(middleware2.ErrorMiddleware())
 			router.GET("/:link", userHandler.Profile)
 
 			req, err := request("GET", "/"+test.link, nil)
@@ -1360,7 +1361,7 @@ func TestUserHandler_Reject(t *testing.T) {
 			test.setupMock(mockService, test.email, test.dto.Link)
 
 			router := gin.New()
-			router.Use(middleware.ErrorMiddleware())
+			router.Use(middleware2.ErrorMiddleware())
 			if test.email != "" {
 				router.Use(func(context *gin.Context) {
 					context.Set("email", test.email)

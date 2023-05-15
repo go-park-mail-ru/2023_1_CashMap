@@ -3,6 +3,7 @@ package apperror
 import (
 	"errors"
 	"fmt"
+	"net/http"
 )
 
 var (
@@ -76,4 +77,100 @@ func (se *ServerError) Unwrap() error {
 
 func (se *ServerError) Error() string {
 	return fmt.Sprintf("error [%s] internal error:  %s", se.UserErr, se.internalErr)
+}
+
+type ErrorResponse struct {
+	Code    int    `json:"status" example:"400"`
+	Message string `json:"message" example:"Невалидный запрос."`
+}
+
+var Errors = map[error]ErrorResponse{
+	UserNotFound: {
+		http.StatusNotFound,
+		"Пользователь не найден.",
+	},
+	PostNotFound: {
+		http.StatusNotFound,
+		"Запрашиваемый пост не найден",
+	},
+	CommunityNotFound: {
+		http.StatusNotFound,
+		"Запрашиваемое сообщества не найдено",
+	},
+	PostEditingNowAllowed: {
+		http.StatusForbidden,
+		"Редактирование этого поста не разрешено",
+	},
+	NoAuth: {
+		http.StatusUnauthorized,
+		"Нет авторизации.",
+	},
+	BadRequest: {
+		http.StatusBadRequest,
+		"Невалидный запрос.",
+	},
+	IncorrectCredentials: {
+		http.StatusUnauthorized,
+		"Неверный email или пароль.",
+	},
+	UserAlreadyExists: {
+		http.StatusConflict,
+		"Пользователь с таким email уже существует.",
+	},
+	Forbidden: {
+		http.StatusForbidden,
+		"Доступ запрещен.",
+	},
+
+	InternalServerError: {
+		http.StatusInternalServerError,
+		"Ошибка сервера :(",
+	},
+	RepeatedSubscribe: {
+		http.StatusConflict,
+		"Повторная подписка.",
+	},
+	TooLargePayload: {
+		http.StatusRequestEntityTooLarge,
+		"Превышен допустимый размер файла",
+	},
+
+	AlreadyLiked: {
+		http.StatusConflict,
+		"Лайк уже поставлен",
+	},
+
+	LikeIsMissing: {
+		http.StatusConflict,
+		"Нельзя убрать несуществующий лайк",
+	},
+
+	IllegalFileExtensionError: {
+		http.StatusBadRequest,
+		"Недопустимое расширение файла",
+	},
+	GroupNotFound: {
+		http.StatusNotFound,
+		"Группа не найдена.",
+	},
+	GroupAlreadyExists: {
+		http.StatusConflict,
+		"Сообщество с таким идентификатором уже существует.",
+	},
+	TooMuchAttachments: {
+		http.StatusRequestEntityTooLarge,
+		"Нельзя добавлять более 10 вложений.",
+	},
+	StickerNotFound: {
+		http.StatusNotFound,
+		"Стикер не найден.",
+	},
+	StickerpackNotFound: {
+		http.StatusNotFound,
+		"Стикерпак не найден",
+	},
+	TooManyStickers: {
+		http.StatusRequestEntityTooLarge,
+		"Слишком много стикеров для одно стикерпака (не более 20)",
+	},
 }

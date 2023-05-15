@@ -3,7 +3,7 @@ package repository
 import (
 	"bufio"
 	"context"
-	"depeche/internal/static/entities"
+	"depeche/static/entities"
 	"errors"
 	"fmt"
 	"io"
@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	IMG_STATIC_PATH = "/internal/static/files/img/"
-	DOC_STATIC_PATH = "/internal/static/files/doc/"
+	IMG_STATIC_PATH = "/static/files/img/"
+	DOC_STATIC_PATH = "/static/files/doc/"
 )
 
 var BASE_PATH, _ = os.Getwd()
