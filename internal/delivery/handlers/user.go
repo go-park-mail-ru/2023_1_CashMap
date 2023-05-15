@@ -623,6 +623,25 @@ func (uh *UserHandler) GetGlobalSearchResult(ctx *gin.Context) {
 	})
 }
 
+func (uh *UserHandler) UserStatus(ctx *gin.Context) {
+	link := ctx.Query("link")
+	email, err := utils.GetEmail(ctx)
+	if err != nil {
+		_ = ctx.Error(err)
+	}
+
+	status, err := uh.service.UserStatus(email, link)
+	if err != nil {
+		_ = ctx.Error(err)
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"body": gin.H{
+			"status": dto.StatusToString[status],
+		},
+	})
+}
+
 //nolint:unused
 func (uh *UserHandler) getSession(ctx *gin.Context) (*authEntities.Session, error) {
 	token, err := ctx.Cookie("session_id")

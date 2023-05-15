@@ -258,6 +258,31 @@ func (us *UserService) GetSubscribersByLink(requestEmail, targetLink string, lim
 	return users, nil
 }
 
+func (us *UserService) UserStatus(email, link string) (dto.UserStatus, error) {
+	isFriend, err := us.repo.IsFriend(email, link)
+	if err != nil {
+		return dto.None, err
+	}
+	if isFriend {
+		return dto.Friend, nil
+	}
+	isSubscriber, err := us.repo.IsSubscriber(email, link)
+	if err != nil {
+		return dto.None, err
+	}
+	if isSubscriber {
+		return dto.Subscriber, nil
+	}
+	isSubscribed, err := us.repo.IsSubscribed(email, link)
+	if err != nil {
+		return dto.None, err
+	}
+	if isSubscribed {
+		return dto.Subscribed, nil
+	}
+	return dto.None, nil
+}
+
 func (us *UserService) GlobalSearch(email string, dto *dto.GlobalSearchDTO) ([]*entities.UserInfo, []*entities.CommunityInfo, error) {
 	if dto.SearchQuery == nil || strings.TrimSpace(*dto.SearchQuery) == "" {
 		return nil, nil, apperror.NewServerError(apperror.BadRequest, errors.New("search query is required"))

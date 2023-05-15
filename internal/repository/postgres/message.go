@@ -275,7 +275,7 @@ func (storage *MessageStorage) AddMessageAttachments(messageID uint, attachments
 		query += fmt.Sprintf("($%d), ", i)
 	}
 	query, _ = strings.CutSuffix(query, ", ")
-	query += "returning id"
+	query += " returning id"
 
 	msgAttachments := make([]interface{}, len(attachments))
 	for i, att := range attachments {

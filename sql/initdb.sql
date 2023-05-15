@@ -211,9 +211,12 @@ CREATE TABLE MessageAttachment
 CREATE TABLE StickerPack
 (
     id     serial,
-    author text,
-    price  int,
-    date   date,
+    title text,
+    author text default '',
+    depeche_authored bool default false,
+    cover text,
+    description text,
+    creation_date  text,
     PRIMARY KEY (id)
 );
 
@@ -221,8 +224,15 @@ CREATE TABLE Sticker
 (
     id              serial,
     url             text,
-    sticker_pack_id int REFERENCES StickerPack (id),
+    stickerpack_id int REFERENCES StickerPack (id),
     PRIMARY KEY (id)
+);
+
+CREATE TABLE userstickerpack
+(
+    user_id int references userprofile(id),
+    pack_id int references stickerpack(id),
+    unique (user_id, pack_id)
 );
 
 

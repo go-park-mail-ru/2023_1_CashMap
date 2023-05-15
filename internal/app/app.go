@@ -59,6 +59,7 @@ func Run() {
 	postStorage := postgres.NewPostRepository(db)
 	messageStorage := postgres.NewMessageRepository(db)
 	groupStorage := postgres.NewGroupRepository(db)
+	stickerStorage := postgres.NewStickerRepository(db)
 
 	userService := service.NewUserService(userStorage)
 	authorizationService := client.NewAuthService(authClient)
@@ -68,6 +69,7 @@ func Run() {
 	postService := service.NewPostService(postStorage)
 	groupService := service.NewGroupService(groupStorage)
 	msgService := service.NewMessageService(messageStorage, userStorage)
+	stickerService := service.NewStickerService(stickerStorage)
 
 	staticHandler := staticDelivery.NewFileHandler(fileService)
 	userHandler := handlers.NewUserHandler(userService, authorizationService, csrfService)
@@ -75,8 +77,12 @@ func Run() {
 	postHandler := handlers.NewPostHandler(postService)
 	messageHandler := handlers.NewMessageHandler(msgService)
 	groupHandler := handlers.NewGroupHandler(groupService)
+	stickerHandler := handlers.NewStickerHandler(stickerService)
 
-	handler := handlers.NewHandler(userHandler, feedHandler, postHandler, staticHandler, messageHandler, groupHandler)
+	handler := handlers.NewHandler(userHandler, feedHandler,
+		postHandler, staticHandler,
+		messageHandler, groupHandler,
+		stickerHandler)
 
 	authMiddleware := middleware.NewAuthMiddleware(authorizationService)
 
@@ -174,6 +180,7 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 		userEndpoints := apiEndpointsGroup.Group("/user")
 		{
 			userEndpoints.GET("/search", handler.GetGlobalSearchResult)
+			userEndpoints.GET("/status", handler.UserStatus)
 			// [PROFILE]
 			profileEndpoints := userEndpoints.Group("/profile")
 			{
@@ -223,6 +230,23 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 			groupEndpoints.GET("/hot", handler.GetPopularGroups)
 			groupEndpoints.POST("/create", handler.CreateGroup)
 
+		}
+
+		// [STICKERS]
+		stickerEndpoints := apiEndpointsGroup.Group("/sticker")
+		{
+			stickerEndpoints.GET("/", handler.GetStickerById)
+			stickerPackEndpoints := stickerEndpoints.Group("/pack")
+			{
+				stickerPackEndpoints.GET("/", handler.GetStickerPack)
+				stickerPackEndpoints.GET("/info", handler.GetStickerPackInfo)
+				stickerPackEndpoints.GET("/hot", handler.GetNewStickerPacks)
+				stickerPackEndpoints.GET("/author", handler.GetStickerPacksByAuthor)
+				stickerPackEndpoints.GET("/self", handler.GetUserStickerPacks)
+
+				stickerPackEndpoints.POST("/create", handler.UploadStickerPack)
+				stickerPackEndpoints.POST("/add", handler.AddStickerPack)
+			}
 		}
 		// [WS]
 		apiEndpointsGroup.GET("/ws", pool.Connect)

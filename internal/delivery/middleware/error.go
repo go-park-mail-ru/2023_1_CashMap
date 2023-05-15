@@ -114,4 +114,16 @@ var Errors = map[error]ErrorResponse{
 		http.StatusRequestEntityTooLarge,
 		"Нельзя добавлять более 10 вложений.",
 	},
+	apperror.StickerNotFound: {
+		http.StatusNotFound,
+		"Стикер не найден.",
+	},
+	apperror.StickerpackNotFound: {
+		http.StatusNotFound,
+		"Стикерпак не найден",
+	},
+	apperror.TooManyStickers: {
+		http.StatusRequestEntityTooLarge,
+		"Слишком много стикеров для одно стикерпака (не более 20)",
+	},
 }

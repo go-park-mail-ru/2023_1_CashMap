@@ -26,9 +26,10 @@ type UserRepository interface {
 	Unsubscribe(userEmail, targetLink string) (bool, error)
 	RejectFriendRequest(userEmail, targetLink string) error
 
-	//IsFriend(user, target *entities.User) (bool, error)
-	//IsSubscriber(user, target *entities.User) (bool, error)
-	//HasPendingRequest(user, target *entities.User) (bool, error)
+	IsFriend(email, link string) (bool, error)
+	IsSubscriber(email, link string) (bool, error)
+	IsSubscribed(email, link string) (bool, error)
+	//HasPendingRequest(email, link string) (bool, error)
 
 	CreateUser(user *entities.User) (*entities.User, error)
 	UpdateUser(email string, user *dto.EditProfile) (*entities.User, error)

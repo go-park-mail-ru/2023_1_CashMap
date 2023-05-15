@@ -234,7 +234,7 @@ func (storage *PostStorage) AddPostAttachments(postId uint, attachments []string
 		query += fmt.Sprintf("($%d), ", i)
 	}
 	query, _ = strings.CutSuffix(query, ", ")
-	query += "returning id"
+	query += " returning id"
 
 	postAttachments := make([]interface{}, len(attachments))
 	for i, att := range attachments {
@@ -277,6 +277,11 @@ func (storage *PostStorage) AddPostAttachments(postId uint, attachments []string
 func (storage *PostStorage) UpdatePost(senderEmail string, dto *dto.PostUpdate) error {
 	var isAuthor bool
 	tx, err := storage.db.Beginx()
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
 	if err != nil {
 		return apperror.NewServerError(apperror.InternalServerError, err)
 	}
@@ -303,6 +308,7 @@ func (storage *PostStorage) UpdatePost(senderEmail string, dto *dto.PostUpdate) 
 		return apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
+	_ = tx.Commit()
 	return nil
 }
 

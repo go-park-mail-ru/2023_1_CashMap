@@ -339,35 +339,35 @@ func (ur *UserRepository) GetPendingFriendRequests(user *entities.User, limit, o
 
 }
 
-//// IsFriend returns true when user is subscribed on target and vice versa
-//func (ur *UserRepository) IsFriend(user, target *entities.User) (bool, error) {
-//	var isFriend bool
-//	err := ur.DB.QueryRowx(IsFriend, user.ID, target.ID).Scan(&isFriend)
-//	if err != nil {
-//		return false, apperror.InternalServerError
-//	}
-//	return isFriend, nil
-//}
-//
-//// IsSubscriber returns true when user is subscribed on target
-//func (ur *UserRepository) IsSubscriber(user, target *entities.User) (bool, error) {
-//	var isSub bool
-//	err := ur.DB.QueryRowx(IsSubscriber, user.ID, target.ID).Scan(&isSub)
-//	if err != nil {
-//		return false, apperror.InternalServerError
-//	}
-//	return isSub, nil
-//}
-//
-//// IsSubscribed returns true when target is subscribed on user (rejected request)
-//func (ur *UserRepository) IsSubscribed(user, target *entities.User) (bool, error) {
-//	var isSub bool
-//	err := ur.DB.QueryRowx(IsSubscribed, user.ID, target.ID).Scan(&isSub)
-//	if err != nil {
-//		return false, apperror.InternalServerError
-//	}
-//	return isSub, nil
-//}
+// IsFriend returns true when user is subscribed on target and vice versa
+func (ur *UserRepository) IsFriend(email, link string) (bool, error) {
+	var isFriend bool
+	err := ur.DB.QueryRowx(IsFriend, email, link).Scan(&isFriend)
+	if err != nil {
+		return false, apperror.InternalServerError
+	}
+	return isFriend, nil
+}
+
+// IsSubscriber returns true when user is subscribed on target
+func (ur *UserRepository) IsSubscriber(email, link string) (bool, error) {
+	var isSub bool
+	err := ur.DB.QueryRowx(IsSubscriber, email, link).Scan(&isSub)
+	if err != nil {
+		return false, apperror.InternalServerError
+	}
+	return isSub, nil
+}
+
+// IsSubscribed returns true when target is subscribed on user (rejected request)
+func (ur *UserRepository) IsSubscribed(email, link string) (bool, error) {
+	var isSub bool
+	err := ur.DB.QueryRowx(IsSubscribed, email, link).Scan(&isSub)
+	if err != nil {
+		return false, apperror.InternalServerError
+	}
+	return isSub, nil
+}
 
 // HasPendingRequest returns true when target is subscribed on user (unseen yet request)
 //func (ur *UserRepository) HasPendingRequest(user, target *entities.User) (bool, error) {

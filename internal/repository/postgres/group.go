@@ -134,8 +134,8 @@ func (gr *GroupRepository) CreateGroup(ownerEmail string, group *dto.Group) (*en
 		}
 		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
-
-	_, err = tx.Exec(UpdateGroupLink, fmt.Sprintf("id%d", id), id)
+	groupLink := fmt.Sprintf("id%d", id)
+	_, err = tx.Exec(UpdateGroupLink, groupLink, id)
 	if err != nil {
 		errRB := tx.Rollback()
 		if errRB != nil {
@@ -169,7 +169,7 @@ func (gr *GroupRepository) CreateGroup(ownerEmail string, group *dto.Group) (*en
 		}
 		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
-	return nil, nil
+	return &entities.Group{Link: groupLink}, nil
 }
 
 var groupMapNames = map[string]string{

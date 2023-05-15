@@ -275,7 +275,9 @@ var (
     join friendrequests f2 on
             f1.subscribed = f2.subscriber and
             f2.subscribed = f1.subscriber
-where f1.subscriber = $1 and f1.subscribed = $2)
+	join userprofile u on u.id = f1.subscriber
+	join userprofile u2 on u2.id = f1.subscribed
+where u.email = $1 and u2.link = $2)
 	`
 
 	// IsSubscriber returns true when $1 is subscribed on $2
@@ -284,18 +286,21 @@ select exists(select * from friendrequests f1
     left join friendrequests f2 on
             f1.subscribed = f2.subscriber and
             f2.subscribed = f1.subscriber
-where f1.subscriber = $1 and f1.subscribed = $2 and 
-      f2 is null)`
+            join userprofile u on u.id = f1.subscriber
+            join userprofile u2 on u2.id = f1.subscribed
+              where u.email = $1 and u2.link = $2 and
+            f2 is null)`
 
 	// IsSubscribed returns true when $2 is subscribed on $1 (rejected request)
 	IsSubscribed = `
 	select exists(select * from friendrequests f1
-    left join friendrequests f2 on
+                                left join friendrequests f2 on
             f1.subscribed = f2.subscriber and
             f2.subscribed = f1.subscriber
-	where f1.subscriber = $2 and f1.subscribed = $1 and 
-	      f2 is null and
-	      f1.rejected)
+            join userprofile u on u.id = f1.subscriber
+            join userprofile u2 on u2.id = f1.subscribed
+            where f2 is null
+            and u.link = $2 and u2.email = $1)
 `
 	// HasPendingRequest returns true when $2 is subscribed on $1 (unseen yet request)
 	HasPendingRequest = `
@@ -840,5 +845,96 @@ limit $2
 	select a.url url from attachment a
     	join messageattachment m on a.id = m.doc_id
 	where m.message_id = $1
+	`
+)
+
+var (
+	GetStickerByID = `
+	select id, url, stickerpack_id from sticker
+	where id = $1
+	`
+
+	GetStickerpackByID = `
+	select s.id, s.author,
+	       s.cover, 
+	       s.description, 
+	       s.creation_date,
+	       s.title, s.depeche_authored
+	from stickerpack s
+	where id = $1
+	`
+
+	GetStickersByPack = `
+	select s.id, s.url, $1 stickerpack_id 
+	from sticker s 
+	    join stickerpack s2 
+	    on s.stickerpack_id = s2.id
+	where s2.id = $1
+	`
+
+	GetStickerPacksByEmail = `
+	select s.id, s.author,
+	       s.cover, 
+	       s.description, 
+	       s.creation_date,
+	       s.title, s.depeche_authored
+	from stickerpack s
+	join userstickerpack up on s.id = up.pack_id
+	join userprofile u on up.user_id = u.id
+	where u.email = $1
+	limit $2 offset $3
+	`
+
+	GetStickerPacksByAuthor = `
+	select s.id, s.author,
+	       s.cover, 
+	       s.description, 
+	       s.creation_date,
+	       s.title, s.depeche_authored
+	from stickerpack s
+	where s.author = $1
+	limit $2 offset $3
+	`
+
+	GetNewStickerPacks = `
+	select s.id, s.author,
+	       s.cover, 
+	       s.description, 
+	       s.creation_date ,
+	       s.title, s.depeche_authored
+	from stickerpack s
+	order by creation_date desc 
+	limit $1 offset $2
+	`
+
+	AddStickerPack = `
+	insert into userstickerpack (user_id, pack_id) 
+	select u.id, $2 from userprofile u where u.email = $1
+	`
+
+	GetStickerpackAuthorLink = `
+		select link from userprofile where email = $1
+	`
+
+	UploadStickerpack = `
+		insert into stickerpack 
+		    (title, description,  
+		     cover,  author, 
+		     creation_date) 
+		values
+		($1, $2, $3, $4, $5)
+		returning id
+	`
+
+	GetDepechePacks = `
+	select s.id, s.author,
+	       s.cover, 
+	       s.description, 
+	       s.creation_date ,
+	       s.title, s.depeche_authored
+	from stickerpack s
+	where s.depeche_authored
+	order by creation_date desc 
+	limit $1 offset $2
 	`
 )

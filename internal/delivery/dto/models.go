@@ -59,6 +59,22 @@ type Profile struct {
 	Private    bool   `json:"private"     example:"false"`
 }
 
+type UserStatus int
+
+const (
+	None = iota
+	Friend
+	Subscriber
+	Subscribed
+)
+
+var StatusToString = map[UserStatus]string{
+	None:       "none",
+	Friend:     "friend",
+	Subscriber: "subscriber",
+	Subscribed: "subscribed",
+}
+
 func NewProfileFromUser(user *entities.User) *Profile {
 	// TODO add fields to entity
 	if user.Link == "" {

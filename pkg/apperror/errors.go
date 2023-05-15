@@ -45,6 +45,12 @@ var (
 	GroupAlreadyExists = errors.New("link is already in use")
 )
 
+var (
+	StickerNotFound     = errors.New("sticker not found")
+	StickerpackNotFound = errors.New("stickerpack not found")
+	TooManyStickers     = errors.New("to many sticker passed to 1 stickerpack")
+)
+
 type ServerError struct {
 	UserErr     error
 	internalErr error

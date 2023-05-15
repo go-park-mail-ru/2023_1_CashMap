@@ -70,7 +70,11 @@ func (g *Group) GetManagedGroups(email string, limit int, offset int) ([]*entiti
 }
 
 func (g *Group) CreateGroup(ownerEmail string, group *dto.Group) error {
-	_, err := g.repo.CreateGroup(ownerEmail, group)
+	gr, err := g.repo.CreateGroup(ownerEmail, group)
+	if err != nil {
+		return err
+	}
+	err = g.Subscribe(ownerEmail, gr.Link)
 	if err != nil {
 		return err
 	}
