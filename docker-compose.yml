@@ -13,6 +13,9 @@ services:
     depends_on:
       postgres:
         condition: service_started
+      static:
+        condition: service_started
+
   redis:
     image: redis:latest
     container_name: depeche_redis
@@ -55,8 +58,7 @@ services:
     depends_on:
       redis:
         condition: service_started
-      static:
-        condition: service_started
+
 
   static:
     container_name: depeche_static
