@@ -10,6 +10,7 @@ import (
 	"depeche/static/service"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/penglongli/gin-metrics/ginmetrics"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
@@ -39,6 +40,13 @@ func StartStaticApp() {
 	router.Use(middleware.CORS())
 	router.Use(middleware.ErrorMiddleware())
 	router.Use(delivery.AuthMiddleware(authService))
+
+	// [METRICS]
+	m := ginmetrics.GetMonitor()
+	m.SetMetricPath("/metrics")
+	m.SetSlowTime(5)
+	m.SetDuration([]float64{0.02, 0.08, 0.1, 0.2, 0.5})
+	m.Use(router)
 	// [STATIC]
 	staticEndpointsGroup := router.Group("/static")
 	{

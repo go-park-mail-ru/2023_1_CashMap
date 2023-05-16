@@ -17,7 +17,7 @@ func (s *Storage) CreateSession(token string, session *authEntities.Session) err
 	_, err := s.Client.Do("SET", token, session.Email, "EX", s.ExpirationTime).Result()
 	fmt.Println("NEW SESSION: ", session.Email)
 	if err != nil {
-		return err
+		return apperror.InternalServerError
 	}
 	return nil
 }
@@ -35,7 +35,7 @@ func (s *Storage) GetSession(token string) (*authEntities.Session, error) {
 func (s *Storage) DeleteSession(token string) error {
 	_, err := s.Client.Do("DEL", token).Result()
 	if err != nil {
-		return err
+		return apperror.InternalServerError
 	}
 	return nil
 }

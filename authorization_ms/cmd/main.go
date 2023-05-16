@@ -3,14 +3,18 @@ package main
 import (
 	"depeche/authorization_ms/api"
 	"depeche/authorization_ms/handler"
+	"depeche/authorization_ms/metrics"
 	"depeche/authorization_ms/repository/redis"
 	"depeche/authorization_ms/service"
 	"depeche/configs"
 	"depeche/pkg/connector"
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 	"log"
 	"net"
+	"net/http"
 )
 
 func main() {
@@ -34,6 +38,16 @@ func main() {
 	srv := grpc.NewServer()
 	api.RegisterAuthServiceServer(srv, authHandler)
 	api.RegisterCSRFServiceServer(srv, csrfHandler)
+
+	prometheus.MustRegister(metrics.RequestCounter)
+	prometheus.MustRegister(metrics.DurationHistogram)
+	http.Handle("/metrics", promhttp.Handler())
+	go func() {
+		err := http.ListenAndServe(":8091", nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.AuthMs.Port))
 	if err != nil {

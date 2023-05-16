@@ -39,12 +39,6 @@ func Run() {
 	// TODO: как обработать ошибку в дефере нормаль?...
 	defer db.Close()
 
-	//redisClient, err := connector.ConnectRedis(&cfg.SessionStorage)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-
-	//sessionStorage := redis2.NewRedisStorage(client)
 	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", cfg.AuthMs.Host, cfg.AuthMs.Port),
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -114,7 +108,7 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 	m := ginmetrics.GetMonitor()
 	m.SetMetricPath("/metrics")
 	m.SetSlowTime(5)
-	m.SetDuration([]float64{0.1, 0.3, 1.2, 5, 10})
+	m.SetDuration([]float64{0.02, 0.08, 0.1, 0.2, 0.5})
 	m.Use(router)
 	// [MIDDLEWARE]
 	router.Use(middleware2.CORS())
