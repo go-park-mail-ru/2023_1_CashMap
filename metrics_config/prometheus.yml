@@ -21,4 +21,4 @@ scrape_configs:
     metrics_path: /metrics
     static_configs:
       - targets:
-          - depeche_static:8082
+          - depeche_static:8092

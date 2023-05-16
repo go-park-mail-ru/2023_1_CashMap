@@ -49,10 +49,13 @@ services:
       dockerfile: Dockerfile-auth
     ports:
       - "8081:8081"
+      - "8091:8091"
     links:
       - "redis:redis"
     depends_on:
       redis:
+        condition: service_started
+      static:
         condition: service_started
 
   static:
@@ -64,6 +67,8 @@ services:
       - "auth:auth"
     ports:
       - "8082:8082"
+      - "8092:8092"
+
     volumes:
       - static_files:/depeche_backend/static/files
 

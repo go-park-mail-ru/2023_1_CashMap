@@ -42,11 +42,13 @@ func StartStaticApp() {
 	router.Use(delivery.AuthMiddleware(authService))
 
 	// [METRICS]
+	metricRouter := gin.Default()
 	m := ginmetrics.GetMonitor()
 	m.SetMetricPath("/metrics")
 	m.SetSlowTime(5)
 	m.SetDuration([]float64{0.02, 0.08, 0.1, 0.2, 0.5})
-	m.Use(router)
+	m.UseWithoutExposingEndpoint(router)
+	m.Expose(metricRouter)
 	// [STATIC]
 	staticEndpointsGroup := router.Group("/static-service")
 	{
@@ -55,10 +57,17 @@ func StartStaticApp() {
 		staticEndpointsGroup.DELETE("/remove", staticHandler.DeleteFile)
 	}
 
+	go func() {
+		err := metricRouter.Run(":8092")
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 	server := httpserver.NewServer(router, cfg.StaticMs.Port)
 	err = server.ListenAndServe()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+
 }
