@@ -51,6 +51,10 @@ func (storage CommentStorage) GetCommentById(email string, id uint) (*entities.C
 func (storage CommentStorage) GetCommentsByPostId(email string, dto *dto.GetCommentsDTO) ([]*entities.Comment, bool, error) {
 	var comments []*entities.Comment
 
+	if dto.LastCommentDate != nil {
+		
+	}
+
 	err := storage.db.Select(&comments, GetCommentsByPostIdQuery, dto.ID, dto.Count, dto.LastCommentDate, email)
 	if err == sql.ErrNoRows {
 		return comments, false, nil
@@ -76,7 +80,7 @@ func (storage CommentStorage) GetCommentsByPostId(email string, dto *dto.GetComm
 	}
 	var hasNext bool
 	if len(comments) != 0 {
-		err = storage.db.Get(&hasNext, HasNextCommentsQuery, comments[len(comments)-1].CreationDate)
+		err = storage.db.Get(&hasNext, HasNextCommentsQuery, comments[len(comments)-1].CreationDate, comments[len(comments)-1].PostID)
 		if err != nil {
 			return nil, false, err
 		}

@@ -891,7 +891,7 @@ var (
 	`
 
 	HasNextCommentsQuery = `
-		SELECT CASE WHEN COUNT(*) <> 0 THEN true ELSE false END FROM Comment WHERE creation_date > $1
+		SELECT CASE WHEN COUNT(*) <> 0 THEN true ELSE false END FROM Comment WHERE creation_date > $1 and is_deleted = false and post_id = $2
 	`
 
 	IsCommentAuthor = `
