@@ -48,7 +48,7 @@ func StartStaticApp() {
 	m.SetDuration([]float64{0.02, 0.08, 0.1, 0.2, 0.5})
 	m.Use(router)
 	// [STATIC]
-	staticEndpointsGroup := router.Group("/static")
+	staticEndpointsGroup := router.Group("/static-service")
 	{
 		staticEndpointsGroup.POST("/upload", staticHandler.LoadFile)
 		staticEndpointsGroup.GET("/download", staticHandler.GetFile)
