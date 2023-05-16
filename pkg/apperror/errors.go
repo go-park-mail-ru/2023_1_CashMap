@@ -44,6 +44,7 @@ var (
 	GroupNotFound      = errors.New("group not found")
 	UnableToLoadAvatar = errors.New("unable to load avatar")
 	GroupAlreadyExists = errors.New("link is already in use")
+	GroupTitleRequired = errors.New("group title required")
 )
 
 var (
@@ -172,5 +173,9 @@ var Errors = map[error]ErrorResponse{
 	TooManyStickers: {
 		http.StatusRequestEntityTooLarge,
 		"Слишком много стикеров для одно стикерпака (не более 20)",
+	},
+	GroupTitleRequired: {
+		http.StatusBadRequest,
+		"Имя сообщества - обязательное поле",
 	},
 }
