@@ -110,4 +110,9 @@ var Errors = map[error]ErrorResponse{
 		http.StatusConflict,
 		"Сообщество с таким идентификатором уже существует.",
 	},
+
+	apperror.GroupTitleRequired: {
+		http.StatusBadRequest,
+		"Имя сообщества - обязательное поле",
+	},
 }

@@ -42,6 +42,7 @@ var (
 	GroupNotFound      = errors.New("group not found")
 	UnableToLoadAvatar = errors.New("unable to load avatar")
 	GroupAlreadyExists = errors.New("link is already in use")
+	GroupTitleRequired = errors.New("group title required")
 )
 
 type ServerError struct {

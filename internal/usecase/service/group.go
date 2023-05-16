@@ -6,6 +6,7 @@ import (
 	"depeche/internal/repository"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
+	"errors"
 )
 
 type Group struct {
@@ -70,6 +71,9 @@ func (g *Group) GetManagedGroups(email string, limit int, offset int) ([]*entiti
 }
 
 func (g *Group) CreateGroup(ownerEmail string, group *dto.Group) error {
+	if group.Title == "" {
+		return apperror.NewServerError(apperror.GroupTitleRequired, errors.New("group title wasn't provided"))
+	}
 	_, err := g.repo.CreateGroup(ownerEmail, group)
 	if err != nil {
 		return err
