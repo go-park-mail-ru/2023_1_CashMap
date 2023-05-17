@@ -589,7 +589,8 @@ var (
 		        post.likes_amount, 
         		case when post.show_author is null then true else post.show_author end  AS show_author,
         		post.creation_date,
-        		CASE WHEN like_table.post_id is null THEN FALSE ELSE TRUE END as is_liked
+        		CASE WHEN like_table.post_id is null THEN FALSE ELSE TRUE END as is_liked,
+        		comments_amount
 		FROM Post post
 		    JOIN userprofile author on author.id = post.author_id 
 			LEFT JOIN PostLike as like_table ON like_table.user_id = (SELECT id FROM UserProfile WHERE email = $1) AND like_table.post_id = post.id
@@ -633,7 +634,7 @@ var (
 		`
 
 	PostInfoByIdQuery = `
-			SELECT post.id, text_content, author.link as author_link, post.likes_amount, post.show_author, post.creation_date, CASE WHEN like_table.post_id is null THEN FALSE ELSE TRUE END as is_liked
+			SELECT post.id, text_content, author.link as author_link, post.likes_amount, post.show_author, post.creation_date, comments_amount, CASE WHEN like_table.post_id is null THEN FALSE ELSE TRUE END as is_liked
 			FROM Post AS post
 					 JOIN UserProfile AS author ON post.author_id = author.id
 					 LEFT JOIN groups as community on post.group_id = community.id
@@ -651,7 +652,8 @@ var (
 			   post.show_author,
 			   post.creation_date,
 			   post.change_date,
-			   CASE WHEN like_table.post_id is null THEN FALSE ELSE TRUE END as is_liked
+			   CASE WHEN like_table.post_id is null THEN FALSE ELSE TRUE END as is_liked,
+			   comments_amount
 		FROM Post AS post
 				 JOIN UserProfile AS author ON post.author_id = author.id
 				 LEFT JOIN groups as community on post.group_id = community.id
