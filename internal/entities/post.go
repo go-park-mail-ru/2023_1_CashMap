@@ -11,6 +11,7 @@ type Post struct {
 	ShouldShowAuthor bool           `db:"show_author" json:"show_author"`
 	Text             string         `db:"text_content" json:"text_content"`
 	Likes            int            `db:"likes_amount" json:"likes_amount"`
+	CommentAmount    int            `db:"comments_amount" json:"comments_amount"`
 	CreationDate     string         `db:"creation_date" json:"creation_date"`
 	ChangeDate       string         `db:"change_date" json:"change_date"`
 	IsDeleted        bool           `db:"is_deleted" json:"is_deleted"`

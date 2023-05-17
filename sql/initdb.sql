@@ -87,6 +87,7 @@ CREATE TABLE Post
     show_author   boolean,
     text_content  text,
     likes_amount  int     NOT NULL DEFAULT 0,
+    comments_amount int not null default 0,
     creation_date text,
     change_date   text,
     is_deleted    boolean NOT NULL DEFAULT false,
@@ -121,7 +122,7 @@ CREATE TABLE Comment
 (
     id            serial,
     post_id       int REFERENCES Post (id),
-    user_id       int REFERENCES Post (id),
+    user_id       int REFERENCES UserProfile (id),
     reply_to      int REFERENCES Comment (id),
     text_content  text,
     creation_date text,
@@ -195,7 +196,7 @@ CREATE TABLE Message
     text_content         text,
     creation_date        text,
     change_date          text,
-    reply_to             int REFERENCES Message (id),
+    reply_to             int REFERENCES Message (id) DEFAULT NULL,
 
     is_deleted           boolean NOT NULL DEFAULT false,
     PRIMARY KEY (id)
@@ -268,12 +269,53 @@ END;
 $$
     LANGUAGE 'plpgsql';
 
+
+CREATE OR REPLACE FUNCTION increase_comments_count()
+    RETURNS trigger AS
+$$
+BEGIN
+    UPDATE post set comments_amount = comments_amount + 1
+    where NEW.post_id = post.id;
+    return NEW;
+END;
+$$
+    LANGUAGE 'plpgsql';
+
+
+CREATE OR REPLACE FUNCTION decrease_comments_count()
+    RETURNS trigger AS
+$$
+BEGIN
+    IF new.is_deleted = false then
+        return new;
+    end if;
+    RAISE log 'Value: %', NEW;
+    UPDATE post set comments_amount = comments_amount - 1
+    where new.post_id = id;
+    return new;
+END;
+$$
+    LANGUAGE 'plpgsql';
+
+
+
 CREATE trigger increase_subscribers_count_on_insert_update_trigger
     after insert or update of accepted on groupsubscriber
     FOR EACH ROW
     EXECUTE FUNCTION increase_subscribers_count();
 
-CREATE trigger increase_subscribers_count_on_delete_trigger
+CREATE trigger decrease_subscribers_count_on_delete_trigger
     before delete on groupsubscriber
     FOR EACH ROW
 EXECUTE FUNCTION decrease_subscribers_count();
+
+CREATE or REPLACE trigger increase_comments_count_on_delete_trigger
+    after insert on comment
+    FOR EACH ROW
+EXECUTE FUNCTION increase_comments_count();
+
+
+CREATE or REPLACE trigger decrease_comments_count_on_delete_trigger
+    after update of is_deleted on comment
+    FOR EACH ROW
+EXECUTE FUNCTION decrease_comments_count();

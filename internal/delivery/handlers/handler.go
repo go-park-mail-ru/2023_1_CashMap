@@ -7,6 +7,7 @@ type Handler struct {
 	*MessageHandler
 	*GroupHandler
 	*Sticker
+	*CommentHandler
 }
 
 func NewHandler(userHandler *UserHandler,
@@ -14,7 +15,9 @@ func NewHandler(userHandler *UserHandler,
 	postHandler *PostHandler,
 	msgHandler *MessageHandler,
 	groupHandler *GroupHandler,
-	stickerHandler *Sticker) Handler {
+	stickerHandler *Sticker,
+	commentHandler *CommentHandler) Handler {
+
 	return Handler{
 		userHandler,
 		feedHandler,
@@ -22,5 +25,6 @@ func NewHandler(userHandler *UserHandler,
 		msgHandler,
 		groupHandler,
 		stickerHandler,
+		commentHandler,
 	}
 }

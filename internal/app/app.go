@@ -53,6 +53,7 @@ func Run() {
 	messageStorage := postgres.NewMessageRepository(db)
 	groupStorage := postgres.NewGroupRepository(db)
 	stickerStorage := postgres.NewStickerRepository(db)
+	commentStorage := postgres.NewCommentStorage(db)
 
 	userService := service.NewUserService(userStorage)
 	authorizationService := client.NewAuthService(authClient)
@@ -62,6 +63,7 @@ func Run() {
 	groupService := service.NewGroupService(groupStorage)
 	msgService := service.NewMessageService(messageStorage, userStorage)
 	stickerService := service.NewStickerService(stickerStorage)
+	commentService := service.NewCommentService(commentStorage)
 
 	userHandler := handlers.NewUserHandler(userService, authorizationService, csrfService)
 	feedHandler := handlers.NewFeedHandler(feedService)
@@ -69,12 +71,13 @@ func Run() {
 	messageHandler := handlers.NewMessageHandler(msgService)
 	groupHandler := handlers.NewGroupHandler(groupService)
 	stickerHandler := handlers.NewStickerHandler(stickerService)
-
+	commentHandler := handlers.NewCommentHandler(commentService)
 	handler := handlers.NewHandler(
 		userHandler, feedHandler,
 		postHandler,
 		messageHandler, groupHandler,
-		stickerHandler)
+		stickerHandler,
+		commentHandler)
 
 	authMiddleware := middleware.NewAuthMiddleware(authorizationService)
 
@@ -132,6 +135,16 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 	apiEndpointsGroup.Use(authMW.Middleware())
 	apiEndpointsGroup.Use(csrfMiddleware.Middleware())
 	{
+
+		// [COMMENT]
+		commentEndpointsGroup := apiEndpointsGroup.Group("comment")
+		{
+			commentEndpointsGroup.GET("/:id", handler.GetCommentById)
+			commentEndpointsGroup.GET("/post/:id", handler.GetCommentByPostId)
+			commentEndpointsGroup.POST("/create", handler.CreateComment)
+			commentEndpointsGroup.PATCH("/edit", handler.EditComment)
+			commentEndpointsGroup.POST("/delete/:id", handler.DeleteComment)
+		}
 
 		// [FEED]
 		apiEndpointsGroup.GET("/feed", handler.GetFeed)
