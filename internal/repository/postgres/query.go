@@ -317,9 +317,9 @@ select exists(select * from friendrequests f1
 var (
 	CreateMessage = `
 	insert into message
-	(user_id, chat_id, message_content_type, text_content, creation_date, reply_to)
+	(user_id, chat_id, message_content_type, sticker_id, text_content, creation_date, reply_to)
 	values 
-	($1,$2,$3,$4,$5,$6)
+	($1,$2,$3,$4,$5,$6, $7)
 	returning (id)
 	`
 
@@ -327,7 +327,7 @@ var (
 	select id, user_id, 
 	           chat_id, message_content_type, 
 	           text_content, creation_date, 
-	           reply_to, is_deleted
+	           reply_to, is_deleted, sticker_id
 	from message where id = $1
 `
 
@@ -699,7 +699,7 @@ var (
 
 var (
 	MessageByChatIdQuery = `
-		SELECT msg.id, msg.chat_id, text_content, msg.creation_date, msg.change_date, msg.reply_to, msg.is_deleted
+		SELECT msg.id, msg.chat_id, msg.text_content, msg.message_content_type, msg.sticker_id, msg.creation_date, msg.change_date, msg.reply_to, msg.is_deleted
 		FROM Message AS msg
 				 JOIN UserProfile AS author ON msg.user_id = author.id
 		WHERE msg.chat_id = (SELECT id FROM Chat WHERE id = $1)

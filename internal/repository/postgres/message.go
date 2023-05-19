@@ -27,7 +27,7 @@ func (storage *MessageStorage) SaveMsg(message *dto.NewMessageDTO) (*entities.Me
 	msg := &entities.Message{}
 	err := storage.db.QueryRowx(CreateMessage,
 		message.UserId, message.ChatId,
-		message.ContentType,
+		message.ContentType, message.StickerID,
 		message.Text,
 		utils.CurrentTimeString(),
 		message.ReplyTo).Scan(&msg.Id)
@@ -95,9 +95,30 @@ func (storage *MessageStorage) SelectMessagesByChatID(senderEmail string, dto *d
 		}
 
 		message.SenderInfo = info
+
+		if *message.ContentType == "sticker" {
+			sticker, err := storage.GetStickerById(*message.StickerId)
+			if err != nil {
+				continue
+			}
+			message.Sticker = sticker
+		}
 	}
 
 	return messages, nil
+}
+
+func (storage *MessageStorage) GetStickerById(stickerID uint) (*entities.Sticker, error) {
+	sticker := &entities.Sticker{}
+	err := storage.db.QueryRowx(GetStickerByID, stickerID).Scan(sticker)
+	if err == sql.ErrNoRows {
+		return nil, apperror.NewServerError(apperror.StickerNotFound, nil)
+	}
+	if err != nil {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	return sticker, nil
 }
 
 func (storage *MessageStorage) SelectChats(senderEmail string, dto *dto.GetChatsDTO) ([]*entities.Chat, error) {

@@ -6,6 +6,8 @@ type Message struct {
 	SenderInfo  *UserInfo `json:"sender_info" db:"sender_info"`
 	ChatId      *uint     `json:"chat_id" db:"chat_id"`
 	ContentType *string   `json:"message_content_type" db:"message_content_type"`
+	StickerId   *uint     `json:"-" db:"sticker_id"`
+	Sticker     *Sticker  `json:"sticker"`
 	Text        *string   `json:"text_content" db:"text_content"`
 	CreatedAt   *string   `json:"creation_date" db:"creation_date"`
 	ChangedAt   *string   `json:"change_date" db:"change_date"`
