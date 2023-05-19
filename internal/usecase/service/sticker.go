@@ -58,7 +58,22 @@ func (s *Sticker) GetStickerPacksInfoByAuthor(author string, limit, offset int) 
 }
 
 func (s *Sticker) GetDepechePacks(limit, offset int) ([]*entities.StickerPack, error) {
-	return s.repo.GetDepechePacks(limit, offset)
+	packs, err := s.repo.GetDepechePacks(limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	for _, pack := range packs {
+		stickerPtrs, err := s.repo.GetStickersByPackId(pack.ID)
+		if err != nil {
+			return nil, err
+		}
+		stickers := make([]entities.Sticker, len(stickerPtrs))
+		for i, sticker := range stickerPtrs {
+			stickers[i] = *sticker
+		}
+		pack.Stickers = stickers
+	}
+	return packs, nil
 }
 
 func (s *Sticker) GetNewStickerPacksInfo(limit, offset int) ([]*entities.StickerPack, error) {

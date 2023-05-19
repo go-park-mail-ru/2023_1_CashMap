@@ -193,6 +193,7 @@ CREATE TABLE Message
     user_id              int REFERENCES UserProfile (id),
     chat_id              int REFERENCES Chat (id),
     message_content_type text,
+    sticker_id           int,
     text_content         text,
     creation_date        text,
     change_date          text,
@@ -319,3 +320,28 @@ CREATE or REPLACE trigger decrease_comments_count_on_delete_trigger
     after update of is_deleted on comment
     FOR EACH ROW
 EXECUTE FUNCTION decrease_comments_count();
+
+insert into stickerpack (id, title, depeche_authored, cover, description, creation_date)
+values (1, 'Персик', true, 'url', 'Величественный комок шерсти, обожающий спать, мурчать и играть с компьютерной мышкой.', ''),
+       (2, 'Дигги', true, 'url', 'Шикарный, непревзойдённый мемасный пёс!', '');
+
+insert into sticker (url, stickerpack_id)
+values ('', 1),
+       ('', 1),
+       ('', 1),
+       ('', 1),
+       ('', 1),
+       ('', 1),
+       ('', 1),
+       ('', 1),
+       ('', 2),
+       ('', 2),
+       ('', 2),
+       ('', 2),
+       ('', 2),
+       ('', 2),
+       ('', 2),
+       ('', 2),
+       ('', 2),
+       ('', 2)
+

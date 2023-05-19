@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"depeche/internal/delivery/dto"
+	"depeche/internal/delivery/utils"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
 	"fmt"
@@ -29,31 +30,17 @@ func NewMessageHandler(service usecase.MessageUsecase) *MessageHandler {
 //	@Failure		500
 //	@Router			/api/im/send [post]
 func (handler *MessageHandler) Send(ctx *gin.Context) {
-	var request = struct {
-		Data *dto.NewMessageDTO `json:"body"`
-	}{}
-
-	err := ctx.ShouldBindJSON(&request)
+	body, err := utils.GetBody[dto.NewMessageDTO](ctx)
 	if err != nil {
-		_ = ctx.Error(apperror.BadRequest)
+		_ = ctx.Error(err)
 		return
 	}
-
-	if request.Data == nil {
-		_ = ctx.Error(apperror.BadRequest)
+	email, err := utils.GetEmail(ctx)
+	if err != nil {
+		_ = ctx.Error(err)
 		return
 	}
-	email, ok := ctx.Get("email")
-	if !ok {
-		_ = ctx.Error(apperror.NoAuth)
-		return
-	}
-	e, ok := email.(string)
-	if !ok {
-		_ = ctx.Error(apperror.BadRequest)
-		return
-	}
-	msg, err := handler.MessageUsecase.Send(e, request.Data)
+	msg, err := handler.MessageUsecase.Send(email, body)
 	if err != nil {
 		_ = ctx.Error(err)
 	}
