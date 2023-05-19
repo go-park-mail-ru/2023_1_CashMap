@@ -58,6 +58,11 @@ func (feed *FeedService) CollectPosts(email string, dto *dto.FeedDTO) ([]*entiti
 		if err != nil {
 			return nil, err
 		}
+		attachments, err := feed.postRepo.GetPostAttachments(post.ID)
+		if err != nil {
+			return nil, err
+		}
+		post.Attachments = attachments
 	}
 	sort.Slice(posts, func(i int, j int) bool {
 		return posts[j].CreationDate < posts[i].CreationDate

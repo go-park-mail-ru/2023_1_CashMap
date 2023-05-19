@@ -35,7 +35,7 @@ func (service *PostService) GetPostById(email string, postDTO *dto.PostGetByID) 
 		return nil, err
 	}
 
-	err = service.addPostData(post)
+	err = service.AddPostData(post)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (service *PostService) GetPostsByCommunityLink(email string, dto *dto.Posts
 	}
 
 	for _, post := range posts {
-		err = service.addPostData(post)
+		err = service.AddPostData(post)
 		if err != nil {
 			return nil, err
 		}
@@ -87,7 +87,7 @@ func (service *PostService) GetPostsByUserLink(email string, dto *dto.PostsGetBy
 	}
 
 	for _, post := range posts {
-		err = service.addPostData(post)
+		err = service.AddPostData(post)
 		if err != nil {
 			return nil, err
 		}
@@ -134,7 +134,7 @@ func (service *PostService) CreatePost(email string, dto *dto.PostCreate) (*enti
 	if err != nil {
 		return nil, err
 	}
-	err = service.addPostData(post)
+	err = service.AddPostData(post)
 	if err != nil {
 		return nil, err
 	}
@@ -145,8 +145,19 @@ func (service *PostService) UpdatePost(email string, dto *dto.PostUpdate) error 
 	if dto.PostID == nil {
 		return errors.New("post_id is required field")
 	}
+	attachments, err := service.PostRepository.GetPostAttachments(*dto.PostID)
+	if err != nil {
+		return err
+	}
 
-	err := service.PostRepository.UpdatePost(email, dto)
+	if len(attachments)+len(dto.Attachments.Added)-len(dto.Attachments.Deleted) > 10 {
+		return apperror.NewServerError(apperror.TooMuchAttachments, nil)
+	}
+	err = service.PostRepository.UpdatePostAttachments(*dto.PostID, dto.Attachments)
+	if err != nil {
+		return err
+	}
+	err = service.PostRepository.UpdatePost(email, dto)
 	if err != nil {
 		return err
 	}
@@ -194,7 +205,7 @@ func (service *PostService) Repost() {
 	panic("implement me")
 }
 
-func (service *PostService) addPostData(post *entities.Post) error {
+func (service *PostService) AddPostData(post *entities.Post) error {
 	owner, community, err := service.PostRepository.GetPostSenderInfo(post.ID)
 	if err != nil {
 		return err

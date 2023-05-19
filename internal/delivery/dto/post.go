@@ -1,7 +1,5 @@
 package dto
 
-import "io"
-
 type PostGetByID struct {
 	PostID uint `form:"post_id" json:"post_id"`
 }
@@ -27,12 +25,16 @@ type PostDelete struct {
 }
 
 type PostUpdate struct {
-	PostID              *uint            `form:"post_id" valid:"-"`
-	ShouldShowAuthor    *bool            `form:"show_author" valid:"-"`
-	Text                *string          `form:"text" valid:"-"`
-	Attachments         *[]io.ReadCloser `form:"attachments" valid:"-"`
-	AttachmentsToRemove *[]string        `form:"attachments_to_remove" valid:"-"`
-	ChangeDate          string           `form:"-" json:"-"`
+	PostID           *uint              `json:"post_id" valid:"-"`
+	ShouldShowAuthor *bool              `json:"show_author" valid:"-"`
+	Text             *string            `json:"text" valid:"-"`
+	Attachments      *UpdateAttachments `json:"attachments"`
+	ChangeDate       string             `json:"-" json:"-"`
+}
+
+type UpdateAttachments struct {
+	Deleted []string `json:"deleted"`
+	Added   []string `json:"added"`
 }
 
 type LikeDTO struct {
