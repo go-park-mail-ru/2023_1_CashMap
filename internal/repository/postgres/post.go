@@ -274,6 +274,26 @@ func (storage *PostStorage) AddPostAttachments(postId uint, attachments []string
 	return nil
 }
 
+func (storage *PostStorage) DeletePostAttachments(postId uint, attachments []string) error {
+	query := `with atts as (select id from attachment where url in (`
+	params := make([]interface{}, 0, len(attachments)+1)
+	params = append(params, postId)
+	for i, att := range attachments {
+		params = append(params, att)
+		query += fmt.Sprintf("$%d, ", i+2)
+	}
+	query, _ = strings.CutSuffix(query, ", ")
+	query += ") "
+
+	query += `delete from postattachment where post_id = $1 and att_id in (select id from atts)`
+	err := storage.db.QueryRowx(query, params...).Scan()
+	if err != nil && err != sql.ErrNoRows {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	return nil
+}
+
 func (storage *PostStorage) UpdatePost(senderEmail string, dto *dto.PostUpdate) error {
 	var isAuthor bool
 	tx, err := storage.db.Beginx()
@@ -309,6 +329,18 @@ func (storage *PostStorage) UpdatePost(senderEmail string, dto *dto.PostUpdate) 
 	}
 
 	_ = tx.Commit()
+	return nil
+}
+
+func (storage *PostStorage) UpdatePostAttachments(postId uint, dto *dto.UpdateAttachments) error {
+	err := storage.AddPostAttachments(postId, dto.Added)
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	err = storage.DeletePostAttachments(postId, dto.Deleted)
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
 	return nil
 }
 

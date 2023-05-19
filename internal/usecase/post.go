@@ -21,8 +21,5 @@ type PostUsecase interface {
 
 	Repost()
 
-	//AddComment() - в comment service
-	//RemoveComment()
-	// TODO: сделать центр уведомлений для комментариев и сообщений входящий (да и для вообще всего)
-
+	AddPostData(post *entities.Post) error
 }

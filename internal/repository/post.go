@@ -19,6 +19,7 @@ type PostRepository interface {
 	CreatePost(senderEmail string, dto *dto.PostCreate) (uint, error)
 	AddPostAttachments(postId uint, attachments []string) error
 	UpdatePost(senderEmail string, dto *dto.PostUpdate) error
+	UpdatePostAttachments(postId uint, dto *dto.UpdateAttachments) error
 	DeletePost(senderEmail string, dto *dto.PostDelete) error
 
 	SetLike(email string, postID uint) error
