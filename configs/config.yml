@@ -14,7 +14,7 @@ auth_ms:
 static_ms:
   host: "static"
   port: 8082
-
+#
 #host: ""
 #port: 8080
 #session:
