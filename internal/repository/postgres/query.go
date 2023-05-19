@@ -664,7 +664,7 @@ var (
 				 LEFT JOIN groups as community on post.group_id = community.id
 				 LEFT JOIN PostLike as like_table ON like_table.user_id = (SELECT id FROM UserProfile WHERE email = $4) AND like_table.post_id = post.id
 		WHERE post.group_id = (SELECT id FROM groups WHERE link = $1)
-		  AND post.creation_date > $2
+		  AND post.creation_date < $2
 		  AND post.is_deleted = false
 		ORDER BY post.creation_date DESC
 		LIMIT $3
@@ -686,7 +686,7 @@ var (
 				 LEFT JOIN UserProfile as owner ON post.owner_id = owner.id
 				LEFT JOIN PostLike as like_table ON like_table.user_id = (SELECT id FROM UserProfile WHERE email = $4) AND like_table.post_id = post.id
 		WHERE post.owner_id = (SELECT id FROM UserProfile WHERE link = $1)
-		  AND post.creation_date > $2
+		  AND post.creation_date < $2
 		  AND post.is_deleted = false
 		ORDER BY post.creation_date DESC
 		LIMIT $3
@@ -706,9 +706,9 @@ var (
 		FROM Message AS msg
 				 JOIN UserProfile AS author ON msg.user_id = author.id
 		WHERE msg.chat_id = (SELECT id FROM Chat WHERE id = $1)
-		  AND msg.creation_date > $2
+		  AND msg.creation_date < $2
 		  AND msg.is_deleted = false
-		ORDER BY msg.creation_date DESC
+		ORDER BY msg.creation_date DESC 
 		LIMIT $3
 	`
 
@@ -834,8 +834,8 @@ var (
 
          join userprofile sub on sub.id = f.subscriber or  g.user_id = sub.id
 where sub.email = $1 
-and post.creation_date > $3
-order by creation_date
+and post.creation_date < $3
+order by creation_date DESC
 limit $2
 	`
 

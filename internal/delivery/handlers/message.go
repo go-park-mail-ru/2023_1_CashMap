@@ -151,7 +151,7 @@ func (handler *MessageHandler) GetChats(ctx *gin.Context) {
 //	@Tags			Message
 //	@Param			chat_id			query		uint	false	"Chat id"
 //	@Param			batch_size		query		uint	false	"Batch size"
-//	@Param			last_post_date	query		uint	false	"Last post date"
+//	@Param			last_msg_date	query		uint	false	"Last message date"
 //	@Success		200				{object}	doc.MessagesListResponse
 //	@Failure		400
 //	@Failure		401
@@ -171,7 +171,7 @@ func (handler *MessageHandler) GetMessagesByChatID(ctx *gin.Context) {
 		return
 	}
 
-	messages, err := handler.MessageUsecase.GetMessagesByChatID(email.(string), &getMsgDTO)
+	messages, hasNextMessages, err := handler.MessageUsecase.GetMessagesByChatID(email.(string), &getMsgDTO)
 	if err != nil {
 		fmt.Println(err)
 		_ = ctx.Error(apperror.InternalServerError)
@@ -181,6 +181,7 @@ func (handler *MessageHandler) GetMessagesByChatID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"body": gin.H{
 			"messages": messages,
+			"has_next": hasNextMessages,
 		},
 	})
 }
