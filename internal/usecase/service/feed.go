@@ -5,8 +5,8 @@ import (
 	"depeche/internal/entities"
 	"depeche/internal/repository"
 	"depeche/internal/usecase"
+	"depeche/internal/usecase/utils"
 	"depeche/pkg/apperror"
-	"sort"
 )
 
 type FeedService struct {
@@ -24,7 +24,7 @@ func NewFeedService(feedRepository repository.FeedRepository, postRepo repositor
 func (feed *FeedService) CollectPosts(email string, dto *dto.FeedDTO) ([]*entities.Post, error) {
 	if dto.LastPostDate == "" {
 		// самая "старая" дата
-		dto.LastPostDate = "0"
+		dto.LastPostDate = utils.OLDEST_DATE
 	}
 
 	if dto.BatchSize == 0 {
@@ -64,13 +64,13 @@ func (feed *FeedService) CollectPosts(email string, dto *dto.FeedDTO) ([]*entiti
 		}
 		post.Attachments = attachments
 	}
-	sort.Slice(posts, func(i int, j int) bool {
-		return posts[j].CreationDate < posts[i].CreationDate
-	})
-
-	if len(posts) >= int(dto.BatchSize) {
-		return posts[:dto.BatchSize], nil
-	}
+	//sort.Slice(posts, func(i int, j int) bool {
+	//	return posts[j].CreationDate < posts[i].CreationDate
+	//})
+	//
+	//if len(posts) >= int(dto.BatchSize) {
+	//	return posts[:dto.BatchSize], nil
+	//}
 
 	return posts, nil
 }

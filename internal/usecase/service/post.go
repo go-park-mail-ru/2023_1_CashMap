@@ -5,6 +5,7 @@ import (
 	"depeche/internal/entities"
 	"depeche/internal/repository"
 	"depeche/internal/usecase"
+	utils2 "depeche/internal/usecase/utils"
 	"depeche/internal/utils"
 	"depeche/pkg/apperror"
 	"errors"
@@ -52,6 +53,10 @@ func (service *PostService) GetPostsByCommunityLink(email string, dto *dto.Posts
 		return nil, errors.New("access to posts denied")
 	}
 
+	if dto.LastPostDate == "" {
+		dto.LastPostDate = utils2.OLDEST_DATE
+	}
+
 	posts, err := service.SelectPostsByCommunityLink(dto, email)
 	if err != nil {
 		return nil, err
@@ -78,7 +83,7 @@ func (service *PostService) GetPostsByUserLink(email string, dto *dto.PostsGetBy
 	}
 
 	if dto.LastPostDate == "" {
-		dto.LastPostDate = "0"
+		dto.LastPostDate = utils2.OLDEST_DATE
 	}
 
 	posts, err := service.PostRepository.SelectPostsByUserLink(dto, email)
