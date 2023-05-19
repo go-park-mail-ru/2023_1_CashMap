@@ -140,9 +140,11 @@ func (fileHandler *FileHandler) GetFile(ctx *gin.Context) {
 		return
 	}
 
+	fmt.Println(file.Type)
+
 	err = fileHandler.FileUsecase.ReadFile(&file, ctx.Writer)
 	if err != nil {
-		_ = ctx.Error(apperror.InternalServerError)
+		_ = ctx.Error(err)
 		return
 	}
 

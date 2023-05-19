@@ -72,7 +72,8 @@ services:
       - "8092:8092"
 
     volumes:
-      - static_files:/depeche_backend/static/files
+      - ./static/files/sticker:/depeche-static/static/files/sticker
+      - static_files:/depeche-static/static
 
 volumes:
   db_data:

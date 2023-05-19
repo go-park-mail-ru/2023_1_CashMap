@@ -12,6 +12,7 @@ var (
 	IncorrectCredentials = errors.New("incorrect email or password")
 	Forbidden            = errors.New("credentials are not present")
 	TooLargePayload      = errors.New("file is too large")
+	FileNotFound         = errors.New("file not found")
 )
 
 var (
@@ -177,5 +178,10 @@ var Errors = map[error]ErrorResponse{
 	GroupTitleRequired: {
 		http.StatusBadRequest,
 		"Имя сообщества - обязательное поле",
+	},
+
+	FileNotFound: {
+		http.StatusNotFound,
+		"Файл не найден",
 	},
 }

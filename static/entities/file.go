@@ -5,6 +5,7 @@ type FileType string
 const (
 	IMAGE    FileType = "img"
 	DOCUMENT FileType = "doc"
+	STICKER  FileType = "sticker"
 )
 
 type UserFile struct {

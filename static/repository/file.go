@@ -3,6 +3,7 @@ package repository
 import (
 	"bufio"
 	"context"
+	"depeche/pkg/apperror"
 	"depeche/static/entities"
 	"errors"
 	"fmt"
@@ -11,8 +12,9 @@ import (
 )
 
 const (
-	IMG_STATIC_PATH = "/static/files/img/"
-	DOC_STATIC_PATH = "/static/files/doc/"
+	IMG_STATIC_PATH     = "/static/files/img/"
+	DOC_STATIC_PATH     = "/static/files/doc/"
+	STICKER_STATIC_PATH = "/static/files/sticker/"
 )
 
 var BASE_PATH, _ = os.Getwd()
@@ -41,10 +43,12 @@ func (fs *FileStorage) ReadFile(file *entities.UserFile, outputStreamWriter io.W
 		inputStream, err = os.Open(BASE_PATH + IMG_STATIC_PATH + file.Name)
 	case entities.DOCUMENT:
 		inputStream, err = os.Open(BASE_PATH + DOC_STATIC_PATH + file.Name)
+	case entities.STICKER:
+		inputStream, err = os.Open(BASE_PATH + STICKER_STATIC_PATH + file.Name)
 	}
 
 	if err != nil {
-		return err
+		return apperror.NewServerError(apperror.FileNotFound, err)
 	}
 
 	fileReader := bufio.NewReader(inputStream)
