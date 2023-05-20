@@ -869,7 +869,7 @@ var (
 	`
 
 	GetStickersByPack = `
-	select s.id, s.url, $1 stickerpack_id 
+	select s.id, s.url, stickerpack_id 
 	from sticker s 
 	    join stickerpack s2 
 	    on s.stickerpack_id = s2.id
