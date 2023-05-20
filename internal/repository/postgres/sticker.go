@@ -23,7 +23,7 @@ func NewStickerRepository(db *sqlx.DB) repository.Sticker {
 
 func (s *Sticker) GetStickerById(stickerID uint) (*entities.Sticker, error) {
 	sticker := &entities.Sticker{}
-	err := s.db.QueryRowx(GetStickerByID, stickerID).Scan(sticker)
+	err := s.db.QueryRowx(GetStickerByID, stickerID).StructScan(sticker)
 	if err == sql.ErrNoRows {
 		return nil, apperror.NewServerError(apperror.StickerNotFound, nil)
 	}
@@ -36,7 +36,7 @@ func (s *Sticker) GetStickerById(stickerID uint) (*entities.Sticker, error) {
 
 func (s *Sticker) GetStickerpackById(packID uint) (*entities.StickerPack, error) {
 	pack := &entities.StickerPack{}
-	err := s.db.QueryRowx(GetStickerpackByID, packID).Scan(pack)
+	err := s.db.QueryRowx(GetStickerpackByID, packID).StructScan(pack)
 	if err == sql.ErrNoRows {
 		return nil, apperror.NewServerError(apperror.StickerpackNotFound, nil)
 	}
@@ -56,7 +56,7 @@ func (s *Sticker) GetStickersByPackId(packID uint) ([]*entities.Sticker, error) 
 
 	for rows.Next() {
 		sticker := &entities.Sticker{}
-		err = rows.Scan(sticker)
+		err = rows.StructScan(sticker)
 		if err != nil {
 			return nil, apperror.NewServerError(apperror.InternalServerError, err)
 		}
@@ -75,7 +75,7 @@ func (s *Sticker) GetStickerPacksInfoByEmail(email string, limit, offset int) ([
 
 	for rows.Next() {
 		pack := &entities.StickerPack{}
-		err = rows.Scan(pack)
+		err = rows.StructScan(pack)
 		if err != nil {
 			return nil, apperror.NewServerError(apperror.InternalServerError, err)
 		}
@@ -94,7 +94,7 @@ func (s *Sticker) GetStickerPacksInfoByAuthor(author string, limit, offset int) 
 
 	for rows.Next() {
 		pack := &entities.StickerPack{}
-		err = rows.Scan(pack)
+		err = rows.StructScan(pack)
 		if err != nil {
 			return nil, apperror.NewServerError(apperror.InternalServerError, err)
 		}
@@ -113,7 +113,7 @@ func (s *Sticker) GetNewStickerPacksInfo(limit, offset int) ([]*entities.Sticker
 
 	for rows.Next() {
 		pack := &entities.StickerPack{}
-		err = rows.Scan(pack)
+		err = rows.StructScan(pack)
 		if err != nil {
 			return nil, apperror.NewServerError(apperror.InternalServerError, err)
 		}
@@ -131,7 +131,7 @@ func (s *Sticker) GetDepechePacks(limit, offset int) ([]*entities.StickerPack, e
 	packs := make([]*entities.StickerPack, 0, limit)
 	for rows.Next() {
 		pack := &entities.StickerPack{}
-		err = rows.Scan(pack)
+		err = rows.StructScan(pack)
 		if err != nil {
 			return nil, apperror.NewServerError(apperror.InternalServerError, err)
 		}
