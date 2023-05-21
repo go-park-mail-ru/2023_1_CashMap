@@ -59,8 +59,7 @@ var (
 	  u.avatar_id = p.id
 	where
 	   f1.subscriber = $1
-	and u.id > $2
-	limit $3
+	limit $3 offset $2
 	`
 
 	SubscribesById = `
@@ -86,8 +85,8 @@ var (
             on u.avatar_id = p.id
 	where
     	f1 is null and f3.subscriber = $1
-	and u.id > $2
-	limit $3
+	
+	limit $3 offset $2
 	`
 
 	SubscribersById = `
@@ -113,9 +112,9 @@ var (
             on u.avatar_id = p.id
 	where
     	f1 is null and f3.subscribed = $1
-	and u.id > $2
+	
 	order by u.id
-	limit $3
+	limit $3 offset $2
 	`
 
 	PendingFriendRequestsById = `
@@ -141,9 +140,9 @@ var (
                   on u.avatar_id = p.id
 	where
     f1 is null and f3.subscribed = $1 and f3.rejected = false
-	and u.id > $2
+	
 	order by u.id
-	limit $3
+	limit $3 offset $2
 	`
 
 	Subscribe = `
@@ -250,10 +249,10 @@ var (
 			on u.id = s.subscriber or u.id = s.subscribed
 	where
     	s is null and
-    	u.id > $2
+    	
 		and u.email <> $1
 	order by u.id
-	limit $3;
+	limit $3 offset $2;
 `
 
 	CheckLink = `
@@ -374,9 +373,9 @@ var (
 	join userprofile u on g2.user_id = u.id
 	join userprofile u2 on g.owner_id = u2.id
 	where u.link = $1 and g.is_deleted = false
-	and g.id > $3 
+	
 	order by g.id
-	limit $2
+	limit $2 offset $3
 	`
 
 	GroupsByUserEmail = `
@@ -392,9 +391,9 @@ var (
 	join userprofile u on g2.user_id = u.id
 	join userprofile u2 on g.owner_id = u2.id
 	where u.email = $1 and g.is_deleted = false
-	and g.id > $3 
+	
 	order by g.id
-	limit $2
+	limit $2 offset $3
 	`
 	// TODO Сделать таблицу для обновления по крон таске или процедуре
 	GetGroups = `
@@ -423,9 +422,9 @@ var (
 		left join photo p on g.avatar_id = p.id
 		join userprofile u on g.owner_id = u.id
 		where u.email = $1 and g.is_deleted = false
-		and g.id > $3
+		
 		order by g.id
-		limit $2
+		limit $2 offset $3
 	`
 
 	GroupSubscribers = `
@@ -441,9 +440,9 @@ var (
 	join groupsubscriber g on u.id = g.user_id and g.accepted 
 	join groups gr on g.group_id = gr.id
 	where gr.link = $1
-	and u.id > $3
+	
 	order by u.id
-	limit $2
+	limit $2 offset $3
 	`
 
 	PendingGroupRequests = `
@@ -458,9 +457,9 @@ var (
          left join photo p on u.avatar_id = p.id
 	join groupsubscriber g on u.id = g.user_id and not g.accepted
 	where u.id = $1
-	and u.id > $3
+	
 	order by u.id
-	limit $2`
+	limit $2 offset $3`
 
 	AcceptRequest = `
 	update groupsubscriber g
@@ -835,6 +834,7 @@ var (
          join userprofile sub on sub.id = f.subscriber or  g.user_id = sub.id
 where sub.email = $1 
 and post.creation_date < $3
+and not post.is_deleted
 order by creation_date DESC
 limit $2
 	`
