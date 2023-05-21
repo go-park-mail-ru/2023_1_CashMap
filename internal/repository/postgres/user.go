@@ -9,7 +9,6 @@ import (
 	"depeche/internal/utils"
 	"depeche/pkg/apperror"
 	"fmt"
-	"github.com/arbovm/levenshtein"
 	"github.com/jackc/pgerrcode"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -381,56 +380,64 @@ func (ur *UserRepository) IsSubscribed(email, link string) (bool, error) {
 
 func (ur *UserRepository) SearchUserByName(email string, searchDTO *dto.GlobalSearchDTO) ([]*entities.UserInfo, error) {
 	searchName := utils.NormalizeString(*searchDTO.SearchQuery)
-	splitSearchName := strings.Split(searchName, " ")
+	//splitSearchName := strings.Split(searchName, " ")
 
-	rows, err := ur.DB.Queryx("SELECT id, first_name, last_name FROM UserProfile AS profile")
+	rows, err := ur.DB.Queryx("SELECT id, first_name, last_name FROM UserProfile AS profile ORDER BY first_name, last_name")
 	defer utildb.CloseRows(rows)
 	if err != nil {
 		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
-	distances := make([]int, len(splitSearchName))
+	//distances := make([]int, len(splitSearchName))
 
 	user := userForSearch{}
 	usersBatch := make([]userForSearch, 0, *searchDTO.BatchSize)
 
-	maxLevenshteinDistance := float64(utils.GetMaxLength(splitSearchName...)) * 0.5
+	//maxLevenshteinDistance := float64(utils.GetMaxLength(splitSearchName...)) * 0.5
 
-MAIN:
+	//MAIN:
 	for rows.Next() {
 		err := rows.StructScan(&user)
 		if err != nil {
 			return nil, apperror.NewServerError(apperror.InternalServerError, err)
 		}
 
-		// считаем минимальное расстояние между искомым именем и именем из базы
-		for i := 0; i < len(splitSearchName); i++ {
-			firstDistance := levenshtein.Distance(strings.ToLower(user.FirstName), splitSearchName[i])
-			secondDistance := levenshtein.Distance(strings.ToLower(user.LastName), splitSearchName[i])
+		//// считаем минимальное расстояние между искомым именем и именем из базы
+		//for i := 0; i < len(splitSearchName); i++ {
+		//	firstDistance := levenshtein.Distance(strings.ToLower(user.FirstName), splitSearchName[i])
+		//	secondDistance := levenshtein.Distance(strings.ToLower(user.LastName), splitSearchName[i])
+		//
+		//	distances[i] = utils.Min(firstDistance, secondDistance)
+		//}
+		//
+		//user.Distance = float64(utils.SliceMin(distances))
+		//if user.Distance > maxLevenshteinDistance {
+		//	continue
+		//}
+		//
+		//// обновляем список с наилучшими мэтчами по имени
+		//var i int
+		//for i = 0; i < len(usersBatch); i++ {
+		//	if user.Distance < usersBatch[i].Distance {
+		//		if len(usersBatch) < int(*searchDTO.BatchSize+*searchDTO.Offset) {
+		//			usersBatch = append(usersBatch, userForSearch{})
+		//		}
+		//
+		//		utils.ShiftRight(usersBatch, int(i), 1)
+		//		usersBatch[i] = user
+		//		continue MAIN
+		//	}
+		//}
+		//
+		//if len(usersBatch) < int(*searchDTO.BatchSize+*searchDTO.Offset) {
+		//	usersBatch = append(usersBatch, user)
+		//}
 
-			distances[i] = utils.Min(firstDistance, secondDistance)
-		}
-
-		user.Distance = float64(utils.SliceMin(distances))
-		if user.Distance > maxLevenshteinDistance {
-			continue
-		}
-
-		// обновляем список с наилучшими мэтчами по имени
-		var i int
-		for i = 0; i < len(usersBatch); i++ {
-			if user.Distance < usersBatch[i].Distance {
-				if len(usersBatch) < int(*searchDTO.BatchSize+*searchDTO.Offset) {
-					usersBatch = append(usersBatch, userForSearch{})
-				}
-
-				utils.ShiftRight(usersBatch, int(i), 1)
-				usersBatch[i] = user
-				continue MAIN
+		if strings.Contains(strings.ToLower(user.FirstName+user.LastName), searchName) {
+			if len(usersBatch) >= int(*searchDTO.BatchSize+*searchDTO.Offset) {
+				break
 			}
-		}
 
-		if len(usersBatch) < int(*searchDTO.BatchSize) {
 			usersBatch = append(usersBatch, user)
 		}
 	}
@@ -453,7 +460,7 @@ MAIN:
 		if err != nil {
 			return nil, apperror.NewServerError(apperror.InternalServerError, err)
 		}
-		return nil, nil
+		return users, nil
 	}
 
 	for ind, info := range usersBatch[*searchDTO.Offset:] {
@@ -461,9 +468,9 @@ MAIN:
 		users[ind] = new(entities.UserInfo)
 		err := tx.Get(users[ind], GetUserInfoForSearchQuery, userID, info.ID)
 		if err != nil {
-			err := tx.Rollback()
-			if err != nil {
-				return nil, apperror.NewServerError(apperror.InternalServerError, err)
+			err2 := tx.Rollback()
+			if err2 != nil {
+				return nil, apperror.NewServerError(apperror.InternalServerError, err2)
 			}
 			return nil, apperror.NewServerError(apperror.InternalServerError, err)
 		}
@@ -484,65 +491,73 @@ type userForSearch struct {
 
 func (ur *UserRepository) SearchCommunitiesByTitle(email string, searchDTO *dto.GlobalSearchDTO) ([]*entities.CommunityInfo, error) {
 	searchName := utils.NormalizeString(*searchDTO.SearchQuery)
-	splitSearchQuery := strings.Split(searchName, " ")
+	//splitSearchQuery := strings.Split(searchName, " ")
 
-	rows, err := ur.DB.Queryx("SELECT id, title FROM groups")
+	rows, err := ur.DB.Queryx("SELECT id, title FROM groups ORDER BY title")
 	defer utildb.CloseRows(rows)
 	if err != nil {
 		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
-	distances := make([]int, len(splitSearchQuery))
+	//distances := make([]int, len(splitSearchQuery))
 
 	community := communityForSearch{}
 	communityBatch := make([]communityForSearch, 0, *searchDTO.BatchSize)
 
-	maxLevenshteinDistance := float64(utils.GetMaxLength(splitSearchQuery...)) * 0.5
+	//maxLevenshteinDistance := float64(utils.GetMaxLength(splitSearchQuery...)) * 0.5
 
-MAIN:
+	//MAIN:
 	for rows.Next() {
 		err := rows.StructScan(&community)
 		if err != nil {
 			return nil, apperror.NewServerError(apperror.InternalServerError, err)
 		}
 
-		// считаем минимальное расстояние между искомым именем и именем из базы
-		splittedTitle := strings.Split(community.Title, " ")
-		for i := 0; i < len(splitSearchQuery); i++ {
-			titleDistances := make([]int, len(splittedTitle))
-			for ind, part := range splittedTitle {
-				titleDistances[ind] = levenshtein.Distance(strings.ToLower(part), splitSearchQuery[i])
+		//// считаем минимальное расстояние между искомым именем и именем из базы
+		//splittedTitle := strings.Split(community.Title, " ")
+		//for i := 0; i < len(splitSearchQuery); i++ {
+		//	titleDistances := make([]int, len(splittedTitle))
+		//	for ind, part := range splittedTitle {
+		//		titleDistances[ind] = levenshtein.Distance(strings.ToLower(part), splitSearchQuery[i])
+		//	}
+		//
+		//	distances[i] = utils.SliceMin(titleDistances)
+		//}
+		//
+		//community.Distance = float64(utils.SliceMin(distances))
+		//if community.Distance > maxLevenshteinDistance {
+		//	continue
+		//}
+		//
+		//// обновляем список с наилучшими мэтчами по имени
+		//var i int
+		//for i = 0; i < len(communityBatch); i++ {
+		//	if community.Distance < communityBatch[i].Distance {
+		//		if len(communityBatch) < int(*searchDTO.BatchSize+*searchDTO.Offset) {
+		//			communityBatch = append(communityBatch, communityForSearch{})
+		//		}
+		//
+		//		utils.ShiftRight(communityBatch, i, 1)
+		//		communityBatch[i] = community
+		//		continue MAIN
+		//	}
+		//}
+		//
+		//if len(communityBatch) < int(*searchDTO.BatchSize+*searchDTO.Offset) {
+		//	communityBatch = append(communityBatch, community)
+		//}
+
+		if strings.Contains(strings.ToLower(community.Title), searchName) {
+			if len(communityBatch) >= int(*searchDTO.BatchSize+*searchDTO.Offset) {
+				break
 			}
 
-			distances[i] = utils.SliceMin(titleDistances)
-		}
-
-		community.Distance = float64(utils.SliceMin(distances))
-		if community.Distance > maxLevenshteinDistance {
-			continue
-		}
-
-		// обновляем список с наилучшими мэтчами по имени
-		var i int
-		for i = 0; i < len(communityBatch); i++ {
-			if community.Distance < communityBatch[i].Distance {
-				if len(communityBatch) < int(*searchDTO.BatchSize+*searchDTO.Offset) {
-					communityBatch = append(communityBatch, communityForSearch{})
-				}
-
-				utils.ShiftRight(communityBatch, i, 1)
-				communityBatch[i] = community
-				continue MAIN
-			}
-		}
-
-		if len(communityBatch) < int(*searchDTO.BatchSize) {
 			communityBatch = append(communityBatch, community)
 		}
 	}
 
 	if len(communityBatch) == 0 {
-		return nil, nil
+		return []*entities.CommunityInfo{}, nil
 	}
 
 	var communities = make([]*entities.CommunityInfo, 0, *searchDTO.BatchSize)
@@ -557,7 +572,7 @@ MAIN:
 		if err != nil {
 			return nil, apperror.NewServerError(apperror.InternalServerError, err)
 		}
-		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+		return communities, nil
 	}
 
 	for ind, info := range communityBatch[*searchDTO.Offset:] {
