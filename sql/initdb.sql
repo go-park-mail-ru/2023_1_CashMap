@@ -369,25 +369,9 @@ values ('3/sticker_zhabenya_001.webp', 3),
        ('3/sticker_zhabenya_009.webp', 3),
        ('3/sticker_zhabenya_010.webp', 3);
 
-
-insert into stickerpack (id, title, depeche_authored, cover, description, creation_date)
-values (4, 'Patric Bateman', true, '4/cover', 'S I G M A', '');
-
-insert into sticker(url, stickerpack_id)
-values ('4/sticker_patric_001.webm', 4),
-       ('4/sticker_patric_002.webm', 4),
-       ('4/sticker_patric_003.webm', 4),
-       ('4/sticker_patric_004.webm', 4),
-       ('4/sticker_patric_005.webm', 4),
-       ('4/sticker_patric_006.webm', 4),
-       ('4/sticker_patric_007.webm', 4),
-       ('4/sticker_patric_008.webm', 4),
-       ('4/sticker_patric_009.webm', 4),
-       ('4/sticker_patric_010.webm', 4);
-
-
 insert into stickerpack (id, title, depeche_authored, cover, description, creation_date)
 values (5, 'cats cats cats', true, '5/cover', 'cats, cats and also cats :з', '');
+
 
 insert into sticker(url, stickerpack_id)
 values ('5/sticker_cats_001.webm', 5),
@@ -400,3 +384,20 @@ values ('5/sticker_cats_001.webm', 5),
        ('5/sticker_cats_008.webm', 5),
        ('5/sticker_cats_009.webm', 5),
        ('5/sticker_cats_010.webm', 5);
+
+
+insert into stickerpack (id, title, depeche_authored, cover, description, creation_date)
+values (6, 'Имбирчик', true, '6/ezh_5.webp', 'Добрый еж.', '');
+
+
+insert into sticker(url, stickerpack_id)
+values ('6/ezh_1.webp', 6),
+       ('6/ezh_2.webp', 6),
+       ('6/ezh_3.webp', 6),
+       ('6/ezh_4.webp', 6),
+       ('6/ezh_5.webp', 6),
+       ('6/ezh_6.webp', 6),
+       ('6/ezh_7.webp', 6),
+       ('6/ezh_8.webp', 6),
+       ('6/ezh_9.webp', 6),
+       ('6/ezh_10.webp', 6);
