@@ -14,7 +14,7 @@ auth_ms:
 static_ms:
   host: "static"
   port: 8082
-#
+
 #host: ""
 #port: 8080
 #session:
@@ -26,7 +26,7 @@ static_ms:
 #  port: 5432
 #  database: "depeche_db"
 #auth_ms:
-#  host: "auth"
+#  host: "localhost"
 #  port: 8081
 #static_ms:
 #  host: "localhost"
