@@ -333,13 +333,18 @@ func (storage *PostStorage) UpdatePost(senderEmail string, dto *dto.PostUpdate) 
 }
 
 func (storage *PostStorage) UpdatePostAttachments(postId uint, dto *dto.UpdateAttachments) error {
-	err := storage.AddPostAttachments(postId, dto.Added)
-	if err != nil {
-		return apperror.NewServerError(apperror.InternalServerError, err)
+	if len(dto.Added) != 0 {
+		err := storage.AddPostAttachments(postId, dto.Added)
+		if err != nil {
+			return apperror.NewServerError(apperror.InternalServerError, err)
+		}
 	}
-	err = storage.DeletePostAttachments(postId, dto.Deleted)
-	if err != nil {
-		return apperror.NewServerError(apperror.InternalServerError, err)
+	if len(dto.Deleted) != 0 {
+		err := storage.DeletePostAttachments(postId, dto.Deleted)
+		if err != nil {
+			return apperror.NewServerError(apperror.InternalServerError, err)
+		}
+		return nil
 	}
 	return nil
 }
