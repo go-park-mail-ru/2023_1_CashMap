@@ -250,7 +250,7 @@ var (
 	where
     	s is null and
     	
-		and u.email <> $1
+		u.email <> $1
 	order by u.id
 	limit $3 offset $2;
 `
