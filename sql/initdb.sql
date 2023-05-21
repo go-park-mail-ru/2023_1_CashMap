@@ -322,8 +322,8 @@ CREATE or REPLACE trigger decrease_comments_count_on_delete_trigger
 EXECUTE FUNCTION decrease_comments_count();
 
 insert into stickerpack (id, title, depeche_authored, cover, description, creation_date)
-values (1, 'Персик', true, 'url', 'Величественный комок шерсти, обожающий спать, мурчать и играть с компьютерной мышкой.', ''),
-       (2, 'Дигги', true, 'url', 'Шикарный, непревзойдённый мемасный пёс!', '');
+values (1, 'Персик', true, '1/sticker_vk_persik_000.png', 'Величественный комок шерсти, обожающий спать, мурчать и играть с компьютерной мышкой.', ''),
+       (2, 'Дигги', true, '2/sticker_vk_diggy_001.png', 'Шикарный, непревзойдённый мемасный пёс!', '');
 
 insert into sticker (url, stickerpack_id)
 values ('1/sticker_vk_persik_000.png', 1),
@@ -354,3 +354,49 @@ values ('1/sticker_vk_persik_000.png', 1),
        ('2/sticker_vk_diggy_010.png', 2),
        ('2/sticker_vk_diggy_011.png', 2);
 
+insert into stickerpack (id, title, depeche_authored, cover, description, creation_date)
+values (3, 'Жабеня', true, '3/sticker_zhabenya_001.webp', 'Жабы на все случаи жизни.', '');
+
+insert into sticker(url, stickerpack_id)
+values ('3/sticker_zhabenya_001.webp', 3),
+       ('3/sticker_zhabenya_002.webp', 3),
+       ('3/sticker_zhabenya_003.webp', 3),
+       ('3/sticker_zhabenya_004.webp', 3),
+       ('3/sticker_zhabenya_005.webp', 3),
+       ('3/sticker_zhabenya_006.webp', 3),
+       ('3/sticker_zhabenya_007.webp', 3),
+       ('3/sticker_zhabenya_008.webp', 3),
+       ('3/sticker_zhabenya_009.webp', 3),
+       ('3/sticker_zhabenya_010.webp', 3);
+
+
+insert into stickerpack (id, title, depeche_authored, cover, description, creation_date)
+values (4, 'Patric Bateman', true, '4/cover', 'S I G M A', '');
+
+insert into sticker(url, stickerpack_id)
+values ('4/sticker_patric_001.webm', 4),
+       ('4/sticker_patric_002.webm', 4),
+       ('4/sticker_patric_003.webm', 4),
+       ('4/sticker_patric_004.webm', 4),
+       ('4/sticker_patric_005.webm', 4),
+       ('4/sticker_patric_006.webm', 4),
+       ('4/sticker_patric_007.webm', 4),
+       ('4/sticker_patric_008.webm', 4),
+       ('4/sticker_patric_009.webm', 4),
+       ('4/sticker_patric_010.webm', 4);
+
+
+insert into stickerpack (id, title, depeche_authored, cover, description, creation_date)
+values (5, 'cats cats cats', true, '5/cover', 'cats, cats and also cats :з', '');
+
+insert into sticker(url, stickerpack_id)
+values ('5/sticker_cats_001.webm', 5),
+       ('5/sticker_cats_002.webm', 5),
+       ('5/sticker_cats_003.webm', 5),
+       ('5/sticker_cats_004.webm', 5),
+       ('5/sticker_cats_005.webm', 5),
+       ('5/sticker_cats_006.webm', 5),
+       ('5/sticker_cats_007.webm', 5),
+       ('5/sticker_cats_008.webm', 5),
+       ('5/sticker_cats_009.webm', 5),
+       ('5/sticker_cats_010.webm', 5);
