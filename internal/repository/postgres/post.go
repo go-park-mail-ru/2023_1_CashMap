@@ -283,7 +283,7 @@ func (storage *PostStorage) DeletePostAttachments(postId uint, attachments []str
 		query += fmt.Sprintf("$%d, ", i+2)
 	}
 	query, _ = strings.CutSuffix(query, ", ")
-	query += ") "
+	query += "))"
 
 	query += `delete from postattachment where post_id = $1 and att_id in (select id from atts)`
 	err := storage.db.QueryRowx(query, params...).Scan()
