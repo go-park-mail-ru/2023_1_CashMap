@@ -48,13 +48,7 @@ func (storage *MessageStorage) SaveMsg(message *dto.NewMessageDTO) (*entities.Me
 		}
 		msg.Sticker = sticker
 	}
-	if len(msg.Attachments) != 0 {
-		attachments, err := storage.GetMessageAttachments(*msg.Id)
-		if err != nil {
-			return nil, apperror.NewServerError(apperror.InternalServerError, err)
-		}
-		msg.Attachments = attachments
-	}
+
 	return msg, nil
 }
 

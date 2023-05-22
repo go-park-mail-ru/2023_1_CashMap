@@ -43,7 +43,7 @@ func (service *MessageService) Send(email string, message *dto.NewMessageDTO) (*
 		if len(message.Attachments) > 10 {
 			return nil, apperror.NewServerError(apperror.TooMuchAttachments, nil)
 		}
-		err := service.MessageRepository.AddMessageAttachments(*msg.Id, msg.Attachments)
+		err := service.MessageRepository.AddMessageAttachments(*msg.Id, message.Attachments)
 		if err != nil {
 			return msg, err
 		}
