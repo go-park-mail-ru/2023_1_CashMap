@@ -509,7 +509,12 @@ func TestGroup_CreateGroup(t *testing.T) {
 			expectedError: nil,
 
 			setupMock: func(repo *mock_repository.MockGroup, email string, group *dto.Group) {
-				repo.EXPECT().CreateGroup(email, group).Return(&entities.Group{}, nil)
+				returned := &entities.Group{
+					Title: "Group",
+					Link:  "id1",
+				}
+				repo.EXPECT().CreateGroup(email, group).Return(returned, nil)
+				repo.EXPECT().Subscribe(email, returned.Link).Return(nil)
 			},
 		},
 		{

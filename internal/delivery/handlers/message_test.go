@@ -258,7 +258,7 @@ func TestMessageHandler_GetChats(t *testing.T) {
 				})
 			}
 			router.GET("/", msgHandler.GetChats)
-			query := fmt.Sprintf("?batch_size=%d&offset=%d", test.dto.BatchSize, test.dto.Offset)
+			query := fmt.Sprintf("?batch_size=%d&offset=%d", *test.dto.BatchSize, *test.dto.Offset)
 
 			req, err := request("GET", "/"+query, nil)
 			require.NoError(t, err)

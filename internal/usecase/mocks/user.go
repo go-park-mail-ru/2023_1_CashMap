@@ -286,3 +286,18 @@ func (mr *MockUserMockRecorder) Unsubscribe(arg0, arg1 interface{}) *gomock.Call
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unsubscribe", reflect.TypeOf((*MockUser)(nil).Unsubscribe), arg0, arg1)
 }
+
+// UserStatus mocks base method.
+func (m *MockUser) UserStatus(arg0, arg1 string) (dto.UserStatus, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UserStatus", arg0, arg1)
+	ret0, _ := ret[0].(dto.UserStatus)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UserStatus indicates an expected call of UserStatus.
+func (mr *MockUserMockRecorder) UserStatus(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserStatus", reflect.TypeOf((*MockUser)(nil).UserStatus), arg0, arg1)
+}

@@ -5,11 +5,10 @@ import (
 	"depeche/authorization_ms/authEntities"
 	mock_service "depeche/authorization_ms/service/mocks"
 	"depeche/internal/delivery/dto"
-	"depeche/internal/delivery/middleware"
 	"depeche/internal/entities"
 	mock_usecase "depeche/internal/usecase/mocks"
 	"depeche/pkg/apperror"
-	middleware2 "depeche/pkg/middleware"
+	"depeche/pkg/middleware"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -88,8 +87,8 @@ func TestUserHandler_SignUp(t *testing.T) {
 			expectedCode: http.StatusConflict,
 			withBodyRes:  true,
 			expectedBody: gin.H{
-				"status":  middleware.Errors[apperror.UserAlreadyExists].Code,
-				"message": middleware.Errors[apperror.UserAlreadyExists].Message,
+				"status":  apperror.Errors[apperror.UserAlreadyExists].Code,
+				"message": apperror.Errors[apperror.UserAlreadyExists].Message,
 			},
 			setupMock: func(service *mock_usecase.MockUser, authService *mock_service.MockAuth, csrfService *mock_service.MockCSRFUsecase, in *dto.SignUp, cookie, csrfToken string) {
 				service.EXPECT().SignUp(in).Return(nil, apperror.NewServerError(apperror.UserAlreadyExists, nil))
@@ -115,8 +114,8 @@ func TestUserHandler_SignUp(t *testing.T) {
 			expectedCode: http.StatusUnauthorized,
 			withBodyRes:  true,
 			expectedBody: gin.H{
-				"status":  middleware.Errors[apperror.NoAuth].Code,
-				"message": middleware.Errors[apperror.NoAuth].Message,
+				"status":  apperror.Errors[apperror.NoAuth].Code,
+				"message": apperror.Errors[apperror.NoAuth].Message,
 			},
 			setupMock: func(service *mock_usecase.MockUser, authService *mock_service.MockAuth, csrfService *mock_service.MockCSRFUsecase, in *dto.SignUp, cookie, csrfToken string) {
 				service.EXPECT().SignUp(in).Return(&entities.User{}, nil)
@@ -143,8 +142,8 @@ func TestUserHandler_SignUp(t *testing.T) {
 			expectedCode: http.StatusUnauthorized,
 			withBodyRes:  true,
 			expectedBody: gin.H{
-				"status":  middleware.Errors[apperror.NoAuth].Code,
-				"message": middleware.Errors[apperror.NoAuth].Message,
+				"status":  apperror.Errors[apperror.NoAuth].Code,
+				"message": apperror.Errors[apperror.NoAuth].Message,
 			},
 			setupMock: func(service *mock_usecase.MockUser, authService *mock_service.MockAuth, csrfService *mock_service.MockCSRFUsecase, in *dto.SignUp, cookie, csrfToken string) {
 				service.EXPECT().SignUp(in).Return(&entities.User{}, nil)
@@ -165,8 +164,8 @@ func TestUserHandler_SignUp(t *testing.T) {
 			expectedCode: http.StatusBadRequest,
 			withBodyRes:  true,
 			expectedBody: gin.H{
-				"status":  middleware.Errors[apperror.BadRequest].Code,
-				"message": middleware.Errors[apperror.BadRequest].Message,
+				"status":  apperror.Errors[apperror.BadRequest].Code,
+				"message": apperror.Errors[apperror.BadRequest].Message,
 			},
 			setupMock: func(service *mock_usecase.MockUser, authService *mock_service.MockAuth, csrfService *mock_service.MockCSRFUsecase, in *dto.SignUp, cookie, csrfToken string) {
 
@@ -192,7 +191,7 @@ func TestUserHandler_SignUp(t *testing.T) {
 			test.setupMock(mockService, mockAuth, mockCSRF, test.dto, test.cookie, test.csrfToken)
 
 			router := gin.New()
-			router.Use(middleware2.ErrorMiddleware())
+			router.Use(middleware.ErrorMiddleware())
 			router.POST("/", userHandler.SignUp)
 			req, err := request(test.method, "/", test.body)
 			require.NoError(t, err)
@@ -276,8 +275,8 @@ func TestUserHandler_SignIn(t *testing.T) {
 			checkCookie: false,
 			withBodyRes: true,
 			expectedBody: gin.H{
-				"status":  middleware.Errors[apperror.IncorrectCredentials].Code,
-				"message": middleware.Errors[apperror.IncorrectCredentials].Message,
+				"status":  apperror.Errors[apperror.IncorrectCredentials].Code,
+				"message": apperror.Errors[apperror.IncorrectCredentials].Message,
 			},
 			expectedCode: http.StatusUnauthorized,
 
@@ -301,8 +300,8 @@ func TestUserHandler_SignIn(t *testing.T) {
 			expectedCode: http.StatusUnauthorized,
 			withBodyRes:  true,
 			expectedBody: gin.H{
-				"status":  middleware.Errors[apperror.NoAuth].Code,
-				"message": middleware.Errors[apperror.NoAuth].Message,
+				"status":  apperror.Errors[apperror.NoAuth].Code,
+				"message": apperror.Errors[apperror.NoAuth].Message,
 			},
 			setupMock: func(service *mock_usecase.MockUser, authService *mock_service.MockAuth, csrfService *mock_service.MockCSRFUsecase, in *dto.SignIn, cookie, csrfToken string) {
 				service.EXPECT().SignIn(in).Return(&entities.User{}, nil)
@@ -325,8 +324,8 @@ func TestUserHandler_SignIn(t *testing.T) {
 			expectedCode: http.StatusUnauthorized,
 			withBodyRes:  true,
 			expectedBody: gin.H{
-				"status":  middleware.Errors[apperror.NoAuth].Code,
-				"message": middleware.Errors[apperror.NoAuth].Message,
+				"status":  apperror.Errors[apperror.NoAuth].Code,
+				"message": apperror.Errors[apperror.NoAuth].Message,
 			},
 			setupMock: func(service *mock_usecase.MockUser, authService *mock_service.MockAuth, csrfService *mock_service.MockCSRFUsecase, in *dto.SignIn, cookie, csrfToken string) {
 				service.EXPECT().SignIn(in).Return(&entities.User{}, nil)
@@ -346,8 +345,8 @@ func TestUserHandler_SignIn(t *testing.T) {
 			expectedCode: http.StatusBadRequest,
 			withBodyRes:  true,
 			expectedBody: gin.H{
-				"status":  middleware.Errors[apperror.BadRequest].Code,
-				"message": middleware.Errors[apperror.BadRequest].Message,
+				"status":  apperror.Errors[apperror.BadRequest].Code,
+				"message": apperror.Errors[apperror.BadRequest].Message,
 			},
 			setupMock: func(service *mock_usecase.MockUser, authService *mock_service.MockAuth, csrfService *mock_service.MockCSRFUsecase, in *dto.SignIn, cookie, csrfToken string) {
 
@@ -373,7 +372,7 @@ func TestUserHandler_SignIn(t *testing.T) {
 			test.setupMock(mockService, mockAuth, mockCSRF, test.dto, test.cookie, test.csrfToken)
 
 			router := gin.New()
-			router.Use(middleware2.ErrorMiddleware())
+			router.Use(middleware.ErrorMiddleware())
 			router.POST("/", userHandler.SignIn)
 			req, err := request(test.method, "/", test.body)
 			require.NoError(t, err)
@@ -442,8 +441,8 @@ func TestUserHandler_LogOut(t *testing.T) {
 			method:      "POST",
 			withBodyRes: true,
 			expectedBody: gin.H{
-				"status":  middleware.Errors[apperror.NoAuth].Code,
-				"message": middleware.Errors[apperror.NoAuth].Message,
+				"status":  apperror.Errors[apperror.NoAuth].Code,
+				"message": apperror.Errors[apperror.NoAuth].Message,
 			},
 			expectedCode: http.StatusUnauthorized,
 			setupMock: func(service *mock_usecase.MockUser, authService *mock_service.MockAuth, csrfService *mock_service.MockCSRFUsecase, cookie, csrfToken, email string) {
@@ -470,7 +469,7 @@ func TestUserHandler_LogOut(t *testing.T) {
 			test.setupMock(mockService, mockAuth, mockCSRF, test.cookie, test.csrfToken, test.email)
 
 			router := gin.New()
-			router.Use(middleware2.ErrorMiddleware())
+			router.Use(middleware.ErrorMiddleware())
 			router.POST("/", userHandler.LogOut)
 			req, err := request(test.method, "/", nil)
 			require.NoError(t, err)
@@ -546,8 +545,8 @@ func TestUserHandler_Subscribe(t *testing.T) {
 			expectedCode: http.StatusUnauthorized,
 
 			expectedBody: gin.H{
-				"status":  middleware.Errors[apperror.NoAuth].Code,
-				"message": middleware.Errors[apperror.NoAuth].Message,
+				"status":  apperror.Errors[apperror.NoAuth].Code,
+				"message": apperror.Errors[apperror.NoAuth].Message,
 			},
 
 			setupMock: func(service *mock_usecase.MockUser, email, link string) {
@@ -572,8 +571,8 @@ func TestUserHandler_Subscribe(t *testing.T) {
 			expectedCode: http.StatusInternalServerError,
 
 			expectedBody: gin.H{
-				"status":  middleware.Errors[apperror.InternalServerError].Code,
-				"message": middleware.Errors[apperror.InternalServerError].Message,
+				"status":  apperror.Errors[apperror.InternalServerError].Code,
+				"message": apperror.Errors[apperror.InternalServerError].Message,
 			},
 
 			setupMock: func(service *mock_usecase.MockUser, email, link string) {
@@ -598,8 +597,8 @@ func TestUserHandler_Subscribe(t *testing.T) {
 			expectedCode: http.StatusBadRequest,
 
 			expectedBody: gin.H{
-				"status":  middleware.Errors[apperror.BadRequest].Code,
-				"message": middleware.Errors[apperror.BadRequest].Message,
+				"status":  apperror.Errors[apperror.BadRequest].Code,
+				"message": apperror.Errors[apperror.BadRequest].Message,
 			},
 
 			setupMock: func(service *mock_usecase.MockUser, email, link string) {
@@ -626,7 +625,7 @@ func TestUserHandler_Subscribe(t *testing.T) {
 			test.setupMock(mockService, test.email, test.dto.Link)
 
 			router := gin.New()
-			router.Use(middleware2.ErrorMiddleware())
+			router.Use(middleware.ErrorMiddleware())
 			if test.setEmail {
 				router.Use(func(context *gin.Context) {
 					context.Set("email", test.email)
@@ -722,7 +721,7 @@ func TestUserHandler_Friends(t *testing.T) {
 			test.setupMock(mockService, test.email, test.link, test.limit, test.offset)
 
 			router := gin.New()
-			router.Use(middleware2.ErrorMiddleware())
+			router.Use(middleware.ErrorMiddleware())
 			if test.email != "" {
 				router.Use(func(context *gin.Context) {
 					context.Set("email", test.email)
@@ -864,7 +863,7 @@ func TestUserHandler_Subscribes(t *testing.T) {
 			test.setupMock(mockService, test.email, test.link, test.limit, test.offset)
 
 			router := gin.New()
-			router.Use(middleware2.ErrorMiddleware())
+			router.Use(middleware.ErrorMiddleware())
 			if test.email != "" {
 				router.Use(func(context *gin.Context) {
 					context.Set("email", test.email)
@@ -959,7 +958,7 @@ func TestUserHandler_RandomUsers(t *testing.T) {
 			test.setupMock(mockService, test.email, test.limit, test.offset)
 
 			router := gin.New()
-			router.Use(middleware2.ErrorMiddleware())
+			router.Use(middleware.ErrorMiddleware())
 			if test.email != "" {
 				router.Use(func(context *gin.Context) {
 					context.Set("email", test.email)
@@ -1054,7 +1053,7 @@ func TestUserHandler_PendingRequests(t *testing.T) {
 			test.setupMock(mockService, test.email, test.limit, test.offset)
 
 			router := gin.New()
-			router.Use(middleware2.ErrorMiddleware())
+			router.Use(middleware.ErrorMiddleware())
 			if test.email != "" {
 				router.Use(func(context *gin.Context) {
 					context.Set("email", test.email)
@@ -1167,7 +1166,7 @@ func TestUserHandler_Unsubscribe(t *testing.T) {
 			test.setupMock(mockService, test.email, test.dto)
 
 			router := gin.New()
-			router.Use(middleware2.ErrorMiddleware())
+			router.Use(middleware.ErrorMiddleware())
 			if test.email != "" {
 				router.Use(func(context *gin.Context) {
 					context.Set("email", test.email)
@@ -1227,8 +1226,8 @@ func TestUserHandler_Profile(t *testing.T) {
 			link: "id123",
 
 			expectedBody: gin.H{
-				"status":  middleware.Errors[apperror.UserNotFound].Code,
-				"message": middleware.Errors[apperror.UserNotFound].Message,
+				"status":  apperror.Errors[apperror.UserNotFound].Code,
+				"message": apperror.Errors[apperror.UserNotFound].Message,
 			},
 
 			expectedCode: http.StatusNotFound,
@@ -1254,7 +1253,7 @@ func TestUserHandler_Profile(t *testing.T) {
 			test.setupMock(mockService, test.link)
 
 			router := gin.New()
-			router.Use(middleware2.ErrorMiddleware())
+			router.Use(middleware.ErrorMiddleware())
 			router.GET("/:link", userHandler.Profile)
 
 			req, err := request("GET", "/"+test.link, nil)
@@ -1318,8 +1317,8 @@ func TestUserHandler_Reject(t *testing.T) {
 			expectedCode: http.StatusUnauthorized,
 
 			expectedBody: gin.H{
-				"status":  middleware.Errors[apperror.NoAuth].Code,
-				"message": middleware.Errors[apperror.NoAuth].Message,
+				"status":  apperror.Errors[apperror.NoAuth].Code,
+				"message": apperror.Errors[apperror.NoAuth].Message,
 			},
 
 			setupMock: func(service *mock_usecase.MockUser, email, link string) {
@@ -1336,8 +1335,8 @@ func TestUserHandler_Reject(t *testing.T) {
 			},
 
 			expectedBody: gin.H{
-				"status":  middleware.Errors[apperror.BadRequest].Code,
-				"message": middleware.Errors[apperror.BadRequest].Message,
+				"status":  apperror.Errors[apperror.BadRequest].Code,
+				"message": apperror.Errors[apperror.BadRequest].Message,
 			},
 			expectedCode: http.StatusBadRequest,
 			setupMock: func(service *mock_usecase.MockUser, email, link string) {
@@ -1361,7 +1360,7 @@ func TestUserHandler_Reject(t *testing.T) {
 			test.setupMock(mockService, test.email, test.dto.Link)
 
 			router := gin.New()
-			router.Use(middleware2.ErrorMiddleware())
+			router.Use(middleware.ErrorMiddleware())
 			if test.email != "" {
 				router.Use(func(context *gin.Context) {
 					context.Set("email", test.email)

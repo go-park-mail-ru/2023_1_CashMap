@@ -81,12 +81,13 @@ func (mr *MockMessageUsecaseMockRecorder) GetMembersByChatId(arg0 interface{}) *
 }
 
 // GetMessagesByChatID mocks base method.
-func (m *MockMessageUsecase) GetMessagesByChatID(arg0 string, arg1 *dto.GetMessagesDTO) ([]*entities.Message, error) {
+func (m *MockMessageUsecase) GetMessagesByChatID(arg0 string, arg1 *dto.GetMessagesDTO) ([]*entities.Message, bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMessagesByChatID", arg0, arg1)
 	ret0, _ := ret[0].([]*entities.Message)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(bool)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetMessagesByChatID indicates an expected call of GetMessagesByChatID.
