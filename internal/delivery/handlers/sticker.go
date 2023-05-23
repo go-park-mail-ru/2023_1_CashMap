@@ -171,6 +171,10 @@ func (s *Sticker) AddStickerPack(ctx *gin.Context) {
 	}
 
 	body, err := utils.GetBody[dto.AddStickerPack](ctx)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
 
 	err = s.service.AddStickerPack(email, body)
 	if err != nil {

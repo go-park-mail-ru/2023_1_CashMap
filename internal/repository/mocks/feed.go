@@ -35,6 +35,21 @@ func (m *MockFeedRepository) EXPECT() *MockFeedRepositoryMockRecorder {
 	return m.recorder
 }
 
+// GetFeedPosts mocks base method.
+func (m *MockFeedRepository) GetFeedPosts(arg0 string, arg1 *dto.FeedDTO) ([]*entities.Post, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFeedPosts", arg0, arg1)
+	ret0, _ := ret[0].([]*entities.Post)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFeedPosts indicates an expected call of GetFeedPosts.
+func (mr *MockFeedRepositoryMockRecorder) GetFeedPosts(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFeedPosts", reflect.TypeOf((*MockFeedRepository)(nil).GetFeedPosts), arg0, arg1)
+}
+
 // GetFriendsPosts mocks base method.
 func (m *MockFeedRepository) GetFriendsPosts(arg0 string, arg1 *dto.FeedDTO) ([]*entities.Post, error) {
 	m.ctrl.T.Helper()

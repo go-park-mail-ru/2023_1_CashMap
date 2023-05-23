@@ -204,8 +204,8 @@ func TestMessageHandler_GetChats(t *testing.T) {
 				"body": gin.H{
 					"chats": []entities.Chat{
 						{
-							0,
-							[]*entities.UserInfo{
+							ChatID: 0,
+							Users: []*entities.UserInfo{
 								{
 									Link: &testLink1,
 								},

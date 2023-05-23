@@ -25,5 +25,5 @@ jobs:
         run : go build ./...
 
       - name: Run tests
-        run :  go test -race -coverpkg=./... -coverprofile=c.out.tmp ./...;  cat c.out.tmp | grep -v "pb.go" > c.out; go tool cover -func c.out
+        run :  go test -race -coverpkg=./... -coverprofile=c.out.tmp ./...;  cat c.out.tmp | grep -v "pb.go" > c.out.tmp.2; cat  c.out.tmp.2 | grep -v "_easyjson.go" > c.out; go tool cover -func c.out
 

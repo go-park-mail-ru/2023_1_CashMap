@@ -28,7 +28,7 @@ func InitCfg(config *Config) error {
 	stdout, _ := cmd.Output()
 	fmt.Println(string(stdout))
 
-	err := godotenv.Load(".env/backend", ".env/postgres", ".env/redis")
+	err := godotenv.Load(".env")
 	if err != nil {
 		return err
 	}

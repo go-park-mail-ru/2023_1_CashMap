@@ -29,7 +29,7 @@ type PostUpdate struct {
 	ShouldShowAuthor *bool              `json:"show_author" valid:"-"`
 	Text             *string            `json:"text" valid:"-"`
 	Attachments      *UpdateAttachments `json:"attachments"`
-	ChangeDate       string             `json:"-" json:"-"`
+	ChangeDate       string             `json:"-"`
 }
 
 type UpdateAttachments struct {

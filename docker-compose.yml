@@ -20,11 +20,11 @@ services:
     image: redis:latest
     container_name: depeche_redis
     env_file:
-      - .env/redis
+      - .env
     ports:
       - "6379:6379"
     command: >
-      --requirepass "password"
+      --requirepass ${REDIS_PASS}
 
   postgres:
     image: postgres:15-alpine
@@ -32,7 +32,7 @@ services:
     ports:
       - "5432:5432"
     env_file:
-      - .env/postgres
+      - .env
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./sql/initdb.sql:/docker-entrypoint-initdb.d/initdb.sql

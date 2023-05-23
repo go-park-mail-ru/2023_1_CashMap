@@ -181,7 +181,9 @@ func (s *Sticker) UploadStickerpack(link string, pack *dto.UploadStickerPack, cr
 	query += ` returning id`
 
 	rows, err := s.db.Queryx(query, params...)
-
+	if err != nil {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
 	stickerIDs := make([]uint, 0, len(pack.Stickers))
 	for rows.Next() {
 		var id uint
