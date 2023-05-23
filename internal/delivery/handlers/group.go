@@ -3,8 +3,12 @@ package handlers
 import (
 	"depeche/internal/delivery/dto"
 	"depeche/internal/delivery/utils"
+	"depeche/internal/entities/response"
 	"depeche/internal/usecase"
+	"depeche/pkg/apperror"
+	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/mailru/easyjson"
 	"net/http"
 )
 
@@ -38,13 +42,22 @@ func (gh *GroupHandler) GetGroup(ctx *gin.Context) {
 	if err != nil {
 		_ = ctx.Error(err)
 	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"group_info": group,
-			"is_sub":     isSub,
-			"is_admin":   isAdmin,
+
+	_response := response.GetGroupResponse{
+		Body: response.GetGroupBody{
+			GroupInfo: group,
+			IsAdmin:   isAdmin,
+			IsSub:     isSub,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 func (gh *GroupHandler) GetGroups(ctx *gin.Context) {
@@ -65,11 +78,20 @@ func (gh *GroupHandler) GetGroups(ctx *gin.Context) {
 		_ = ctx.Error(err)
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"groups": groups,
+
+	_response := response.GetGroupsResponse{
+		Body: response.GetGroupsBody{
+			Groups: groups,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 func (gh *GroupHandler) GetUserGroups(ctx *gin.Context) {
@@ -87,11 +109,19 @@ func (gh *GroupHandler) GetUserGroups(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"groups": groups,
+	_response := response.GetUserGroupsResponse{
+		Body: response.GetUserGroupsBody{
+			Groups: groups,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 func (gh *GroupHandler) GetPopularGroups(ctx *gin.Context) {
@@ -113,11 +143,19 @@ func (gh *GroupHandler) GetPopularGroups(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"groups": groups,
+	_response := response.GetPopularGroupsResponse{
+		Body: response.GetPopularGroupsBody{
+			Groups: groups,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 func (gh *GroupHandler) GetManagedGroups(ctx *gin.Context) {
@@ -139,26 +177,35 @@ func (gh *GroupHandler) GetManagedGroups(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"groups": groups,
+	_response := response.GetManagedGroupsResponse{
+		Body: response.GetManagedGroupsBody{
+			Groups: groups,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 func (gh *GroupHandler) CreateGroup(ctx *gin.Context) {
-	body, err := utils.GetBody[dto.Group](ctx)
-	if err != nil {
-		_ = ctx.Error(err)
+	inputDTO := new(response.CreateGroupRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
 		return
 	}
+
 	email, err := utils.GetEmail(ctx)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
-	err = gh.service.CreateGroup(email, body)
+	err = gh.service.CreateGroup(email, inputDTO.Body)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -168,9 +215,9 @@ func (gh *GroupHandler) CreateGroup(ctx *gin.Context) {
 func (gh *GroupHandler) UpdateGroup(ctx *gin.Context) {
 	link := ctx.Param("link")
 
-	body, err := utils.GetBody[dto.UpdateGroup](ctx)
-	if err != nil {
-		_ = ctx.Error(err)
+	inputDTO := new(response.UpdateGroupRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
 		return
 	}
 
@@ -180,7 +227,7 @@ func (gh *GroupHandler) UpdateGroup(ctx *gin.Context) {
 		return
 	}
 
-	err = gh.service.UpdateGroup(link, email, body)
+	err = gh.service.UpdateGroup(link, email, inputDTO.Body)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -221,11 +268,19 @@ func (gh *GroupHandler) GetSubscribers(ctx *gin.Context) {
 		profiles = append(profiles, dto.NewProfileFromUser(user))
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"profiles": profiles,
+	_response := response.GetSubscribersResponse{
+		Body: response.GetSubscribersBody{
+			Profiles: profiles,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 func (gh *GroupHandler) SubscribeGroup(ctx *gin.Context) {
@@ -258,9 +313,10 @@ func (gh *GroupHandler) UnsubscribeGroup(ctx *gin.Context) {
 
 func (gh *GroupHandler) AcceptRequest(ctx *gin.Context) {
 	link := ctx.Param("link")
-	body, err := utils.GetBody[dto.Requests](ctx)
-	if err != nil {
-		_ = ctx.Error(err)
+
+	inputDTO := new(response.AcceptRequestRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
 		return
 	}
 
@@ -270,7 +326,7 @@ func (gh *GroupHandler) AcceptRequest(ctx *gin.Context) {
 		return
 	}
 
-	err = gh.service.AcceptRequest(email, link, body.AcceptEmail)
+	err = gh.service.AcceptRequest(email, link, inputDTO.Body.AcceptEmail)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -297,12 +353,14 @@ func (gh *GroupHandler) DeclineRequest(ctx *gin.Context) {
 		_ = ctx.Error(err)
 		return
 	}
-	body, err := utils.GetBody[dto.Requests](ctx)
-	if err != nil {
-		_ = ctx.Error(err)
+
+	inputDTO := new(response.AcceptRequestRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
 		return
 	}
-	err = gh.service.DeclineRequest(email, body.AcceptEmail, link)
+
+	err = gh.service.DeclineRequest(email, inputDTO.Body.AcceptEmail, link)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -332,9 +390,17 @@ func (gh *GroupHandler) PendingGroupRequests(ctx *gin.Context) {
 		profiles = append(profiles, dto.NewProfileFromUser(user))
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"profiles": profiles,
+	_response := response.PendingGroupRequestsResponse{
+		Body: response.PendingGroupRequestsBody{
+			Profiles: profiles,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }

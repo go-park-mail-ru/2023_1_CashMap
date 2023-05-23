@@ -3,10 +3,12 @@ package delivery
 import (
 	"depeche/pkg/apperror"
 	"depeche/static/entities"
+	"depeche/static/entities/response"
 	"depeche/static/service"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/mailru/easyjson"
 	"io"
 	"math"
 	"net/http"
@@ -110,12 +112,20 @@ func (fileHandler *FileHandler) LoadFile(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"form": outputFiles,
+	_response := response.LoadFileResponse{
+		Body: response.LoadFileBody{
+			Form: outputFiles,
 		},
-		"status": http.StatusOK,
-	})
+		Status: http.StatusOK,
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 // TODO: Сделать поддержку чтения сразу нескольких файлов
@@ -140,8 +150,6 @@ func (fileHandler *FileHandler) GetFile(ctx *gin.Context) {
 		return
 	}
 
-	fmt.Println(file.Type)
-
 	err = fileHandler.FileUsecase.ReadFile(&file, ctx.Writer)
 	if err != nil {
 		_ = ctx.Error(err)
@@ -164,14 +172,13 @@ func (fileHandler *FileHandler) GetFile(ctx *gin.Context) {
 //	@Failure		500
 //	@Router			/api/static/delete [delete]
 func (fileHandler *FileHandler) DeleteFile(ctx *gin.Context) {
-	var file entities.UserFile
-	err := ctx.ShouldBind(&file)
-	if err != nil {
-		_ = ctx.Error(apperror.BadRequest)
+	inputDTO := new(response.DeleteFileRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
 		return
 	}
 
-	err = fileHandler.FileUsecase.DeleteFile(&file)
+	err := fileHandler.FileUsecase.DeleteFile(inputDTO.Body)
 	if err != nil {
 		_ = ctx.Error(apperror.InternalServerError)
 		return
