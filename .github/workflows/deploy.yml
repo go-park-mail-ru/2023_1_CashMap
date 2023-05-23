@@ -60,7 +60,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           source: "./*"
-          target: "/home/ubuntu/backend/2023_1_CashMap"
+          target: "/home/ubuntu/backend-depeche"
 
       - name: Reload app
         uses: appleboy/scp-action@master
@@ -69,7 +69,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /home/ubuntu/backend/2023_1_CashMap
+            cd /home/ubuntu/backend-depeche
             sudo docker-compose build --parallel --no-cache
             sudo docker-compose up -d
 
