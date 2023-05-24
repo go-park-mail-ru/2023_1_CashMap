@@ -1,13 +1,16 @@
 package connector
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"github.com/jackc/pgx"
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/sethvargo/go-retry"
 	"strconv"
+	"time"
 )
 
 type PostgresConfig struct {
@@ -60,8 +63,14 @@ func GetPostgresConnector(cfg *PostgresConfig) (*sql.DB, error) {
 		return nil, err
 	}
 
-	err = db.Ping()
-	if err != nil {
+	ctx := context.Background()
+	if err := retry.Fibonacci(ctx, 1*time.Second, func(ctx context.Context) error {
+		if err := db.PingContext(ctx); err != nil {
+			// This marks the error as retryable
+			return retry.RetryableError(err)
+		}
+		return nil
+	}); err != nil {
 		return nil, err
 	}
 

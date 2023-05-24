@@ -28,6 +28,7 @@ require (
 )
 
 require (
+	github.com/avast/retry-go v3.0.0+incompatible // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
@@ -36,6 +37,7 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
+	github.com/sethvargo/go-retry v0.2.4 // indirect
 	google.golang.org/genproto v0.0.0-20230110181048-76db0878b65f // indirect
 )
 
