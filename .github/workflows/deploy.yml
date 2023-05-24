@@ -71,6 +71,8 @@ jobs:
           script: |
             cd /home/ubuntu/backend-depeche
             sudo docker-compose build --parallel --no-cache
+            docker stop $(docker ps -aq --filter name=depeche)
+            docker rm $(docker ps -aq --filter name=depeche)
             sudo docker-compose up -d
 
 
