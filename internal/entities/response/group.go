@@ -11,8 +11,8 @@ type GetGroupResponse struct {
 
 type GetGroupBody struct {
 	GroupInfo *entities.Group `json:"group_info"`
-	IsSub     bool            `json:"is_sub"`
 	IsAdmin   bool            `json:"is_admin"`
+	IsSub     bool            `json:"is_sub"`
 }
 
 type GetGroupsResponse struct {

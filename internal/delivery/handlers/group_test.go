@@ -3,6 +3,7 @@ package handlers
 import (
 	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
+	"depeche/internal/entities/response"
 	mock_usecase "depeche/internal/usecase/mocks"
 	"depeche/pkg/apperror"
 	middleware "depeche/pkg/middleware"
@@ -21,7 +22,7 @@ func TestGroupHandler_GetGroup(t *testing.T) {
 		name         string
 		link         string
 		email        string
-		expectedBody gin.H
+		expectedBody *response.GetGroupResponse
 		expectedCode int
 		setupMock    func(service *mock_usecase.MockGroup, email, link string)
 	}{
@@ -29,16 +30,17 @@ func TestGroupHandler_GetGroup(t *testing.T) {
 			name:  "Success",
 			link:  "id123",
 			email: "e.larkin@mail.ru",
-			expectedBody: gin.H{
-				"body": gin.H{
-					"group_info": entities.Group{
+			expectedBody: &response.GetGroupResponse{
+				Body: response.GetGroupBody{
+					GroupInfo: &entities.Group{
 						Link:  "id123",
 						Title: "Group",
 					},
-					"is_sub":   true,
-					"is_admin": true,
+					IsSub:   true,
+					IsAdmin: true,
 				},
 			},
+
 			expectedCode: http.StatusOK,
 			setupMock: func(service *mock_usecase.MockGroup, email, link string) {
 				group := &entities.Group{

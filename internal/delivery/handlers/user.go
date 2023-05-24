@@ -48,8 +48,8 @@ func NewUserHandler(userService usecase.User, authService auth.Auth, csrfService
 //	@Router			/auth/sign-in [post]
 func (uh *UserHandler) SignIn(ctx *gin.Context) {
 	inputDTO := new(response.SignInRequest)
-	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
-		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil || inputDTO.Body == nil {
+		_ = ctx.Error(apperror.NewBadRequest())
 		return
 	}
 
@@ -101,8 +101,8 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 //	@Router			/auth/sign-up [post]
 func (uh *UserHandler) SignUp(ctx *gin.Context) {
 	inputDTO := new(response.SignUpRequest)
-	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
-		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil || inputDTO.Body == nil {
+		_ = ctx.Error(apperror.NewBadRequest())
 		return
 	}
 
@@ -255,8 +255,8 @@ func (uh *UserHandler) CheckAuth(ctx *gin.Context) {
 //	@Router			/api/user/sub [post]
 func (uh *UserHandler) Subscribe(ctx *gin.Context) {
 	inputDTO := new(response.SubscribeRequest)
-	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
-		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil || inputDTO.Body == nil {
+		_ = ctx.Error(apperror.NewBadRequest())
 		return
 	}
 
@@ -288,8 +288,8 @@ func (uh *UserHandler) Subscribe(ctx *gin.Context) {
 //	@Router			/api/user/unsub [post]
 func (uh *UserHandler) Unsubscribe(ctx *gin.Context) {
 	inputDTO := new(response.UnsubscribeRequest)
-	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
-		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil || inputDTO.Body == nil {
+		_ = ctx.Error(apperror.NewBadRequest())
 		return
 	}
 
@@ -321,8 +321,8 @@ func (uh *UserHandler) Unsubscribe(ctx *gin.Context) {
 //	@Router			/api/user/reject [post]
 func (uh *UserHandler) Reject(ctx *gin.Context) {
 	inputDTO := new(response.RejectRequest)
-	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
-		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil || inputDTO.Body == nil {
+		_ = ctx.Error(apperror.NewBadRequest())
 		return
 	}
 
@@ -429,8 +429,8 @@ func (uh *UserHandler) Self(ctx *gin.Context) {
 //	@Router			/api/user/profile/edit [patch]
 func (uh *UserHandler) EditProfile(ctx *gin.Context) {
 	inputDTO := new(response.EditProfileRequest)
-	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
-		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil || inputDTO.Body == nil {
+		_ = ctx.Error(apperror.NewBadRequest())
 		return
 	}
 
