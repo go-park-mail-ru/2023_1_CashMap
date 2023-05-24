@@ -1,7 +1,5 @@
 package dto
 
-import "io"
-
 type PostGetByID struct {
 	PostID uint `form:"post_id" json:"post_id"`
 }
@@ -14,12 +12,12 @@ type PostsGetByLink struct {
 }
 
 type PostCreate struct {
-	CommunityLink    *string         `form:"community_link" json:"community_link"`
-	OwnerLink        *string         `form:"owner_link" json:"owner_link"`
-	UserLink         string          `form:"author_link" json:"author_link"`
-	ShouldShowAuthor bool            `form:"show_author" json:"show_author"`
-	Text             string          `form:"text" json:"text"`
-	Attachments      []io.ReadCloser `form:"attachments" json:"attachments"`
+	CommunityLink    *string  `form:"community_link" json:"community_link"`
+	OwnerLink        *string  `form:"owner_link" json:"owner_link"`
+	UserLink         string   `form:"author_link" json:"author_link"`
+	ShouldShowAuthor bool     `form:"show_author" json:"show_author"`
+	Text             string   `form:"text" json:"text"`
+	Attachments      []string `form:"attachments" json:"attachments"`
 }
 
 type PostDelete struct {
@@ -27,10 +25,18 @@ type PostDelete struct {
 }
 
 type PostUpdate struct {
-	PostID              *uint            `form:"post_id" valid:"-"`
-	ShouldShowAuthor    *bool            `form:"show_author" valid:"-"`
-	Text                *string          `form:"text" valid:"-"`
-	Attachments         *[]io.ReadCloser `form:"attachments" valid:"-"`
-	AttachmentsToRemove *[]string        `form:"attachments_to_remove" valid:"-"`
-	ChangeDate          string           `form:"-" json:"-"`
+	PostID           *uint              `json:"post_id" valid:"-"`
+	ShouldShowAuthor *bool              `json:"show_author" valid:"-"`
+	Text             *string            `json:"text" valid:"-"`
+	Attachments      *UpdateAttachments `json:"attachments"`
+	ChangeDate       string             `json:"-"`
+}
+
+type UpdateAttachments struct {
+	Deleted []string `json:"deleted"`
+	Added   []string `json:"added"`
+}
+
+type LikeDTO struct {
+	PostID *uint `json:"post_id" valid:"-"`
 }

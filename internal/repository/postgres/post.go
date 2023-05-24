@@ -5,11 +5,13 @@ import (
 	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
 	"depeche/internal/repository"
+	utildb "depeche/internal/repository/utils"
 	"depeche/internal/utils"
 	"depeche/pkg/apperror"
 	"errors"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"strings"
 )
 
 type PostStorage struct {
@@ -24,9 +26,7 @@ func NewPostRepository(db *sqlx.DB) repository.PostRepository {
 
 func (storage *PostStorage) GetPostSenderInfo(postID uint) (*entities.UserInfo, *entities.CommunityInfo, error) {
 	author := &entities.UserInfo{}
-	err := storage.db.Get(author, "SELECT first_name, last_name, url, link FROM Post as post"+
-		" JOIN UserProfile as profile ON post.author_id = profile.id"+
-		" LEFT JOIN Photo as photo ON profile.avatar_id = photo.id WHERE post.id = $1", postID)
+	err := storage.db.Get(author, PostSenderInfoQuery, postID)
 	if err == sql.ErrNoRows {
 		return nil, nil, apperror.NewServerError(apperror.PostNotFound, fmt.Errorf("post with id=%d not found", postID))
 	}
@@ -37,9 +37,7 @@ func (storage *PostStorage) GetPostSenderInfo(postID uint) (*entities.UserInfo, 
 
 	// TODO: Может не работать
 	community := &entities.CommunityInfo{}
-	err = storage.db.Get(community, "SELECT community.title, community.link FROM Post as post"+
-		" JOIN Community as community ON post.community_id = community.id"+
-		"  WHERE post.id = $1", postID)
+	err = storage.db.Get(community, CommunityPostInfoQuery, postID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			community = nil
@@ -51,14 +49,27 @@ func (storage *PostStorage) GetPostSenderInfo(postID uint) (*entities.UserInfo, 
 	return author, community, nil
 }
 
-func (storage *PostStorage) SelectPostById(postId uint) (*entities.Post, error) {
+func (storage *PostStorage) GetPostAttachments(postID uint) ([]string, error) {
+	var attachments []string
+	rows, err := storage.db.Queryx(GetPostAttachments, postID)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	for rows.Next() {
+		var attach string
+		err := rows.Scan(&attach)
+		if err != nil {
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+		attachments = append(attachments, attach)
+	}
+	return attachments, nil
+}
+
+func (storage *PostStorage) SelectPostById(postId uint, email string) (*entities.Post, error) {
 	post := &entities.Post{}
 
-	err := storage.db.Get(post, "SELECT post.id, text_content, author.link as author_link, post.likes_amount, post.show_author, post.creation_date"+
-		" FROM Post AS post JOIN UserProfile AS author ON post.author_id = author.id"+
-		" LEFT JOIN Community as community on post.community_id = community.id"+
-		" LEFT JOIN UserProfile as owner ON post.owner_id = owner.id"+
-		" WHERE post.id = $1 AND post.is_deleted = false", postId)
+	err := storage.db.Get(post, PostInfoByIdQuery, postId, email)
 	if err == sql.ErrNoRows {
 		return nil, apperror.NewServerError(apperror.PostNotFound, fmt.Errorf("post with id=%d not found", postId))
 	}
@@ -69,16 +80,16 @@ func (storage *PostStorage) SelectPostById(postId uint) (*entities.Post, error) 
 	return post, nil
 }
 
-func (storage *PostStorage) SelectPostsByCommunityLink(info *dto.PostsGetByLink) ([]*entities.Post, error) {
+func (storage *PostStorage) SelectPostsByCommunityLink(info *dto.PostsGetByLink, email string) ([]*entities.Post, error) {
 	// больше тот, кто запощен позже
 	//TODO: NamedQueryx
-	rows, err := storage.db.Queryx("SELECT post.id, text_content, author.link as author_link, post.likes_amount, post.show_author, post.creation_date, post.change_date "+
-		"FROM Post AS post JOIN UserProfile AS author ON post.author_id = author.id "+
-		"LEFT JOIN Community as community on post.community_id = community.id "+
-		"WHERE post.community_id = (SELECT id FROM Community WHERE link = $1) AND post.creation_date > $2 AND post.is_deleted = false ORDER BY post.creation_date DESC LIMIT $3",
+	rows, err := storage.db.Queryx(
+		PostByCommunityLinkQuery,
 		*info.CommunityLink,
 		info.LastPostDate,
-		info.BatchSize)
+		info.BatchSize,
+		email)
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
@@ -90,15 +101,14 @@ func (storage *PostStorage) SelectPostsByCommunityLink(info *dto.PostsGetByLink)
 	return posts, nil
 }
 
-func (storage *PostStorage) SelectPostsByUserLink(info *dto.PostsGetByLink) ([]*entities.Post, error) {
-	rows, err := storage.db.Queryx("SELECT post.id, text_content, author.link as author_link, post.likes_amount, post.show_author, post.creation_date, post.change_date "+
-		"FROM Post AS post JOIN UserProfile AS author ON post.author_id = author.id "+
-		"LEFT JOIN Community as community on post.community_id = community.id "+
-		"LEFT JOIN UserProfile as owner ON post.owner_id = owner.id "+
-		"WHERE post.owner_id = (SELECT id FROM UserProfile WHERE link = $1) AND post.creation_date > $2 AND post.is_deleted = false ORDER BY post.creation_date DESC LIMIT $3",
+func (storage *PostStorage) SelectPostsByUserLink(info *dto.PostsGetByLink, email string) ([]*entities.Post, error) {
+	rows, err := storage.db.Queryx(
+		PostsByUserLinkQuery,
 		info.OwnerLink,
 		info.LastPostDate,
-		info.BatchSize)
+		info.BatchSize,
+		email)
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
@@ -157,7 +167,7 @@ func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) 
 	var ownerID *uint
 	if dto.CommunityLink != nil {
 		communityID = new(uint)
-		err = tx.Get(communityID, "SELECT id FROM Community WHERE link = $1", *dto.CommunityLink)
+		err = tx.Get(communityID, "SELECT id FROM groups WHERE link = $1", *dto.CommunityLink)
 		if err == sql.ErrNoRows {
 			// Неизвестый link сообщества
 			if err := tx.Rollback(); err != nil {
@@ -184,8 +194,7 @@ func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) 
 
 	}
 
-	query, err := tx.PrepareNamed("INSERT INTO Post (community_id, author_id, owner_id, show_author, text_content, creation_date, change_date) " +
-		"VALUES (:community_id, (SELECT id FROM UserProfile WHERE email = :sender_email), :owner_id, :show_author, :text, :init_time, :change_time) RETURNING id")
+	query, err := tx.PrepareNamed(CreatePostQuery)
 	if err != nil {
 		if err := tx.Rollback(); err != nil {
 			return 0, apperror.NewServerError(apperror.InternalServerError, err)
@@ -219,9 +228,80 @@ func (storage *PostStorage) CreatePost(senderEmail string, dto *dto.PostCreate) 
 	return postID, nil
 }
 
+func (storage *PostStorage) AddPostAttachments(postId uint, attachments []string) error {
+	query := `insert into attachment (url) values `
+	for i := 1; i < len(attachments)+1; i++ {
+		query += fmt.Sprintf("($%d), ", i)
+	}
+	query, _ = strings.CutSuffix(query, ", ")
+	query += " returning id"
+
+	postAttachments := make([]interface{}, len(attachments))
+	for i, att := range attachments {
+		postAttachments[i] = att
+	}
+
+	rows, err := storage.db.Queryx(query, postAttachments...)
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	var attachmentIds []uint
+
+	for rows.Next() {
+		var id uint
+		err := rows.Scan(&id)
+		if err != nil {
+			return apperror.NewServerError(apperror.InternalServerError, err)
+		}
+		attachmentIds = append(attachmentIds, id)
+	}
+
+	postAttQuery := `insert into postattachment (att_id, post_id) values `
+	for i := 2; i < len(attachmentIds)+2; i++ {
+		postAttQuery += fmt.Sprintf("($%d, $1), ", i)
+	}
+	postAttQuery, _ = strings.CutSuffix(postAttQuery, ", ")
+	params := make([]interface{}, len(attachmentIds)+1)
+	params[0] = postId
+	for i, id := range attachmentIds {
+		params[i+1] = id
+	}
+	err = storage.db.QueryRowx(postAttQuery, params...).Scan()
+	if err != nil && err != sql.ErrNoRows {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	return nil
+}
+
+func (storage *PostStorage) DeletePostAttachments(postId uint, attachments []string) error {
+	query := `with atts as (select id from attachment where url in (`
+	params := make([]interface{}, 0, len(attachments)+1)
+	params = append(params, postId)
+	for i, att := range attachments {
+		params = append(params, att)
+		query += fmt.Sprintf("$%d, ", i+2)
+	}
+	query, _ = strings.CutSuffix(query, ", ")
+	query += "))"
+
+	query += `delete from postattachment where post_id = $1 and att_id in (select id from atts)`
+	err := storage.db.QueryRowx(query, params...).Scan()
+	if err != nil && err != sql.ErrNoRows {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	return nil
+}
+
 func (storage *PostStorage) UpdatePost(senderEmail string, dto *dto.PostUpdate) error {
 	var isAuthor bool
 	tx, err := storage.db.Beginx()
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
 	if err != nil {
 		return apperror.NewServerError(apperror.InternalServerError, err)
 	}
@@ -248,6 +328,24 @@ func (storage *PostStorage) UpdatePost(senderEmail string, dto *dto.PostUpdate) 
 		return apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
+	_ = tx.Commit()
+	return nil
+}
+
+func (storage *PostStorage) UpdatePostAttachments(postId uint, dto *dto.UpdateAttachments) error {
+	if len(dto.Added) != 0 {
+		err := storage.AddPostAttachments(postId, dto.Added)
+		if err != nil {
+			return apperror.NewServerError(apperror.InternalServerError, err)
+		}
+	}
+	if len(dto.Deleted) != 0 {
+		err := storage.DeletePostAttachments(postId, dto.Deleted)
+		if err != nil {
+			return apperror.NewServerError(apperror.InternalServerError, err)
+		}
+		return nil
+	}
 	return nil
 }
 
@@ -269,6 +367,86 @@ func (storage *PostStorage) DeletePost(senderEmail string, dto *dto.PostDelete) 
 	}
 
 	return nil
+}
+
+func (storage *PostStorage) SetLike(email string, postID uint) error {
+	// TODO: нужна проверка доступа к постам (ручка недописанная выше)
+	tx, err := storage.db.Beginx()
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	_, err = tx.Exec(SetLikeQuery, postID, email)
+	if err != nil {
+		// TODO: выделить отдельно ошибку при нарушении констрэнта unique
+		_ = tx.Rollback()
+		return apperror.NewServerError(apperror.AlreadyLiked, err)
+	}
+
+	_, err = tx.Exec("UPDATE Post SET likes_amount = likes_amount + 1 WHERE id = $1", postID)
+	if err != nil {
+		_ = tx.Rollback()
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	return nil
+}
+
+func (storage *PostStorage) CancelLike(email string, postID uint) error {
+	// TODO: нужна проверка доступа к постам (ручка недописанная выше)
+	tx, err := storage.db.Beginx()
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	execResult, err := tx.Exec(CancelLikeQuery, postID, email)
+	if err != nil {
+		// TODO: выделить отдельно ошибку при нарушении констрэнта unique
+		_ = tx.Rollback()
+		return apperror.NewServerError(apperror.AlreadyLiked, err)
+	}
+
+	rowsAmount, err := execResult.RowsAffected()
+	if err != nil {
+		_ = tx.Rollback()
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	if rowsAmount == 0 {
+		_ = tx.Rollback()
+		return apperror.NewServerError(apperror.LikeIsMissing,
+			fmt.Errorf("like for post with id = %d for user with email = %s doesn't exists", postID, email))
+	}
+
+	rows, err := tx.Queryx("UPDATE Post SET likes_amount = likes_amount - 1 WHERE id = $1", postID)
+	defer utildb.CloseRows(rows)
+	if err != nil {
+		_ = tx.Rollback()
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	return nil
+}
+
+func (storage *PostStorage) GetLikesAmount(email string, postID uint) (int, error) {
+	// TODO: нужна проверка доступа к постам (ручка недописанная выше)
+	var likesAmount int
+	err := storage.db.Get(&likesAmount, "SELECT likes_amount FROM Post WHERE id = $1", postID)
+	if err != nil {
+		return 0, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	return likesAmount, nil
 }
 
 func getSliceFromRows[T any](rows *sqlx.Rows, size uint) ([]*T, error) {

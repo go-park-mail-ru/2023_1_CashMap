@@ -10,7 +10,7 @@ type User struct {
 	Password   string `json:"-"           db:"password"`
 	FirstName  string `json:"first_name"  db:"first_name"`
 	LastName   string `json:"last_name"   db:"last_name"`
-	Avatar     string `json:"avatar"      db:"avatar"`
+	Avatar     string `json:"avatar_url"  db:"avatar"`
 	Sex        string `json:"sex"         db:"sex"`
 	Status     string `json:"status"      db:"status"`
 	Bio        string `json:"bio"         db:"bio"`
@@ -21,8 +21,11 @@ type User struct {
 }
 
 type UserInfo struct {
-	FirstName *string `db:"first_name" json:"first_name"`
-	LastName  *string `db:"last_name" json:"last_name"`
-	AvatarUrl *string `db:"url" json:"url"`
-	Link      *string `db:"link" json:"link"`
+	FirstName    *string `db:"first_name" json:"first_name"`
+	LastName     *string `db:"last_name" json:"last_name"`
+	AvatarUrl    *string `db:"url" json:"avatar_url"`
+	Link         *string `db:"link" json:"user_link"`
+	IsFriend     *bool   `db:"is_friend" json:"isFriend"`
+	IsSubscriber *bool   `db:"is_subscriber" json:"isSubscriber"`
+	IsSubscribed *bool   `db:"is_subscribed" json:"isSubscribed"`
 }

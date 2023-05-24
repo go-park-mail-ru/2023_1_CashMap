@@ -14,15 +14,12 @@ type PostUsecase interface {
 
 	DeletePost(email string, dto *dto.PostDelete) error
 
-	LikePost()
-	CancelLike()
+	LikePost(email string, dto *dto.LikeDTO) (int, error)
+	CancelLike(email string, dto *dto.LikeDTO) error
 
 	UpdatePost(email string, dto *dto.PostUpdate) error
 
 	Repost()
 
-	//AddComment() - в comment service
-	//RemoveComment()
-	// TODO: сделать центр уведомлений для комментариев и сообщений входящий (да и для вообще всего)
-
+	AddPostData(post *entities.Post) error
 }

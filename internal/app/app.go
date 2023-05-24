@@ -1,6 +1,7 @@
 package app
 
 import (
+	"depeche/authorization_ms/api"
 	"depeche/configs"
 	"depeche/docs"
 	"depeche/internal/delivery/handlers"
@@ -8,16 +9,17 @@ import (
 	"depeche/internal/delivery/wsPool"
 	"depeche/internal/repository/postgres"
 	httpserver "depeche/internal/server"
-	"depeche/internal/session/repository/redis"
-	authService "depeche/internal/session/service"
-	staticDelivery "depeche/internal/static/delivery"
-	staticService "depeche/internal/static/service"
+	"depeche/internal/session/client"
 	"depeche/internal/usecase/service"
 	"depeche/pkg/connector"
+	middleware2 "depeche/pkg/middleware"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/penglongli/gin-metrics/ginmetrics"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"log"
 )
 
@@ -37,36 +39,45 @@ func Run() {
 	// TODO: как обработать ошибку в дефере нормаль?...
 	defer db.Close()
 
-	client, err := connector.ConnectRedis(&cfg.SessionStorage)
+	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", cfg.AuthMs.Host, cfg.AuthMs.Port),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	sessionStorage := redis.NewRedisStorage(client)
-	csrfStorage := redis.NewCSRFStorage(client)
+	authClient := api.NewAuthServiceClient(conn)
+	csrfClient := api.NewCSRFServiceClient(conn)
 
 	userStorage := postgres.NewPostgresUserRepo(db)
 	feedStorage := postgres.NewFeedStorage(db)
 	postStorage := postgres.NewPostRepository(db)
 	messageStorage := postgres.NewMessageRepository(db)
+	groupStorage := postgres.NewGroupRepository(db)
+	stickerStorage := postgres.NewStickerRepository(db)
+	commentStorage := postgres.NewCommentStorage(db)
 
 	userService := service.NewUserService(userStorage)
-	authorizationService := authService.NewAuthService(sessionStorage)
-	csrfService := authService.NewCSRFService(csrfStorage)
+	authorizationService := client.NewAuthService(authClient)
+	csrfService := client.NewCSRFService(csrfClient)
 	feedService := service.NewFeedService(feedStorage, postStorage)
-	fileService := staticService.NewFileUsecase()
 	postService := service.NewPostService(postStorage)
-
+	groupService := service.NewGroupService(groupStorage)
 	msgService := service.NewMessageService(messageStorage, userStorage)
+	stickerService := service.NewStickerService(stickerStorage)
+	commentService := service.NewCommentService(commentStorage)
 
-	staticHandler := staticDelivery.NewFileHandler(fileService)
 	userHandler := handlers.NewUserHandler(userService, authorizationService, csrfService)
 	feedHandler := handlers.NewFeedHandler(feedService)
 	postHandler := handlers.NewPostHandler(postService)
-
 	messageHandler := handlers.NewMessageHandler(msgService)
-
-	handler := handlers.NewHandler(userHandler, feedHandler, postHandler, staticHandler, messageHandler)
+	groupHandler := handlers.NewGroupHandler(groupService)
+	stickerHandler := handlers.NewStickerHandler(stickerService)
+	commentHandler := handlers.NewCommentHandler(commentService)
+	handler := handlers.NewHandler(
+		userHandler, feedHandler,
+		postHandler,
+		messageHandler, groupHandler,
+		stickerHandler,
+		commentHandler)
 
 	authMiddleware := middleware.NewAuthMiddleware(authorizationService)
 
@@ -80,10 +91,10 @@ func Run() {
 
 	initValidator()
 
-	server := httpserver.NewServer(router)
+	server := httpserver.NewServer(router, cfg.Port)
 	err = server.ListenAndServe()
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 		return
 	}
 }
@@ -96,9 +107,15 @@ func initValidator() {
 
 func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, pool *wsPool.ConnectionPool, wsMiddleware *middleware.WsMiddleware, csrfMiddleware *middleware.CSRFMiddleware) *gin.Engine {
 	router := gin.Default()
+	// [METRICS]
+	m := ginmetrics.GetMonitor()
+	m.SetMetricPath("/metrics")
+	m.SetSlowTime(5)
+	m.SetDuration([]float64{0.02, 0.08, 0.1, 0.2, 0.5})
+	m.Use(router)
 	// [MIDDLEWARE]
-	router.Use(middleware.CORS())
-	router.Use(middleware.ErrorMiddleware())
+	router.Use(middleware2.CORS())
+	router.Use(middleware2.ErrorMiddleware())
 
 	// [SWAGGER]
 	docs.SwaggerInfo.BasePath = "/api"
@@ -118,6 +135,16 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 	apiEndpointsGroup.Use(authMW.Middleware())
 	apiEndpointsGroup.Use(csrfMiddleware.Middleware())
 	{
+
+		// [COMMENT]
+		commentEndpointsGroup := apiEndpointsGroup.Group("comment")
+		{
+			commentEndpointsGroup.GET("/:id", handler.GetCommentById)
+			commentEndpointsGroup.GET("/post/:id", handler.GetCommentByPostId)
+			commentEndpointsGroup.POST("/create", handler.CreateComment)
+			commentEndpointsGroup.PATCH("/edit", handler.EditComment)
+			commentEndpointsGroup.POST("/delete/:id", handler.DeleteComment)
+		}
 
 		// [FEED]
 		apiEndpointsGroup.GET("/feed", handler.GetFeed)
@@ -141,26 +168,23 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 			postEndpoints.DELETE("/delete", handler.DeletePost)
 			postEndpoints.POST("/create", handler.CreatePost)
 			postEndpoints.PATCH("/edit", handler.EditPost)
-		}
-
-		// [STATIC]
-		staticEndpointsGroup := apiEndpointsGroup.Group("/static")
-		{
-			staticEndpointsGroup.POST("/upload", handler.LoadFile)
-			staticEndpointsGroup.GET("/download", handler.GetFile)
-			staticEndpointsGroup.DELETE("/remove", handler.DeleteFile)
+			postEndpoints.POST("/like/set", handler.LikePost)
+			postEndpoints.POST("/like/cancel", handler.CancelPostLike)
 		}
 
 		// [USER]
 
 		userEndpoints := apiEndpointsGroup.Group("/user")
 		{
+			userEndpoints.GET("/search", handler.GetGlobalSearchResult)
+			userEndpoints.GET("/status", handler.UserStatus)
 			// [PROFILE]
 			profileEndpoints := userEndpoints.Group("/profile")
 			{
 				profileEndpoints.GET("", handler.Self)
-				profileEndpoints.GET("/:link", handler.Profile)
+				profileEndpoints.GET("/link/:link", handler.Profile)
 				profileEndpoints.PATCH("/edit", handler.EditProfile)
+				profileEndpoints.GET("/groups", handler.GetUserGroups)
 
 			}
 			userEndpoints.GET("/rand", handler.RandomUsers)
@@ -169,7 +193,7 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 
 			// [SUBSCRIBES]
 			userEndpoints.GET("/sub", handler.Subscribes)
-			userEndpoints.GET("/pending", handler.PendingRequests)
+			userEndpoints.GET("/pending", handler.PendingGroupRequests)
 
 			// [SUBSCRIBE]
 			userEndpoints.POST("/sub", handler.Subscribe)
@@ -181,6 +205,46 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 			userEndpoints.POST("/reject", handler.Reject)
 		}
 
+		// [GROUP]
+		groupEndpoints := apiEndpointsGroup.Group("/group")
+		{
+			// TODO :)
+			groupLink := groupEndpoints.Group("/link/:link")
+			{
+				groupLink.GET("", handler.GetGroup)
+				groupLink.PATCH("", handler.UpdateGroup)
+				groupLink.DELETE("", handler.DeleteGroup)
+				groupLink.GET("/subs", handler.GetSubscribers)
+				groupLink.POST("/sub", handler.SubscribeGroup)
+				groupLink.POST("/unsub", handler.UnsubscribeGroup)
+				groupLink.PATCH("/accept", handler.AcceptRequest)
+				groupLink.PUT("/accept", handler.AcceptAllRequests)
+				groupLink.PATCH("/decl", handler.DeclineRequest)
+				groupLink.GET("/pending", handler.PendingGroupRequests)
+			}
+			groupEndpoints.GET("/self", handler.GetGroups)
+			groupEndpoints.GET("/manage", handler.GetManagedGroups)
+			groupEndpoints.GET("/hot", handler.GetPopularGroups)
+			groupEndpoints.POST("/create", handler.CreateGroup)
+
+		}
+
+		// [STICKERS]
+		stickerEndpoints := apiEndpointsGroup.Group("/sticker")
+		{
+			stickerEndpoints.GET("/", handler.GetStickerById)
+			stickerPackEndpoints := stickerEndpoints.Group("/pack")
+			{
+				stickerPackEndpoints.GET("/", handler.GetStickerPack)
+				stickerPackEndpoints.GET("/info", handler.GetStickerPackInfo)
+				stickerPackEndpoints.GET("/hot", handler.GetNewStickerPacks)
+				stickerPackEndpoints.GET("/author", handler.GetStickerPacksByAuthor)
+				stickerPackEndpoints.GET("/self", handler.GetUserStickerPacks)
+
+				stickerPackEndpoints.POST("/create", handler.UploadStickerPack)
+				stickerPackEndpoints.POST("/add", handler.AddStickerPack)
+			}
+		}
 		// [WS]
 		apiEndpointsGroup.GET("/ws", pool.Connect)
 

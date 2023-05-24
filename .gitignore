@@ -1,4 +1,11 @@
 .idea
 main
 ./internal/static/files/*
-.env/*
+.env
+data/
+git
+c.out
+c.out.tmp
+c.out.*
+./static/files/*
+

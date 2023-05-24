@@ -2,11 +2,15 @@ package handlers
 
 import (
 	"depeche/internal/delivery/dto"
+	"depeche/internal/delivery/utils"
 	"depeche/internal/entities"
+	"depeche/internal/entities/response"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/mailru/easyjson"
 	"net/http"
 )
 
@@ -54,12 +58,19 @@ func (handler *PostHandler) GetPostsByUserLink(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"posts":       posts,
-			"attachments": nil,
+	_response := response.GetPostsByUserLinkResponse{
+		Body: response.GetPostsByUserLinkBody{
+			Posts: posts,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 // GetPostsByCommunityLink godoc
@@ -102,11 +113,19 @@ func (handler *PostHandler) GetPostsByCommunityLink(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"posts": posts,
+	_response := response.GetPostsByUserLinkResponse{
+		Body: response.GetPostsByUserLinkBody{
+			Posts: posts,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 // GetPostsById godoc
@@ -131,25 +150,33 @@ func (handler *PostHandler) GetPostsById(ctx *gin.Context) {
 		return
 	}
 
-	email, exists := ctx.Get("email")
-	if !exists {
-		_ = ctx.Error(apperror.NoAuth)
+	email, err := utils.GetEmail(ctx)
+	if err != nil {
+		_ = ctx.Error(err)
 		return
 	}
 
 	var post *entities.Post
-	post, err = handler.PostUsecase.GetPostById(email.(string), &postDTO)
+	post, err = handler.PostUsecase.GetPostById(email, &postDTO)
 	if err != nil {
 		fmt.Println(err)
 		_ = ctx.Error(apperror.InternalServerError)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"posts": []*entities.Post{post},
+	_response := response.GetPostsByUserLinkResponse{
+		Body: response.GetPostsByUserLinkBody{
+			Posts: []*entities.Post{post},
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 // CreatePost godoc
@@ -164,36 +191,37 @@ func (handler *PostHandler) GetPostsById(ctx *gin.Context) {
 //	@Failure		500
 //	@Router			/api/posts/create [post]
 func (handler *PostHandler) CreatePost(ctx *gin.Context) {
-	var request = struct {
-		dto.PostCreate `json:"body"`
-	}{}
+	inputDTO := new(response.CreatePostRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
+		return
+	}
 
-	err := ctx.ShouldBind(&request)
+	email, err := utils.GetEmail(ctx)
 	if err != nil {
-		fmt.Println(err)
-		_ = ctx.Error(apperror.BadRequest)
+		_ = ctx.Error(err)
 		return
 	}
 
-	email, exists := ctx.Get("email")
-	if !exists {
-		fmt.Println(err)
-		_ = ctx.Error(apperror.NoAuth)
-		return
-	}
-
-	post, err := handler.PostUsecase.CreatePost(email.(string), &request.PostCreate)
+	post, err := handler.PostUsecase.CreatePost(email, inputDTO.Body)
 	if err != nil {
-		fmt.Println(err)
-		_ = ctx.Error(apperror.InternalServerError)
+		_ = ctx.Error(err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"posts": []*entities.Post{post},
+	_response := response.GetPostsByUserLinkResponse{
+		Body: response.GetPostsByUserLinkBody{
+			Posts: []*entities.Post{post},
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 // DeletePost godoc
@@ -208,22 +236,19 @@ func (handler *PostHandler) CreatePost(ctx *gin.Context) {
 //	@Failure		500
 //	@Router			/api/posts/delete [delete]
 func (handler *PostHandler) DeletePost(ctx *gin.Context) {
-	var request = struct {
-		dto.PostDelete `json:"body"`
-	}{}
+	inputDTO := new(response.DeletePostRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
+		return
+	}
 
-	err := ctx.ShouldBind(&request)
+	email, err := utils.GetEmail(ctx)
 	if err != nil {
-		_ = ctx.Error(apperror.BadRequest)
-		return
-	}
-	email, exists := ctx.Get("email")
-	if !exists {
-		_ = ctx.Error(apperror.NoAuth)
+		_ = ctx.Error(err)
 		return
 	}
 
-	err = handler.PostUsecase.DeletePost(email.(string), &request.PostDelete)
+	err = handler.PostUsecase.DeletePost(email, inputDTO.Body)
 	if err != nil {
 		fmt.Println(err)
 		_ = ctx.Error(apperror.InternalServerError)
@@ -264,6 +289,88 @@ func (handler *PostHandler) EditPost(ctx *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 		_ = ctx.Error(apperror.InternalServerError)
+		return
+	}
+
+	ctx.Status(http.StatusOK)
+}
+
+// LikePost godoc
+//
+//	@Summary		Set like on post
+//	@Description	User can like posts if like hasn't already set
+//	@Tags			Post
+//	@Produce		json
+//	@Param			request	body	dto.LikeDTO	 true	"Post data to like"
+//	@Success		200		{object}	doc.LikePost
+//	@Failure		400		{object} middleware.ErrorResponse
+//	@Failure		401		{object} middleware.ErrorResponse
+//	@Failure		409		{object} middleware.ErrorResponse
+//	@Failure		500		{object} middleware.ErrorResponse
+//	@Router			/api/posts/like/set [post]
+func (handler *PostHandler) LikePost(ctx *gin.Context) {
+	inputDTO := new(response.LikePostRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
+		return
+	}
+
+	email, exists := ctx.Get("email")
+	if !exists {
+		_ = ctx.Error(apperror.NewServerError(apperror.NoAuth, errors.New("failed to get email from context")))
+		return
+	}
+
+	newLikesAmount, err := handler.PostUsecase.LikePost(email.(string), inputDTO.Body)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	_response := response.LikePostResponse{
+		Body: response.LikePostBody{
+			LikesAmount: newLikesAmount,
+		},
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
+}
+
+// CancelPostLike godoc
+//
+//	@Summary		Cancel post like
+//	@Description	User can deny post like if like exists
+//	@Tags			Post
+//	@Produce		json
+//	@Param			request	body	dto.LikeDTO	 true	"Post data to cancel like"
+//	@Success		200
+//	@Failure		400		{object} middleware.ErrorResponse
+//	@Failure		401		{object} middleware.ErrorResponse
+//	@Failure		409		{object} middleware.ErrorResponse
+//	@Failure		500		{object} middleware.ErrorResponse
+//	@Router			/api/posts/like/cancel [post]
+func (handler *PostHandler) CancelPostLike(ctx *gin.Context) {
+	inputDTO := new(response.CancelPostLikeRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
+		return
+	}
+
+	email, exists := ctx.Get("email")
+	if !exists {
+		_ = ctx.Error(apperror.NewServerError(apperror.NoAuth, errors.New("failed to get email from context")))
+		return
+	}
+
+	err := handler.PostUsecase.CancelLike(email.(string), inputDTO.Body)
+	if err != nil {
+		_ = ctx.Error(err)
 		return
 	}
 

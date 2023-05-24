@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+// protoc --go_out=. --go-grpc_out=. --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative *.proto
+option go_package = "./;api";
+package auth;
+
+message Email {
+  string email = 1;
+}
+
+message Token {
+  string token = 1;
+}
+
+
+service AuthService {
+  rpc Authenticate(Email) returns(Token);
+  rpc LogOut(Token) returns(google.protobuf.Empty);
+  rpc CheckSession(Token) returns(Email);
+}

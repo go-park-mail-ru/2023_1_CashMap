@@ -6,7 +6,7 @@ import (
 	"reflect"
 )
 
-func Escaping[T *dto.SignUp | *dto.EditProfile | *dto.PostCreate | *dto.NewMessage](obj T) T {
+func Escaping[T *dto.SignUp | *dto.EditProfile | *dto.PostCreate | *dto.NewMessageDTO](obj T) T {
 	value := reflect.ValueOf(obj).Elem()
 	for i := 0; i < value.NumField(); i++ {
 		valueField := value.Field(i)
@@ -14,6 +14,13 @@ func Escaping[T *dto.SignUp | *dto.EditProfile | *dto.PostCreate | *dto.NewMessa
 		if valueStr, ok := f.(string); ok {
 			escapeStr := html.EscapeString(valueStr)
 			valueField.SetString(escapeStr)
+		}
+		if valueStrPtr, ok := f.(*string); ok {
+			if valueStrPtr == nil {
+				continue
+			}
+			escapeStr := html.EscapeString(*valueStrPtr)
+			valueField.Set(reflect.ValueOf(&escapeStr))
 		}
 	}
 	return obj

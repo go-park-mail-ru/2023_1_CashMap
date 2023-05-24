@@ -199,6 +199,22 @@ func (mr *MockUserMockRecorder) GetSubscribesByLink(arg0, arg1, arg2, arg3 inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSubscribesByLink", reflect.TypeOf((*MockUser)(nil).GetSubscribesByLink), arg0, arg1, arg2, arg3)
 }
 
+// GlobalSearch mocks base method.
+func (m *MockUser) GlobalSearch(arg0 string, arg1 *dto.GlobalSearchDTO) ([]*entities.UserInfo, []*entities.CommunityInfo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GlobalSearch", arg0, arg1)
+	ret0, _ := ret[0].([]*entities.UserInfo)
+	ret1, _ := ret[1].([]*entities.CommunityInfo)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GlobalSearch indicates an expected call of GlobalSearch.
+func (mr *MockUserMockRecorder) GlobalSearch(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GlobalSearch", reflect.TypeOf((*MockUser)(nil).GlobalSearch), arg0, arg1)
+}
+
 // Reject mocks base method.
 func (m *MockUser) Reject(arg0, arg1 string) error {
 	m.ctrl.T.Helper()
@@ -269,4 +285,19 @@ func (m *MockUser) Unsubscribe(arg0, arg1 string) error {
 func (mr *MockUserMockRecorder) Unsubscribe(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unsubscribe", reflect.TypeOf((*MockUser)(nil).Unsubscribe), arg0, arg1)
+}
+
+// UserStatus mocks base method.
+func (m *MockUser) UserStatus(arg0, arg1 string) (dto.UserStatus, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UserStatus", arg0, arg1)
+	ret0, _ := ret[0].(dto.UserStatus)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UserStatus indicates an expected call of UserStatus.
+func (mr *MockUserMockRecorder) UserStatus(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserStatus", reflect.TypeOf((*MockUser)(nil).UserStatus), arg0, arg1)
 }

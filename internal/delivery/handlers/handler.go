@@ -1,21 +1,30 @@
 package handlers
 
-import staticDelivery "depeche/internal/static/delivery"
-
 type Handler struct {
 	*UserHandler
 	*FeedHandler
 	*PostHandler
 	*MessageHandler
-	*staticDelivery.FileHandler
+	*GroupHandler
+	*Sticker
+	*CommentHandler
 }
 
-func NewHandler(userHandler *UserHandler, feedHandler *FeedHandler, postHandler *PostHandler, staticHandler *staticDelivery.FileHandler, msgHandler *MessageHandler) Handler {
+func NewHandler(userHandler *UserHandler,
+	feedHandler *FeedHandler,
+	postHandler *PostHandler,
+	msgHandler *MessageHandler,
+	groupHandler *GroupHandler,
+	stickerHandler *Sticker,
+	commentHandler *CommentHandler) Handler {
+
 	return Handler{
 		userHandler,
 		feedHandler,
 		postHandler,
 		msgHandler,
-		staticHandler,
+		groupHandler,
+		stickerHandler,
+		commentHandler,
 	}
 }

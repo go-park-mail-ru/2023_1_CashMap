@@ -1,15 +1,19 @@
 package handlers
 
 import (
+	"depeche/authorization_ms/authEntities"
+	auth "depeche/authorization_ms/service"
 	"depeche/internal/delivery/dto"
+	"depeche/internal/delivery/utils"
 	"depeche/internal/entities"
 	_ "depeche/internal/entities/doc"
-	"depeche/internal/session"
-	authService "depeche/internal/session/service"
+	"depeche/internal/entities/response"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
+	"errors"
+	"fmt"
+	"github.com/mailru/easyjson"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,11 +21,11 @@ import (
 
 type UserHandler struct {
 	service     usecase.User
-	authService authService.Auth
-	csrfService authService.CSRFUsecase
+	authService auth.Auth
+	csrfService auth.CSRFUsecase
 }
 
-func NewUserHandler(userService usecase.User, authService authService.Auth, csrfService authService.CSRFUsecase) *UserHandler {
+func NewUserHandler(userService usecase.User, authService auth.Auth, csrfService auth.CSRFUsecase) *UserHandler {
 	return &UserHandler{
 		service:     userService,
 		authService: authService,
@@ -43,28 +47,19 @@ func NewUserHandler(userService usecase.User, authService authService.Auth, csrf
 //	@Failure		500	{object}	middleware.ErrorResponse
 //	@Router			/auth/sign-in [post]
 func (uh *UserHandler) SignIn(ctx *gin.Context) {
-	var request = struct {
-		Data *dto.SignIn `json:"body"`
-	}{}
-
-	err := ctx.ShouldBindJSON(&request)
-	if err != nil {
-		_ = ctx.Error(apperror.BadRequest)
+	inputDTO := new(response.SignInRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil || inputDTO.Body == nil {
+		_ = ctx.Error(apperror.NewBadRequest())
 		return
 	}
 
-	if request.Data == nil {
-		_ = ctx.Error(apperror.BadRequest)
-		return
-	}
-
-	_, err = uh.service.SignIn(request.Data)
+	_, err := uh.service.SignIn(inputDTO.Body)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
-	token, err := uh.authService.Authenticate(request.Data)
+	token, err := uh.authService.Authenticate(inputDTO.Body.Email)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -81,7 +76,7 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 
 	http.SetCookie(ctx.Writer, sessionCookie)
 
-	csrfToken, err := uh.csrfService.CreateCSRFToken(request.Data.Email)
+	csrfToken, err := uh.csrfService.CreateCSRFToken(inputDTO.Body.Email)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -105,28 +100,19 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 //	@Failure		500		{object}	middleware.ErrorResponse
 //	@Router			/auth/sign-up [post]
 func (uh *UserHandler) SignUp(ctx *gin.Context) {
-	var request = struct {
-		Data *dto.SignUp `json:"body"`
-	}{}
-
-	err := ctx.ShouldBindJSON(&request)
-	if err != nil {
-		_ = ctx.Error(apperror.BadRequest)
+	inputDTO := new(response.SignUpRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil || inputDTO.Body == nil {
+		_ = ctx.Error(apperror.NewBadRequest())
 		return
 	}
 
-	if request.Data == nil {
-		_ = ctx.Error(apperror.BadRequest)
-		return
-	}
-
-	_, err = uh.service.SignUp(request.Data)
+	_, err := uh.service.SignUp(inputDTO.Body)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
-	token, err := uh.authService.Authenticate(request.Data)
+	token, err := uh.authService.Authenticate(inputDTO.Body.Email)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -143,7 +129,7 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 
 	http.SetCookie(ctx.Writer, sessionCookie)
 
-	csrfToken, err := uh.csrfService.CreateCSRFToken(request.Data.Email)
+	csrfToken, err := uh.csrfService.CreateCSRFToken(inputDTO.Body.Email)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -158,7 +144,7 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 // LogOut godoc
 //
 //	@Summary		Log out
-//	@Description	Delete user session and invalidate session cookie
+//	@Description	Delete user authorization_ms and invalidate authorization_ms cookie
 //	@Tags			Auth
 //	@Success		200
 //	@Failure		401	{object}	middleware.ErrorResponse
@@ -167,20 +153,20 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 func (uh *UserHandler) LogOut(ctx *gin.Context) {
 	token, err := ctx.Cookie("session_id")
 	if err != nil {
-		_ = ctx.Error(apperror.NoAuth)
+		_ = ctx.Error(apperror.NewServerError(apperror.NoAuth, nil))
 		return
 	}
 
 	// Игнорим ошибку ибо дальше все равно логаут
 	userSession, err := uh.authService.CheckSession(token)
 	if err != nil {
-		_ = ctx.Error(apperror.NoAuth)
+		_ = ctx.Error(apperror.NewServerError(apperror.NoAuth, nil))
 		return
 	}
 
 	csrfToken := ctx.Request.Header.Get("X-Csrf-Token")
 	if csrfToken != "" {
-		csrf := &session.CSRF{
+		csrf := &authEntities.CSRF{
 			Token: csrfToken,
 			Email: userSession.Email,
 		}
@@ -215,7 +201,7 @@ func (uh *UserHandler) LogOut(ctx *gin.Context) {
 func (uh *UserHandler) CheckAuth(ctx *gin.Context) {
 	token, err := ctx.Cookie("session_id")
 	if err != nil {
-		_ = ctx.Error(apperror.NoAuth)
+		_ = ctx.Error(apperror.NewServerError(apperror.NoAuth, nil))
 		return
 	}
 
@@ -227,25 +213,25 @@ func (uh *UserHandler) CheckAuth(ctx *gin.Context) {
 
 	csrfToken := ctx.Request.Header.Get("X-Csrf-Token")
 	if csrfToken == "" {
-		_ = ctx.Error(apperror.Forbidden)
+		_ = ctx.Error(apperror.NewServerError(apperror.Forbidden, nil))
 		return
 	}
 
-	csrf := &session.CSRF{
+	csrf := &authEntities.CSRF{
 		Token: csrfToken,
 		Email: userSession.Email,
 	}
 
 	success, err := uh.csrfService.ValidateCSRFToken(csrf)
 	if err != nil {
-		_ = ctx.Error(apperror.Forbidden)
+		_ = ctx.Error(apperror.NewServerError(apperror.Forbidden, nil))
 		return
 	}
 
 	if !success {
 		newCsrfToken, err := uh.csrfService.CreateCSRFToken(userSession.Email)
 		if err != nil {
-			_ = ctx.Error(apperror.InternalServerError)
+			_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, nil))
 			return
 		}
 
@@ -269,28 +255,19 @@ func (uh *UserHandler) CheckAuth(ctx *gin.Context) {
 //	@Failure		500	{object}	middleware.ErrorResponse
 //	@Router			/api/user/sub [post]
 func (uh *UserHandler) Subscribe(ctx *gin.Context) {
-	var request = struct {
-		Data dto.Subscribes `json:"body"`
-	}{}
+	inputDTO := new(response.SubscribeRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil || inputDTO.Body == nil {
+		_ = ctx.Error(apperror.NewBadRequest())
+		return
+	}
 
-	err := ctx.ShouldBindJSON(&request)
+	email, err := utils.GetEmail(ctx)
 	if err != nil {
-		_ = ctx.Error(apperror.BadRequest)
+		_ = ctx.Error(err)
 		return
 	}
 
-	e, ok := ctx.Get("email")
-	if !ok {
-		_ = ctx.Error(apperror.NoAuth)
-		return
-	}
-	email, ok := e.(string)
-	if !ok {
-		_ = ctx.Error(apperror.BadRequest)
-		return
-	}
-
-	err = uh.service.Subscribe(email, request.Data.Link)
+	err = uh.service.Subscribe(email, inputDTO.Body.Link)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -311,28 +288,19 @@ func (uh *UserHandler) Subscribe(ctx *gin.Context) {
 //	@Failure		500	{object}	middleware.ErrorResponse
 //	@Router			/api/user/unsub [post]
 func (uh *UserHandler) Unsubscribe(ctx *gin.Context) {
+	inputDTO := new(response.UnsubscribeRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil || inputDTO.Body == nil {
+		_ = ctx.Error(apperror.NewBadRequest())
+		return
+	}
 
-	var request = struct {
-		Data dto.Subscribes `json:"body"`
-	}{}
-
-	err := ctx.ShouldBindJSON(&request)
+	email, err := utils.GetEmail(ctx)
 	if err != nil {
-		_ = ctx.Error(apperror.BadRequest)
-		return
-	}
-	e, ok := ctx.Get("email")
-	if !ok {
-		_ = ctx.Error(apperror.NoAuth)
-		return
-	}
-	email, ok := e.(string)
-	if !ok {
-		_ = ctx.Error(apperror.BadRequest)
+		_ = ctx.Error(err)
 		return
 	}
 
-	err = uh.service.Unsubscribe(email, request.Data.Link)
+	err = uh.service.Unsubscribe(email, inputDTO.Body.Link)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -353,26 +321,18 @@ func (uh *UserHandler) Unsubscribe(ctx *gin.Context) {
 //	@Failure		500	{object}	middleware.ErrorResponse
 //	@Router			/api/user/reject [post]
 func (uh *UserHandler) Reject(ctx *gin.Context) {
-	var request = struct {
-		Data dto.Subscribes `json:"body"`
-	}{}
+	inputDTO := new(response.RejectRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil || inputDTO.Body == nil {
+		_ = ctx.Error(apperror.NewBadRequest())
+		return
+	}
 
-	err := ctx.ShouldBindJSON(&request)
+	email, err := utils.GetEmail(ctx)
 	if err != nil {
-		_ = ctx.Error(apperror.BadRequest)
+		_ = ctx.Error(err)
 		return
 	}
-	e, ok := ctx.Get("email")
-	if !ok {
-		_ = ctx.Error(apperror.NoAuth)
-		return
-	}
-	email, ok := e.(string)
-	if !ok {
-		_ = ctx.Error(apperror.BadRequest)
-		return
-	}
-	err = uh.service.Reject(email, request.Data.Link)
+	err = uh.service.Reject(email, inputDTO.Body.Link)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -394,16 +354,26 @@ func (uh *UserHandler) Reject(ctx *gin.Context) {
 func (uh *UserHandler) Profile(ctx *gin.Context) {
 	link := ctx.Param("link")
 
-	profile, err := uh.service.GetProfileByLink("", link)
+	user, err := uh.service.GetProfileByLink("", link)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"profile": profile,
+	profile := dto.NewProfileFromUser(user)
+
+	_response := response.ProfileResponse{
+		Body: response.ProfileBody{
+			Profile: profile,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 // Self godoc
@@ -418,14 +388,9 @@ func (uh *UserHandler) Profile(ctx *gin.Context) {
 //	@Failure		500	{object}	middleware.ErrorResponse
 //	@Router			/api/user/profile [get]
 func (uh *UserHandler) Self(ctx *gin.Context) {
-	e, ok := ctx.Get("email")
-	if !ok {
-		_ = ctx.Error(apperror.NoAuth)
-		return
-	}
-	email, ok := e.(string)
-	if !ok {
-		_ = ctx.Error(apperror.BadRequest)
+	email, err := utils.GetEmail(ctx)
+	if err != nil {
+		_ = ctx.Error(err)
 		return
 	}
 
@@ -435,11 +400,19 @@ func (uh *UserHandler) Self(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"profile": profile,
+	_response := response.SelfResponse{
+		Body: response.SelfBody{
+			Profile: profile,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 // EditProfile godoc
@@ -456,28 +429,19 @@ func (uh *UserHandler) Self(ctx *gin.Context) {
 //	@Failure		500	{object}	middleware.ErrorResponse
 //	@Router			/api/user/profile/edit [patch]
 func (uh *UserHandler) EditProfile(ctx *gin.Context) {
-	request := struct {
-		Data *dto.EditProfile `json:"body"`
-	}{}
+	inputDTO := new(response.EditProfileRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil || inputDTO.Body == nil {
+		_ = ctx.Error(apperror.NewBadRequest())
+		return
+	}
 
-	err := ctx.ShouldBindJSON(&request)
+	email, err := utils.GetEmail(ctx)
 	if err != nil {
-		_ = ctx.Error(apperror.BadRequest)
+		_ = ctx.Error(err)
 		return
 	}
 
-	if request.Data == nil {
-		_ = ctx.Error(apperror.BadRequest)
-		return
-	}
-
-	e, _ := ctx.Get("email")
-	email, ok := e.(string)
-	if !ok {
-		_ = ctx.Error(apperror.NoAuth)
-	}
-
-	err = uh.service.EditProfile(email, request.Data)
+	err = uh.service.EditProfile(email, inputDTO.Body)
 	if err != nil {
 		_ = ctx.Error(err)
 	}
@@ -499,29 +463,15 @@ func (uh *UserHandler) EditProfile(ctx *gin.Context) {
 //	@Router			/api/user/friends [get]
 func (uh *UserHandler) Friends(ctx *gin.Context) {
 	link := ctx.Query("link")
-	e, ok := ctx.Get("email")
-	if !ok {
-		_ = ctx.Error(apperror.NoAuth)
-		return
-	}
-	email, ok := e.(string)
-	if !ok {
-		_ = ctx.Error(apperror.BadRequest)
+	email, err := utils.GetEmail(ctx)
+	if err != nil {
+		_ = ctx.Error(err)
 		return
 	}
 
-	limitQ := ctx.Query("limit")
-	offsetQ := ctx.Query("offset")
-
-	limit, err := strconv.Atoi(limitQ)
+	limit, offset, err := utils.GetLimitOffset(ctx)
 	if err != nil {
-		_ = ctx.Error(apperror.BadRequest)
-		return
-	}
-	offset, err := strconv.Atoi(offsetQ)
-	if err != nil {
-		_ = ctx.Error(apperror.BadRequest)
-		return
+		_ = ctx.Error(err)
 	}
 
 	users, err := uh.service.GetFriendsByLink(email, link, limit, offset)
@@ -536,11 +486,19 @@ func (uh *UserHandler) Friends(ctx *gin.Context) {
 		friends = append(friends, dto.NewProfileFromUser(user))
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"friends": friends,
+	_response := response.FriendsResponse{
+		Body: response.FriendsBody{
+			Friends: friends,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 // Subscribes godoc
@@ -562,29 +520,15 @@ func (uh *UserHandler) Subscribes(ctx *gin.Context) {
 	subType := ctx.Query("type")
 	link := ctx.Query("link")
 
-	e, ok := ctx.Get("email")
-	if !ok {
-		_ = ctx.Error(apperror.NoAuth)
-		return
-	}
-	email, ok := e.(string)
-	if !ok {
-		_ = ctx.Error(apperror.BadRequest)
+	email, err := utils.GetEmail(ctx)
+	if err != nil {
+		_ = ctx.Error(err)
 		return
 	}
 
-	limitQ := ctx.Query("limit")
-	offsetQ := ctx.Query("offset")
-
-	limit, err := strconv.Atoi(limitQ)
+	limit, offset, err := utils.GetLimitOffset(ctx)
 	if err != nil {
-		_ = ctx.Error(apperror.BadRequest)
-		return
-	}
-	offset, err := strconv.Atoi(offsetQ)
-	if err != nil {
-		_ = ctx.Error(apperror.BadRequest)
-		return
+		_ = ctx.Error(err)
 	}
 
 	var users []*entities.User
@@ -603,7 +547,7 @@ func (uh *UserHandler) Subscribes(ctx *gin.Context) {
 			return
 		}
 	default:
-		_ = ctx.Error(apperror.BadRequest)
+		_ = ctx.Error(apperror.NewBadRequest())
 		return
 	}
 
@@ -613,42 +557,36 @@ func (uh *UserHandler) Subscribes(ctx *gin.Context) {
 		subs = append(subs, dto.NewProfileFromUser(user))
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"subs": subs,
+	_response := response.SubscribesResponse{
+		Body: response.SubscribesBody{
+			Subs: subs,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 func (uh *UserHandler) RandomUsers(ctx *gin.Context) {
-	limitQ := ctx.Query("limit")
-	offsetQ := ctx.Query("offset")
-
-	limit, err := strconv.Atoi(limitQ)
+	limit, offset, err := utils.GetLimitOffset(ctx)
 	if err != nil {
-		_ = ctx.Error(apperror.BadRequest)
-		return
-	}
-	offset, err := strconv.Atoi(offsetQ)
-	if err != nil {
-		_ = ctx.Error(apperror.BadRequest)
-		return
+		_ = ctx.Error(err)
 	}
 
-	e, ok := ctx.Get("email")
-	if !ok {
-		_ = ctx.Error(apperror.NoAuth)
-		return
-	}
-	email, ok := e.(string)
-	if !ok {
-		_ = ctx.Error(apperror.BadRequest)
+	email, err := utils.GetEmail(ctx)
+	if err != nil {
+		_ = ctx.Error(err)
 		return
 	}
 
 	users, err := uh.service.GetAllUsers(email, limit, offset)
 	if err != nil {
-		_ = ctx.Error(apperror.BadRequest)
+		_ = ctx.Error(err)
 		return
 	}
 
@@ -658,35 +596,29 @@ func (uh *UserHandler) RandomUsers(ctx *gin.Context) {
 		profiles = append(profiles, dto.NewProfileFromUser(user))
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"profiles": profiles,
+	_response := response.RandomUsersResponse{
+		Body: response.RandomUsersBody{
+			Profiles: profiles,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 func (uh *UserHandler) PendingRequests(ctx *gin.Context) {
-	limitQ := ctx.Query("limit")
-	offsetQ := ctx.Query("offset")
-
-	limit, err := strconv.Atoi(limitQ)
+	limit, offset, err := utils.GetLimitOffset(ctx)
 	if err != nil {
-		_ = ctx.Error(apperror.BadRequest)
-		return
+		_ = ctx.Error(err)
 	}
-	offset, err := strconv.Atoi(offsetQ)
+	email, err := utils.GetEmail(ctx)
 	if err != nil {
-		_ = ctx.Error(apperror.BadRequest)
-		return
-	}
-	e, ok := ctx.Get("email")
-	if !ok {
-		_ = ctx.Error(apperror.NoAuth)
-		return
-	}
-	email, ok := e.(string)
-	if !ok {
-		_ = ctx.Error(apperror.BadRequest)
+		_ = ctx.Error(err)
 		return
 	}
 
@@ -701,19 +633,91 @@ func (uh *UserHandler) PendingRequests(ctx *gin.Context) {
 		profiles = append(profiles, dto.NewProfileFromUser(user))
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"profiles": profiles,
+	_response := response.RandomUsersResponse{
+		Body: response.RandomUsersBody{
+			Profiles: profiles,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
+}
+
+func (uh *UserHandler) GetGlobalSearchResult(ctx *gin.Context) {
+	dto := &dto.GlobalSearchDTO{}
+
+	err := ctx.ShouldBind(dto)
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse search dto from query")))
+		return
+	}
+	fmt.Println(*dto.SearchQuery)
+	email, err := utils.GetEmail(ctx)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	userSearchResult, communitiesSearchResult, err := uh.service.GlobalSearch(email, dto)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	_response := response.GetGlobalSearchResultResponse{
+		Body: response.GetGlobalSearchResultBody{
+			Users:       userSearchResult,
+			Communities: communitiesSearchResult,
+		},
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
+}
+
+func (uh *UserHandler) UserStatus(ctx *gin.Context) {
+	link := ctx.Query("link")
+	email, err := utils.GetEmail(ctx)
+	if err != nil {
+		_ = ctx.Error(err)
+	}
+
+	status, err := uh.service.UserStatus(email, link)
+	if err != nil {
+		_ = ctx.Error(err)
+	}
+
+	_response := response.UserStatusResponse{
+		Body: response.UserStatusBody{
+			Status: dto.StatusToString[status],
+		},
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 //nolint:unused
-func (uh *UserHandler) getSession(ctx *gin.Context) (*session.Session, error) {
+func (uh *UserHandler) getSession(ctx *gin.Context) (*authEntities.Session, error) {
 	token, err := ctx.Cookie("session_id")
 	if err != nil {
 
-		return nil, apperror.NoAuth
+		return nil, apperror.NewServerError(apperror.NoAuth, nil)
 	}
 	stored, err := uh.authService.CheckSession(token)
 	if err != nil {

@@ -2,11 +2,11 @@ package handlers
 
 import (
 	"depeche/internal/delivery/dto"
+	"depeche/internal/entities/response"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strconv"
 )
 
 type FeedHandler struct {
@@ -42,29 +42,28 @@ func (handler *FeedHandler) GetFeed(ctx *gin.Context) {
 	}
 
 	feedRequest := &dto.FeedDTO{}
-	//err := ctx.ShouldBind(feedRequest)
-	//if err != nil {
-	//	_ = ctx.Error(apperror.BadRequest)
-	//	return
-	//}
-
-	batchSize := ctx.Query("batch_size")
-	bs, err := strconv.Atoi(batchSize)
+	err := ctx.ShouldBind(feedRequest)
 	if err != nil {
-		_ = ctx.Error(apperror.BadRequest)
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, err))
+		return
 	}
-
-	feedRequest.BatchSize = uint(bs)
-
 	posts, err := handler.service.CollectPosts(email.(string), feedRequest)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"posts": posts,
+	_response := response.GetFeedResponse{
+		Body: response.GetFeedBody{
+			Posts: posts,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }

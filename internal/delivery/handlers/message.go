@@ -2,10 +2,14 @@ package handlers
 
 import (
 	"depeche/internal/delivery/dto"
+	"depeche/internal/delivery/utils"
+	"depeche/internal/entities/response"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/mailru/easyjson"
 	"net/http"
 )
 
@@ -29,31 +33,18 @@ func NewMessageHandler(service usecase.MessageUsecase) *MessageHandler {
 //	@Failure		500
 //	@Router			/api/im/send [post]
 func (handler *MessageHandler) Send(ctx *gin.Context) {
-	var request = struct {
-		Data *dto.NewMessage `json:"body"`
-	}{}
+	inputDTO := new(response.SendRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
+		return
+	}
 
-	err := ctx.ShouldBindJSON(&request)
+	email, err := utils.GetEmail(ctx)
 	if err != nil {
-		_ = ctx.Error(apperror.BadRequest)
+		_ = ctx.Error(err)
 		return
 	}
-
-	if request.Data == nil {
-		_ = ctx.Error(apperror.BadRequest)
-		return
-	}
-	email, ok := ctx.Get("email")
-	if !ok {
-		_ = ctx.Error(apperror.NoAuth)
-		return
-	}
-	e, ok := email.(string)
-	if !ok {
-		_ = ctx.Error(apperror.BadRequest)
-		return
-	}
-	msg, err := handler.MessageUsecase.Send(e, request.Data)
+	msg, err := handler.MessageUsecase.Send(email, inputDTO.Body)
 	if err != nil {
 		_ = ctx.Error(err)
 	}
@@ -73,13 +64,9 @@ func (handler *MessageHandler) Send(ctx *gin.Context) {
 //	@Failure		500
 //	@Router			/api/im/chat/create [post]
 func (handler *MessageHandler) NewChat(ctx *gin.Context) {
-	var request = struct {
-		dto.CreateChatDTO `json:"body"`
-	}{}
-
-	err := ctx.ShouldBind(&request)
-	if err != nil {
-		_ = ctx.Error(apperror.BadRequest)
+	inputDTO := new(response.NewChatRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
 		return
 	}
 
@@ -89,18 +76,26 @@ func (handler *MessageHandler) NewChat(ctx *gin.Context) {
 		return
 	}
 
-	chat, err := handler.MessageUsecase.CreateChat(email.(string), &request.CreateChatDTO)
+	chat, err := handler.MessageUsecase.CreateChat(email.(string), inputDTO.Body)
 	if err != nil {
 		fmt.Println(err)
 		_ = ctx.Error(apperror.InternalServerError)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"chat": chat,
+	_response := response.NewChatResponse{
+		Body: response.NewChatBody{
+			Chat: chat,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 
 }
 
@@ -137,11 +132,19 @@ func (handler *MessageHandler) GetChats(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"chats": chats,
+	_response := response.GetChatsResponse{
+		Body: response.GetChatsBody{
+			Chats: chats,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 // GetMessagesByChatID godoc
@@ -151,7 +154,7 @@ func (handler *MessageHandler) GetChats(ctx *gin.Context) {
 //	@Tags			Message
 //	@Param			chat_id			query		uint	false	"Chat id"
 //	@Param			batch_size		query		uint	false	"Batch size"
-//	@Param			last_post_date	query		uint	false	"Last post date"
+//	@Param			last_msg_date	query		uint	false	"Last message date"
 //	@Success		200				{object}	doc.MessagesListResponse
 //	@Failure		400
 //	@Failure		401
@@ -171,18 +174,27 @@ func (handler *MessageHandler) GetMessagesByChatID(ctx *gin.Context) {
 		return
 	}
 
-	messages, err := handler.MessageUsecase.GetMessagesByChatID(email.(string), &getMsgDTO)
+	messages, hasNextMessages, err := handler.MessageUsecase.GetMessagesByChatID(email.(string), &getMsgDTO)
 	if err != nil {
 		fmt.Println(err)
 		_ = ctx.Error(apperror.InternalServerError)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"messages": messages,
+	_response := response.GetMessagesByChatIDResponse{
+		Body: response.GetMessagesByChatIDBody{
+			Messages: messages,
+			HasNext:  hasNextMessages,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 // HasDialog godoc
@@ -216,19 +228,38 @@ func (handler *MessageHandler) HasDialog(ctx *gin.Context) {
 		_ = ctx.Error(apperror.InternalServerError)
 		return
 	}
+
 	if chatId != nil {
-		ctx.JSON(http.StatusOK, gin.H{
-			"body": gin.H{
-				"has_dialog": true,
-				"chat_id":    *chatId,
+		_response := response.HasDialogResponse{
+			Body: response.HasDialogBody{
+				ChatId:    *chatId,
+				HasDialog: true,
 			},
-		})
+		}
+
+		responseJSON, err := _response.MarshalJSON()
+		if err != nil {
+			_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+			return
+		}
+
+		ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"has_dialog": false,
+
+	_response := response.HasDialogResponse{
+		Body: response.HasDialogBody{
+			ChatId:    0,
+			HasDialog: false,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 
 }

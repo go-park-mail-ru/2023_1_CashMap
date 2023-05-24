@@ -7,6 +7,8 @@ import (
 	"depeche/internal/usecase"
 	"depeche/internal/utils"
 	"depeche/pkg/apperror"
+	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -27,7 +29,7 @@ func (us *UserService) SignIn(user *dto.SignIn) (*entities.User, error) {
 		return nil, err
 	}
 	if stored.Password != utils.Hash(user.Password) {
-		return nil, apperror.IncorrectCredentials
+		return nil, apperror.NewServerError(apperror.IncorrectCredentials, err)
 	}
 
 	return stored, nil
@@ -35,12 +37,18 @@ func (us *UserService) SignIn(user *dto.SignIn) (*entities.User, error) {
 
 func (us *UserService) SignUp(user *dto.SignUp) (*entities.User, error) {
 	stored, err := us.repo.GetUserByEmail(user.Email)
-	if err != nil && err != apperror.UserNotFound {
-		return nil, err
+	if err != nil {
+		sErr, ok := err.(*apperror.ServerError)
+		if !ok {
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+		if sErr.UserErr != apperror.UserNotFound {
+			return nil, sErr
+		}
 	}
 
 	if stored != nil {
-		return nil, apperror.UserAlreadyExists
+		return nil, apperror.NewServerError(apperror.UserAlreadyExists, nil)
 	}
 
 	user.Password = utils.Hash(user.Password)
@@ -96,10 +104,10 @@ func (us *UserService) EditProfile(email string, profile *dto.EditProfile) error
 			return err
 		}
 		if profile.PreviousPassword == nil {
-			return apperror.Forbidden
+			return apperror.NewServerError(apperror.Forbidden, nil)
 		}
 		if user.Password != utils.Hash(*profile.PreviousPassword) {
-			return apperror.Forbidden
+			return apperror.NewServerError(apperror.Forbidden, nil)
 		}
 		*profile.NewPassword = utils.Hash(*profile.NewPassword)
 	}
@@ -120,7 +128,7 @@ func (us *UserService) EditProfile(email string, profile *dto.EditProfile) error
 		}
 
 		if exists {
-			return apperror.UserAlreadyExists
+			return apperror.NewServerError(apperror.UserAlreadyExists, nil)
 		}
 	}
 
@@ -250,11 +258,65 @@ func (us *UserService) GetSubscribersByLink(requestEmail, targetLink string, lim
 	return users, nil
 }
 
+func (us *UserService) UserStatus(email, link string) (dto.UserStatus, error) {
+	isFriend, err := us.repo.IsFriend(email, link)
+	if err != nil {
+		return dto.None, err
+	}
+	if isFriend {
+		return dto.Friend, nil
+	}
+	isSubscriber, err := us.repo.IsSubscriber(email, link)
+	if err != nil {
+		return dto.None, err
+	}
+	if isSubscriber {
+		return dto.Subscriber, nil
+	}
+	isSubscribed, err := us.repo.IsSubscribed(email, link)
+	if err != nil {
+		return dto.None, err
+	}
+	if isSubscribed {
+		return dto.Subscribed, nil
+	}
+	return dto.None, nil
+}
+
+func (us *UserService) GlobalSearch(email string, dto *dto.GlobalSearchDTO) ([]*entities.UserInfo, []*entities.CommunityInfo, error) {
+	if dto.SearchQuery == nil || strings.TrimSpace(*dto.SearchQuery) == "" {
+		return nil, nil, apperror.NewServerError(apperror.BadRequest, errors.New("search query is required"))
+	}
+
+	if dto.BatchSize == nil {
+		dto.BatchSize = new(uint)
+		*dto.BatchSize = 0
+	}
+
+	if dto.Offset == nil {
+		dto.Offset = new(uint)
+		*dto.Offset = 0
+	}
+
+	users, err := us.repo.SearchUserByName(email, dto)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	communities, err := us.repo.SearchCommunitiesByTitle(email, dto)
+	if err != nil {
+		fmt.Println(err)
+		return nil, nil, err
+	}
+
+	return users, communities, nil
+}
+
 func (us *UserService) getUser(link string) (*entities.User, error) {
 	if strings.HasPrefix(link, "id") {
 		id, err := strconv.Atoi(strings.TrimPrefix(link, "id"))
 		if err != nil {
-			return nil, apperror.BadRequest
+			return nil, apperror.NewServerError(apperror.BadRequest, err)
 		}
 		return us.repo.GetUserById(uint(id))
 	}

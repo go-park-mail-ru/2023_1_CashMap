@@ -5,7 +5,9 @@ import (
 	"depeche/internal/entities"
 	"depeche/internal/repository"
 	"depeche/internal/usecase"
+	utils2 "depeche/internal/usecase/utils"
 	"depeche/internal/utils"
+	"depeche/pkg/apperror"
 	"errors"
 )
 
@@ -29,19 +31,15 @@ func (service *PostService) GetPostById(email string, postDTO *dto.PostGetByID) 
 		return nil, errors.New("access to post denied")
 	}
 
-	post, err := service.SelectPostById(postDTO.PostID)
+	post, err := service.SelectPostById(postDTO.PostID, email)
 	if err != nil {
 		return nil, err
 	}
 
-	owner, community, err := service.PostRepository.GetPostSenderInfo(post.ID)
+	err = service.AddPostData(post)
 	if err != nil {
 		return nil, err
 	}
-
-	post.OwnerInfo = owner
-	post.CommunityInfo = community
-
 	return post, nil
 }
 
@@ -55,19 +53,20 @@ func (service *PostService) GetPostsByCommunityLink(email string, dto *dto.Posts
 		return nil, errors.New("access to posts denied")
 	}
 
-	posts, err := service.SelectPostsByCommunityLink(dto)
+	if dto.LastPostDate == "" {
+		dto.LastPostDate = utils2.OLDEST_DATE
+	}
+
+	posts, err := service.SelectPostsByCommunityLink(dto, email)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, post := range posts {
-		owner, community, err := service.PostRepository.GetPostSenderInfo(post.ID)
+		err = service.AddPostData(post)
 		if err != nil {
 			return nil, err
 		}
-
-		post.OwnerInfo = owner
-		post.CommunityInfo = community
 	}
 
 	return posts, nil
@@ -84,22 +83,19 @@ func (service *PostService) GetPostsByUserLink(email string, dto *dto.PostsGetBy
 	}
 
 	if dto.LastPostDate == "" {
-		dto.LastPostDate = "0"
+		dto.LastPostDate = utils2.OLDEST_DATE
 	}
 
-	posts, err := service.PostRepository.SelectPostsByUserLink(dto)
+	posts, err := service.PostRepository.SelectPostsByUserLink(dto, email)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, post := range posts {
-		owner, community, err := service.PostRepository.GetPostSenderInfo(post.ID)
+		err = service.AddPostData(post)
 		if err != nil {
 			return nil, err
 		}
-
-		post.OwnerInfo = owner
-		post.CommunityInfo = community
 	}
 
 	return posts, nil
@@ -107,7 +103,7 @@ func (service *PostService) GetPostsByUserLink(email string, dto *dto.PostsGetBy
 
 func (service *PostService) CreatePost(email string, dto *dto.PostCreate) (*entities.Post, error) {
 	if dto.Text == "" && dto.Attachments == nil {
-		return nil, errors.New("empty input data")
+		return nil, apperror.NewBadRequest()
 	}
 
 	if dto.CommunityLink != nil && dto.OwnerLink != nil {
@@ -129,15 +125,44 @@ func (service *PostService) CreatePost(email string, dto *dto.PostCreate) (*enti
 	if err != nil {
 		return nil, err
 	}
-	return service.PostRepository.SelectPostById(postID)
+	if dto.Attachments != nil && len(dto.Attachments) != 0 {
+		if len(dto.Attachments) > 10 {
+			return nil, apperror.NewServerError(apperror.TooMuchAttachments, nil)
+		}
+		err = service.PostRepository.AddPostAttachments(postID, dto.Attachments)
+		if err != nil {
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+	}
+
+	post, err := service.PostRepository.SelectPostById(postID, email)
+	if err != nil {
+		return nil, err
+	}
+	err = service.AddPostData(post)
+	if err != nil {
+		return nil, err
+	}
+	return post, nil
 }
 
 func (service *PostService) UpdatePost(email string, dto *dto.PostUpdate) error {
 	if dto.PostID == nil {
 		return errors.New("post_id is required field")
 	}
+	attachments, err := service.PostRepository.GetPostAttachments(*dto.PostID)
+	if err != nil {
+		return err
+	}
 
-	err := service.PostRepository.UpdatePost(email, dto)
+	if len(attachments)+len(dto.Attachments.Added)-len(dto.Attachments.Deleted) > 10 {
+		return apperror.NewServerError(apperror.TooMuchAttachments, nil)
+	}
+	err = service.PostRepository.UpdatePostAttachments(*dto.PostID, dto.Attachments)
+	if err != nil {
+		return err
+	}
+	err = service.PostRepository.UpdatePost(email, dto)
 	if err != nil {
 		return err
 	}
@@ -154,15 +179,50 @@ func (service *PostService) DeletePost(email string, dto *dto.PostDelete) error 
 	return nil
 }
 
-func (service *PostService) LikePost() {
-	//TODO: рк3
+func (service *PostService) LikePost(email string, dto *dto.LikeDTO) (int, error) {
+	if dto.PostID == nil {
+		return 0, apperror.NewServerError(apperror.BadRequest, errors.New("post_id can't be null"))
+	}
+
+	err := service.PostRepository.SetLike(email, *dto.PostID)
+	if err != nil {
+		return 0, err
+	}
+
+	return service.PostRepository.GetLikesAmount(email, *dto.PostID)
 }
 
-func (service *PostService) CancelLike() {
-	//TODO: рк3
+func (service *PostService) CancelLike(email string, dto *dto.LikeDTO) error {
+	if dto.PostID == nil {
+		return apperror.NewServerError(apperror.BadRequest, errors.New("post_id can't be null"))
+	}
+
+	err := service.PostRepository.CancelLike(email, *dto.PostID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (service *PostService) Repost() {
 	//TODO: рк3
 	panic("implement me")
+}
+
+func (service *PostService) AddPostData(post *entities.Post) error {
+	owner, community, err := service.PostRepository.GetPostSenderInfo(post.ID)
+	if err != nil {
+		return err
+	}
+
+	post.OwnerInfo = owner
+	post.CommunityInfo = community
+
+	attachments, err := service.PostRepository.GetPostAttachments(post.ID)
+	if err != nil {
+		return err
+	}
+	post.Attachments = attachments
+	return nil
 }

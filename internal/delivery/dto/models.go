@@ -25,7 +25,7 @@ type EditProfile struct {
 	PreviousPassword *string `json:"prev_pass"`
 	FirstName        *string `json:"first_name"`
 	LastName         *string `json:"last_name"`
-	Avatar           *string `json:"avatar"`
+	Avatar           *string `json:"avatar_url"`
 	Link             *string `json:"user_link"`
 	Sex              *string `json:"sex"`
 	Status           *string `json:"status"`
@@ -37,13 +37,19 @@ type Subscribes struct {
 	Link string `json:"user_link"`
 }
 
+type GlobalSearchDTO struct {
+	SearchQuery *string `form:"search_query"`
+	BatchSize   *uint   `form:"batch_size"`
+	Offset      *uint   `form:"offset"`
+}
+
 // [OUTGOING]
 
 type Profile struct {
 	Link       string `json:"user_link"   example:"id100500"`
 	FirstName  string `json:"first_name"  example:"Василий"`
 	LastName   string `json:"last_name"   example:"Петров"`
-	Avatar     string `json:"avatar"      example:""`
+	Avatar     string `json:"avatar_url"      example:""`
 	Sex        string `json:"sex"         example:"male"`
 	Status     string `json:"status"      example:"Текст статуса."`
 	Bio        string `json:"bio"         example:"Текст с информацией о себе."`
@@ -51,6 +57,22 @@ type Profile struct {
 	DateJoined string `json:"date_joined" example:"10.02.2023"`
 	LastActive string `json:"last_active" example:""`
 	Private    bool   `json:"private"     example:"false"`
+}
+
+type UserStatus int
+
+const (
+	None = iota
+	Friend
+	Subscriber
+	Subscribed
+)
+
+var StatusToString = map[UserStatus]string{
+	None:       "none",
+	Friend:     "friend",
+	Subscriber: "subscriber",
+	Subscribed: "subscribed",
 }
 
 func NewProfileFromUser(user *entities.User) *Profile {
@@ -70,12 +92,4 @@ func NewProfileFromUser(user *entities.User) *Profile {
 		Sex:        user.Sex,
 		LastActive: user.LastActive,
 	}
-}
-
-func (si *SignIn) AuthEmail() string {
-	return si.Email
-}
-
-func (su *SignUp) AuthEmail() string {
-	return su.Email
 }

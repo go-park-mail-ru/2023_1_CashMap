@@ -5,6 +5,7 @@ import (
 	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
 	"depeche/internal/repository"
+	utildb "depeche/internal/repository/utils"
 	"depeche/internal/utils"
 	"depeche/pkg/apperror"
 	"fmt"
@@ -35,9 +36,9 @@ func (ur *UserRepository) GetUser(query string, args ...interface{}) (*entities.
 	err := row.StructScan(user)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, apperror.UserNotFound
+			return nil, apperror.NewServerError(apperror.UserNotFound, err)
 		}
-		return nil, apperror.InternalServerError
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 	return user, nil
 }
@@ -49,9 +50,9 @@ func (ur *UserRepository) GetUserById(id uint) (*entities.User, error) {
 	if err != nil {
 		fmt.Println(err)
 		if err == sql.ErrNoRows {
-			return nil, apperror.UserNotFound
+			return nil, apperror.NewServerError(apperror.UserNotFound, err)
 		}
-		return nil, apperror.InternalServerError
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 	return user, nil
 }
@@ -63,9 +64,9 @@ func (ur *UserRepository) GetUserByLink(link string) (*entities.User, error) {
 	if err != nil {
 		fmt.Println(err)
 		if err == sql.ErrNoRows {
-			return nil, apperror.UserNotFound
+			return nil, apperror.NewServerError(apperror.UserNotFound, err)
 		}
-		return nil, apperror.InternalServerError
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 	return user, nil
 }
@@ -76,9 +77,9 @@ func (ur *UserRepository) GetUserByEmail(email string) (*entities.User, error) {
 	err := row.StructScan(user)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, apperror.UserNotFound
+			return nil, apperror.NewServerError(apperror.UserNotFound, err)
 		}
-		return nil, apperror.InternalServerError
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 	return user, nil
 }
@@ -86,13 +87,17 @@ func (ur *UserRepository) GetUserByEmail(email string) (*entities.User, error) {
 func (ur *UserRepository) GetFriends(user *entities.User, limit, offset int) ([]*entities.User, error) {
 	var users []*entities.User
 	rows, err := ur.DB.Queryx(FriendsById, user.ID, offset, limit)
+	defer utildb.CloseRows(rows)
 	if err != nil {
-		return nil, apperror.InternalServerError
+		if err == sql.ErrNoRows {
+			return users, nil
+		}
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 	for rows.Next() {
 		var user = &entities.User{}
 		if err := rows.StructScan(user); err != nil {
-			return nil, apperror.InternalServerError
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
 		}
 		users = append(users, user)
 	}
@@ -102,13 +107,17 @@ func (ur *UserRepository) GetFriends(user *entities.User, limit, offset int) ([]
 func (ur *UserRepository) GetSubscribes(user *entities.User, limit, offset int) ([]*entities.User, error) {
 	var users []*entities.User
 	rows, err := ur.DB.Queryx(SubscribesById, user.ID, offset, limit)
+	defer utildb.CloseRows(rows)
 	if err != nil {
-		return nil, apperror.InternalServerError
+		if err == sql.ErrNoRows {
+			return users, nil
+		}
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 	for rows.Next() {
 		var user = &entities.User{}
 		if err := rows.StructScan(user); err != nil {
-			return nil, apperror.InternalServerError
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
 		}
 		users = append(users, user)
 	}
@@ -118,13 +127,17 @@ func (ur *UserRepository) GetSubscribes(user *entities.User, limit, offset int) 
 func (ur *UserRepository) GetSubscribers(user *entities.User, limit, offset int) ([]*entities.User, error) {
 	var users []*entities.User
 	rows, err := ur.DB.Queryx(SubscribersById, user.ID, offset, limit)
+	defer utildb.CloseRows(rows)
 	if err != nil {
-		return nil, apperror.InternalServerError
+		if err == sql.ErrNoRows {
+			return users, nil
+		}
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 	for rows.Next() {
 		var user = &entities.User{}
 		if err := rows.StructScan(user); err != nil {
-			return nil, apperror.InternalServerError
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
 		}
 		users = append(users, user)
 	}
@@ -134,16 +147,17 @@ func (ur *UserRepository) GetSubscribers(user *entities.User, limit, offset int)
 func (ur *UserRepository) GetUsers(email string, limit, offset int) ([]*entities.User, error) {
 	var users []*entities.User
 	rows, err := ur.DB.Queryx(RandomUsers, email, offset, limit)
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return users, nil
 		}
-		return nil, apperror.InternalServerError
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 	for rows.Next() {
 		var user = &entities.User{}
 		if err := rows.StructScan(user); err != nil {
-			return nil, apperror.InternalServerError
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
 		}
 		users = append(users, user)
 	}
@@ -153,7 +167,9 @@ func (ur *UserRepository) GetUsers(email string, limit, offset int) ([]*entities
 func (ur *UserRepository) UpdateAvatar(email string, url string) error {
 	err := ur.DB.QueryRowx(UpdateAvatar, url, email).Scan()
 	if err != nil {
-		return apperror.InternalServerError
+		if err != sql.ErrNoRows {
+			return apperror.NewServerError(apperror.InternalServerError, err)
+		}
 	}
 	return nil
 }
@@ -162,7 +178,7 @@ func (ur *UserRepository) CheckLinkExists(link string) (bool, error) {
 	var exists bool
 	err := ur.DB.QueryRowx(CheckLink, link).Scan(&exists)
 	if err != nil {
-		return false, apperror.InternalServerError
+		return false, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
 	return exists, nil
@@ -174,42 +190,42 @@ func (ur *UserRepository) Subscribe(subEmail, targetLink, requestTime string) (b
 		if err, ok := err.(*pq.Error); ok {
 			switch err.Code {
 			case pgerrcode.UniqueViolation:
-				return false, apperror.RepeatedSubscribe
+				return false, apperror.NewServerError(apperror.RepeatedSubscribe, err)
 			default:
-				return false, apperror.InternalServerError
+				return false, apperror.NewServerError(apperror.InternalServerError, err)
 			}
 		}
-		return false, apperror.InternalServerError
+		return false, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 	return false, nil
 }
 
 func (ur *UserRepository) Unsubscribe(userEmail, targetLink string) (bool, error) {
 	rows, err := ur.DB.Queryx(Unsubscribe, userEmail, targetLink)
-
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		fmt.Println(err)
 		// TODO check subscribe conflict (repeated unsubscribe)
-		return false, apperror.InternalServerError
+		return false, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 	err = rows.Close()
 	if err != nil {
-		return false, err
+		return false, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 	return false, nil
 }
 
 func (ur *UserRepository) RejectFriendRequest(userEmail, targetLink string) error {
 	rows, err := ur.DB.Queryx(Unsubscribe, userEmail, targetLink)
+	defer utildb.CloseRows(rows)
 	if err != nil {
-		fmt.Println(err)
 		// TODO check
-		return apperror.InternalServerError
+		return apperror.NewServerError(apperror.InternalServerError, err)
 
 	}
 	err = rows.Close()
 	if err != nil {
-		return apperror.InternalServerError
+		return apperror.NewServerError(apperror.InternalServerError, err)
 	}
 	return nil
 }
@@ -218,32 +234,29 @@ func (ur *UserRepository) CreateUser(user *entities.User) (*entities.User, error
 
 	tx, err := ur.DB.Beginx()
 	if err != nil {
-		fmt.Println(err)
+
 		// TODO check
-		return nil, apperror.InternalServerError
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
 	var id uint
 	err = tx.QueryRowx(CreateUser, user.Email, user.Password, user.FirstName, user.LastName, utils.CurrentTimeString()).Scan(&id)
 	if err != nil {
-		fmt.Println(err)
 		// TODO check
-		return nil, apperror.InternalServerError
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 
 	}
 
 	_, err = tx.Exec(UpdateUserLink, fmt.Sprintf("id%d", id), id)
 	if err != nil {
-		fmt.Println(err)
 		// TODO check
-		return nil, apperror.InternalServerError
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 
 	}
 	err = tx.Commit()
 	if err != nil {
-		fmt.Println(err)
 		// TODO check
-		return nil, apperror.InternalServerError
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 
 	}
 	return user, nil
@@ -251,10 +264,11 @@ func (ur *UserRepository) CreateUser(user *entities.User) (*entities.User, error
 
 func (ur *UserRepository) UpdateUser(email string, user *dto.EditProfile) (*entities.User, error) {
 	query := "update userprofile set "
-	// TODO: поправиить sql запрос
 	var fields []interface{}
-	for name, el := range structs.Map(user) {
-		field, ok := el.(*string)
+	fieldsMap := structs.Map(user)
+
+	for _, name := range structs.Names(user) {
+		field, ok := fieldsMap[name].(*string)
 		if !ok {
 			continue
 		}
@@ -267,13 +281,14 @@ func (ur *UserRepository) UpdateUser(email string, user *dto.EditProfile) (*enti
 	query += fmt.Sprintf(" where email = $%d", len(fields)+1)
 	fields = append(fields, email)
 	rows, err := ur.DB.Queryx(query, fields...)
+	defer utildb.CloseRows(rows)
 	if err != nil {
-		return nil, apperror.InternalServerError
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
 	err = rows.Close()
 	if err != nil {
-		return nil, err
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
 	return nil, nil
@@ -295,18 +310,19 @@ func (ur *UserRepository) DeleteUser(email string) error {
 	var id int
 	err := ur.DB.QueryRowx(DeleteUser, email).Scan(&id)
 	if err != nil {
-		return apperror.InternalServerError
+		return apperror.NewServerError(apperror.InternalServerError, err)
 	}
 	return nil
 }
 
 func (ur *UserRepository) GetPendingFriendRequests(user *entities.User, limit, offset int) ([]*entities.User, error) {
 	rows, err := ur.DB.Queryx(PendingFriendRequestsById, user.ID, offset, limit)
+	defer utildb.CloseRows(rows)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
-		return nil, apperror.InternalServerError
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
 
 	var profiles []*entities.User
@@ -314,7 +330,7 @@ func (ur *UserRepository) GetPendingFriendRequests(user *entities.User, limit, o
 		profile := &entities.User{}
 		err := rows.StructScan(profile)
 		if err != nil {
-			return nil, apperror.InternalServerError
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
 		}
 		profiles = append(profiles, profile)
 	}
@@ -322,35 +338,35 @@ func (ur *UserRepository) GetPendingFriendRequests(user *entities.User, limit, o
 
 }
 
-//// IsFriend returns true when user is subscribed on target and vice versa
-//func (ur *UserRepository) IsFriend(user, target *entities.User) (bool, error) {
-//	var isFriend bool
-//	err := ur.DB.QueryRowx(IsFriend, user.ID, target.ID).Scan(&isFriend)
-//	if err != nil {
-//		return false, apperror.InternalServerError
-//	}
-//	return isFriend, nil
-//}
-//
-//// IsSubscriber returns true when user is subscribed on target
-//func (ur *UserRepository) IsSubscriber(user, target *entities.User) (bool, error) {
-//	var isSub bool
-//	err := ur.DB.QueryRowx(IsSubscriber, user.ID, target.ID).Scan(&isSub)
-//	if err != nil {
-//		return false, apperror.InternalServerError
-//	}
-//	return isSub, nil
-//}
-//
-//// IsSubscribed returns true when target is subscribed on user (rejected request)
-//func (ur *UserRepository) IsSubscribed(user, target *entities.User) (bool, error) {
-//	var isSub bool
-//	err := ur.DB.QueryRowx(IsSubscribed, user.ID, target.ID).Scan(&isSub)
-//	if err != nil {
-//		return false, apperror.InternalServerError
-//	}
-//	return isSub, nil
-//}
+// IsFriend returns true when user is subscribed on target and vice versa
+func (ur *UserRepository) IsFriend(email, link string) (bool, error) {
+	var isFriend bool
+	err := ur.DB.QueryRowx(IsFriend, email, link).Scan(&isFriend)
+	if err != nil {
+		return false, apperror.InternalServerError
+	}
+	return isFriend, nil
+}
+
+// IsSubscriber returns true when user is subscribed on target
+func (ur *UserRepository) IsSubscriber(email, link string) (bool, error) {
+	var isSub bool
+	err := ur.DB.QueryRowx(IsSubscriber, email, link).Scan(&isSub)
+	if err != nil {
+		return false, apperror.InternalServerError
+	}
+	return isSub, nil
+}
+
+// IsSubscribed returns true when target is subscribed on user (rejected request)
+func (ur *UserRepository) IsSubscribed(email, link string) (bool, error) {
+	var isSub bool
+	err := ur.DB.QueryRowx(IsSubscribed, email, link).Scan(&isSub)
+	if err != nil {
+		return false, apperror.InternalServerError
+	}
+	return isSub, nil
+}
 
 // HasPendingRequest returns true when target is subscribed on user (unseen yet request)
 //func (ur *UserRepository) HasPendingRequest(user, target *entities.User) (bool, error) {
@@ -361,3 +377,225 @@ func (ur *UserRepository) GetPendingFriendRequests(user *entities.User, limit, o
 //	}
 //	return pending, nil
 //}
+
+func (ur *UserRepository) SearchUserByName(email string, searchDTO *dto.GlobalSearchDTO) ([]*entities.UserInfo, error) {
+	searchName := utils.NormalizeString(*searchDTO.SearchQuery)
+	//splitSearchName := strings.Split(searchName, " ")
+
+	rows, err := ur.DB.Queryx("SELECT id, first_name, last_name FROM UserProfile AS profile ORDER BY first_name, last_name")
+	defer utildb.CloseRows(rows)
+	if err != nil {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	//distances := make([]int, len(splitSearchName))
+
+	user := userForSearch{}
+	usersBatch := make([]userForSearch, 0, *searchDTO.BatchSize)
+
+	//maxLevenshteinDistance := float64(utils.GetMaxLength(splitSearchName...)) * 0.5
+
+	//MAIN:
+	for rows.Next() {
+		err := rows.StructScan(&user)
+		if err != nil {
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+
+		//// считаем минимальное расстояние между искомым именем и именем из базы
+		//for i := 0; i < len(splitSearchName); i++ {
+		//	firstDistance := levenshtein.Distance(strings.ToLower(user.FirstName), splitSearchName[i])
+		//	secondDistance := levenshtein.Distance(strings.ToLower(user.LastName), splitSearchName[i])
+		//
+		//	distances[i] = utils.Min(firstDistance, secondDistance)
+		//}
+		//
+		//user.Distance = float64(utils.SliceMin(distances))
+		//if user.Distance > maxLevenshteinDistance {
+		//	continue
+		//}
+		//
+		//// обновляем список с наилучшими мэтчами по имени
+		//var i int
+		//for i = 0; i < len(usersBatch); i++ {
+		//	if user.Distance < usersBatch[i].Distance {
+		//		if len(usersBatch) < int(*searchDTO.BatchSize+*searchDTO.Offset) {
+		//			usersBatch = append(usersBatch, userForSearch{})
+		//		}
+		//
+		//		utils.ShiftRight(usersBatch, int(i), 1)
+		//		usersBatch[i] = user
+		//		continue MAIN
+		//	}
+		//}
+		//
+		//if len(usersBatch) < int(*searchDTO.BatchSize+*searchDTO.Offset) {
+		//	usersBatch = append(usersBatch, user)
+		//}
+
+		if strings.Contains(strings.ToLower(user.FirstName+user.LastName), searchName) {
+			if len(usersBatch) >= int(*searchDTO.BatchSize+*searchDTO.Offset) {
+				break
+			}
+
+			usersBatch = append(usersBatch, user)
+		}
+	}
+
+	var users = make([]*entities.UserInfo, 0, *searchDTO.BatchSize)
+
+	var userID int
+	err = ur.DB.Get(&userID, "SELECT id FROM userprofile WHERE email = $1", email)
+	if err != nil {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	tx, err := ur.DB.Beginx()
+	if err != nil {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	if *searchDTO.Offset >= uint(len(usersBatch)) {
+		err := tx.Rollback()
+		if err != nil {
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+		return users, nil
+	}
+
+	for ind, info := range usersBatch[*searchDTO.Offset:] {
+		users = append(users, nil)
+		users[ind] = new(entities.UserInfo)
+		err := tx.Get(users[ind], GetUserInfoForSearchQuery, userID, info.ID)
+		if err != nil {
+			err2 := tx.Rollback()
+			if err2 != nil {
+				return nil, apperror.NewServerError(apperror.InternalServerError, err2)
+			}
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	return users, nil
+}
+
+type userForSearch struct {
+	ID        uint   `db:"id"`
+	FirstName string `db:"first_name"`
+	LastName  string `db:"last_name"`
+	Distance  float64
+}
+
+func (ur *UserRepository) SearchCommunitiesByTitle(email string, searchDTO *dto.GlobalSearchDTO) ([]*entities.CommunityInfo, error) {
+	searchName := utils.NormalizeString(*searchDTO.SearchQuery)
+	//splitSearchQuery := strings.Split(searchName, " ")
+
+	rows, err := ur.DB.Queryx("SELECT id, title FROM groups ORDER BY title")
+	defer utildb.CloseRows(rows)
+	if err != nil {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	//distances := make([]int, len(splitSearchQuery))
+
+	community := communityForSearch{}
+	communityBatch := make([]communityForSearch, 0, *searchDTO.BatchSize)
+
+	//maxLevenshteinDistance := float64(utils.GetMaxLength(splitSearchQuery...)) * 0.5
+
+	//MAIN:
+	for rows.Next() {
+		err := rows.StructScan(&community)
+		if err != nil {
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+
+		//// считаем минимальное расстояние между искомым именем и именем из базы
+		//splittedTitle := strings.Split(community.Title, " ")
+		//for i := 0; i < len(splitSearchQuery); i++ {
+		//	titleDistances := make([]int, len(splittedTitle))
+		//	for ind, part := range splittedTitle {
+		//		titleDistances[ind] = levenshtein.Distance(strings.ToLower(part), splitSearchQuery[i])
+		//	}
+		//
+		//	distances[i] = utils.SliceMin(titleDistances)
+		//}
+		//
+		//community.Distance = float64(utils.SliceMin(distances))
+		//if community.Distance > maxLevenshteinDistance {
+		//	continue
+		//}
+		//
+		//// обновляем список с наилучшими мэтчами по имени
+		//var i int
+		//for i = 0; i < len(communityBatch); i++ {
+		//	if community.Distance < communityBatch[i].Distance {
+		//		if len(communityBatch) < int(*searchDTO.BatchSize+*searchDTO.Offset) {
+		//			communityBatch = append(communityBatch, communityForSearch{})
+		//		}
+		//
+		//		utils.ShiftRight(communityBatch, i, 1)
+		//		communityBatch[i] = community
+		//		continue MAIN
+		//	}
+		//}
+		//
+		//if len(communityBatch) < int(*searchDTO.BatchSize+*searchDTO.Offset) {
+		//	communityBatch = append(communityBatch, community)
+		//}
+
+		if strings.Contains(strings.ToLower(community.Title), searchName) {
+			if len(communityBatch) >= int(*searchDTO.BatchSize+*searchDTO.Offset) {
+				break
+			}
+
+			communityBatch = append(communityBatch, community)
+		}
+	}
+
+	if len(communityBatch) == 0 {
+		return []*entities.CommunityInfo{}, nil
+	}
+
+	var communities = make([]*entities.CommunityInfo, 0, *searchDTO.BatchSize)
+
+	tx, err := ur.DB.Beginx()
+	if err != nil {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	if *searchDTO.Offset >= uint(len(communityBatch)) {
+		err := tx.Rollback()
+		if err != nil {
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+		return communities, nil
+	}
+
+	for ind, info := range communityBatch[*searchDTO.Offset:] {
+		communities = append(communities, nil)
+		communities[ind] = new(entities.CommunityInfo)
+		err := tx.Get(communities[ind], GetCommunityInfoForSearchQuery, info.ID, email)
+		if err != nil {
+			err2 := tx.Rollback()
+			if err2 != nil {
+				return nil, apperror.NewServerError(apperror.InternalServerError, err2)
+			}
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	return communities, nil
+}
+
+type communityForSearch struct {
+	ID       uint   `db:"id"`
+	Title    string `db:"title"`
+	Distance float64
+}

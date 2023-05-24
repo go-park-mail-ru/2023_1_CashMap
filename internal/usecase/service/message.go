@@ -5,7 +5,9 @@ import (
 	"depeche/internal/entities"
 	"depeche/internal/repository"
 	"depeche/internal/usecase"
+	utils2 "depeche/internal/usecase/utils"
 	"depeche/internal/utils"
+	"depeche/pkg/apperror"
 	"errors"
 	"github.com/asaskevich/govalidator"
 )
@@ -19,12 +21,13 @@ func NewMessageService(repo repository.MessageRepository, userRepo repository.Us
 	return &MessageService{repo, userRepo}
 }
 
-func (service *MessageService) Send(email string, message *dto.NewMessage) (*entities.Message, error) {
+func (service *MessageService) Send(email string, message *dto.NewMessageDTO) (*entities.Message, error) {
 	user, err := service.UserRepository.GetUserByEmail(email)
 	if err != nil {
 		return nil, err
 	}
 	message.UserId = user.ID
+
 	message = utils.Escaping(message)
 	msg, err := service.MessageRepository.SaveMsg(message)
 	if err != nil {
@@ -36,6 +39,17 @@ func (service *MessageService) Send(email string, message *dto.NewMessage) (*ent
 	}
 	msg.SenderInfo = info
 
+	if message.Attachments != nil {
+		if len(message.Attachments) > 10 {
+			return nil, apperror.NewServerError(apperror.TooMuchAttachments, nil)
+		}
+		err := service.MessageRepository.AddMessageAttachments(*msg.Id, message.Attachments)
+		if err != nil {
+			return msg, err
+		}
+		msg.Attachments = message.Attachments
+	}
+
 	return msg, nil
 }
 
@@ -43,21 +57,38 @@ func (service *MessageService) GetMembersByChatId(chatId uint) ([]*entities.User
 	return service.MessageRepository.GetMembersByChatId(chatId)
 }
 
-func (service *MessageService) GetMessagesByChatID(senderEmail string, dto *dto.GetMessagesDTO) ([]*entities.Message, error) {
+func (service *MessageService) GetMessagesByChatID(senderEmail string, dto *dto.GetMessagesDTO) ([]*entities.Message, bool, error) {
 	isValid, err := govalidator.ValidateStruct(dto)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	if !isValid {
-		return nil, errors.New("invalid struct")
+		return nil, false, errors.New("invalid struct")
 	}
 
 	if dto.LastMessageDate == nil {
 		dto.LastMessageDate = new(string)
-		*dto.LastMessageDate = "0"
+		*dto.LastMessageDate = utils2.OLDEST_DATE
 	}
 
-	return service.MessageRepository.SelectMessagesByChatID(senderEmail, dto)
+	messages, err := service.MessageRepository.SelectMessagesByChatID(senderEmail, dto)
+	if err != nil {
+		return nil, false, err
+	}
+	for _, message := range messages {
+		attachments, err := service.MessageRepository.GetMessageAttachments(*message.Id)
+		if err != nil {
+			return nil, false, err
+		}
+		message.Attachments = attachments
+	}
+
+	var hasNextMessages bool
+	if dto.BatchSize != nil && uint(len(messages)) == *dto.BatchSize {
+		hasNextMessages = true
+	}
+
+	return messages, hasNextMessages, nil
 }
 
 func (service *MessageService) GetChatsList(senderEmail string, dto *dto.GetChatsDTO) ([]*entities.Chat, error) {

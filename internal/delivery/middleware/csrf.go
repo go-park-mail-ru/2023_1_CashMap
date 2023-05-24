@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	session "depeche/internal/session"
-	authService "depeche/internal/session/service"
+	"depeche/authorization_ms/authEntities"
+	authService "depeche/authorization_ms/service"
 	"depeche/pkg/apperror"
 	"github.com/gin-gonic/gin"
 )
@@ -34,7 +34,7 @@ func (csrf *CSRFMiddleware) Middleware() gin.HandlerFunc {
 			return
 		}
 
-		csrfData := session.CSRF{
+		csrfData := authEntities.CSRF{
 			Token: csrfToken,
 			Email: email.(string),
 		}
@@ -49,8 +49,8 @@ func (csrf *CSRFMiddleware) Middleware() gin.HandlerFunc {
 }
 
 func RejectInMiddleware(ctx *gin.Context, err error) {
-	ctx.AbortWithStatusJSON(Errors[err].Code, gin.H{
-		"status":  Errors[err].Code,
-		"message": Errors[err].Message,
+	ctx.AbortWithStatusJSON(apperror.Errors[err].Code, gin.H{
+		"status":  apperror.Errors[err].Code,
+		"message": apperror.Errors[err].Message,
 	})
 }

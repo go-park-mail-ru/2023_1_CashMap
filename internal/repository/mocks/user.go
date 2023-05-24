@@ -219,23 +219,8 @@ func (mr *MockUserRepositoryMockRecorder) GetUsers(arg0, arg1, arg2 interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsers", reflect.TypeOf((*MockUserRepository)(nil).GetUsers), arg0, arg1, arg2)
 }
 
-// HasPendingRequest mocks base method.
-func (m *MockUserRepository) HasPendingRequest(arg0, arg1 *entities.User) (bool, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HasPendingRequest", arg0, arg1)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// HasPendingRequest indicates an expected call of HasPendingRequest.
-func (mr *MockUserRepositoryMockRecorder) HasPendingRequest(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasPendingRequest", reflect.TypeOf((*MockUserRepository)(nil).HasPendingRequest), arg0, arg1)
-}
-
 // IsFriend mocks base method.
-func (m *MockUserRepository) IsFriend(arg0, arg1 *entities.User) (bool, error) {
+func (m *MockUserRepository) IsFriend(arg0, arg1 string) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsFriend", arg0, arg1)
 	ret0, _ := ret[0].(bool)
@@ -249,8 +234,23 @@ func (mr *MockUserRepositoryMockRecorder) IsFriend(arg0, arg1 interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsFriend", reflect.TypeOf((*MockUserRepository)(nil).IsFriend), arg0, arg1)
 }
 
+// IsSubscribed mocks base method.
+func (m *MockUserRepository) IsSubscribed(arg0, arg1 string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsSubscribed", arg0, arg1)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsSubscribed indicates an expected call of IsSubscribed.
+func (mr *MockUserRepositoryMockRecorder) IsSubscribed(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsSubscribed", reflect.TypeOf((*MockUserRepository)(nil).IsSubscribed), arg0, arg1)
+}
+
 // IsSubscriber mocks base method.
-func (m *MockUserRepository) IsSubscriber(arg0, arg1 *entities.User) (bool, error) {
+func (m *MockUserRepository) IsSubscriber(arg0, arg1 string) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsSubscriber", arg0, arg1)
 	ret0, _ := ret[0].(bool)
@@ -276,6 +276,36 @@ func (m *MockUserRepository) RejectFriendRequest(arg0, arg1 string) error {
 func (mr *MockUserRepositoryMockRecorder) RejectFriendRequest(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RejectFriendRequest", reflect.TypeOf((*MockUserRepository)(nil).RejectFriendRequest), arg0, arg1)
+}
+
+// SearchCommunitiesByTitle mocks base method.
+func (m *MockUserRepository) SearchCommunitiesByTitle(arg0 string, arg1 *dto.GlobalSearchDTO) ([]*entities.CommunityInfo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchCommunitiesByTitle", arg0, arg1)
+	ret0, _ := ret[0].([]*entities.CommunityInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchCommunitiesByTitle indicates an expected call of SearchCommunitiesByTitle.
+func (mr *MockUserRepositoryMockRecorder) SearchCommunitiesByTitle(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchCommunitiesByTitle", reflect.TypeOf((*MockUserRepository)(nil).SearchCommunitiesByTitle), arg0, arg1)
+}
+
+// SearchUserByName mocks base method.
+func (m *MockUserRepository) SearchUserByName(arg0 string, arg1 *dto.GlobalSearchDTO) ([]*entities.UserInfo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchUserByName", arg0, arg1)
+	ret0, _ := ret[0].([]*entities.UserInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchUserByName indicates an expected call of SearchUserByName.
+func (mr *MockUserRepositoryMockRecorder) SearchUserByName(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchUserByName", reflect.TypeOf((*MockUserRepository)(nil).SearchUserByName), arg0, arg1)
 }
 
 // Subscribe mocks base method.
