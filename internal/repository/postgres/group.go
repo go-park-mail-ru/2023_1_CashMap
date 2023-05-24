@@ -270,6 +270,38 @@ func (gr *GroupRepository) Unsubscribe(email, groupLink string) error {
 	return nil
 }
 
+func (gr *GroupRepository) IsOwner(userEmail, groupLink string) (bool, error) {
+	var isOwner bool
+	err := gr.db.Get(&isOwner, IsOwner, userEmail, groupLink)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			return isOwner, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+	}
+	return isOwner, nil
+}
+
+func (gr *GroupRepository) CheckSub(email, groupLink string) (bool, error) {
+	var isSub bool
+	err := gr.db.QueryRowx(CheckSub, email, groupLink).Scan(&isSub)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			return isSub, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+	}
+	return isSub, nil
+}
+
+func (gr *GroupRepository) CheckAdmin(email, groupLink string) (bool, error) {
+	var isAdmin bool
+	err := gr.db.Get(&isAdmin, CheckAdminQuery, email, groupLink)
+	if err != nil {
+		return false, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+
+	return isAdmin, nil
+}
+
 func (gr *GroupRepository) AcceptRequest(userLink, groupLink string) error {
 	err := gr.db.QueryRowx(AcceptRequest, userLink, groupLink).Scan()
 	if err != nil {
@@ -319,45 +351,3 @@ func (gr *GroupRepository) GetPendingRequests(groupLink string, limit, offset in
 	}
 	return users, nil
 }
-
-func (gr *GroupRepository) IsOwner(userEmail, groupLink string) (bool, error) {
-	var isOwner bool
-	err := gr.db.Get(&isOwner, IsOwner, userEmail, groupLink)
-	if err != nil {
-		if err != sql.ErrNoRows {
-			return isOwner, apperror.NewServerError(apperror.InternalServerError, err)
-		}
-	}
-	return isOwner, nil
-}
-
-func (gr *GroupRepository) CheckSub(email, groupLink string) (bool, error) {
-	var isSub bool
-	err := gr.db.QueryRowx(CheckSub, email, groupLink).Scan(&isSub)
-	if err != nil {
-		if err != sql.ErrNoRows {
-			return isSub, apperror.NewServerError(apperror.InternalServerError, err)
-		}
-	}
-	return isSub, nil
-}
-
-func (gr *GroupRepository) CheckAdmin(email, groupLink string) (bool, error) {
-	var isAdmin bool
-	err := gr.db.Get(&isAdmin, CheckAdminQuery, email, groupLink)
-	if err != nil {
-		return false, apperror.NewServerError(apperror.InternalServerError, err)
-	}
-
-	return isAdmin, nil
-}
-
-//func (gr *GroupRepository) AddManager(manager *dto.AddManager) error {
-//	//TODO implement me
-//	panic("implement me")
-//}
-//
-//func (gr *GroupRepository) RemoveManager(link string) error {
-//	//TODO implement me
-//	panic("implement me")
-//}

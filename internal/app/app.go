@@ -193,7 +193,7 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 
 			// [SUBSCRIBES]
 			userEndpoints.GET("/sub", handler.Subscribes)
-			userEndpoints.GET("/pending", handler.PendingGroupRequests)
+			userEndpoints.GET("/pending", handler.PendingRequests)
 
 			// [SUBSCRIBE]
 			userEndpoints.POST("/sub", handler.Subscribe)
@@ -232,17 +232,17 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 		// [STICKERS]
 		stickerEndpoints := apiEndpointsGroup.Group("/sticker")
 		{
-			stickerEndpoints.GET("/", handler.GetStickerById)
+			//stickerEndpoints.GET("/", handler.GetStickerById)
 			stickerPackEndpoints := stickerEndpoints.Group("/pack")
 			{
-				stickerPackEndpoints.GET("/", handler.GetStickerPack)
-				stickerPackEndpoints.GET("/info", handler.GetStickerPackInfo)
-				stickerPackEndpoints.GET("/hot", handler.GetNewStickerPacks)
+				//stickerPackEndpoints.GET("/", handler.GetStickerPack)
+				//stickerPackEndpoints.GET("/info", handler.GetStickerPackInfo)
+				//stickerPackEndpoints.GET("/hot", handler.GetNewStickerPacks)
 				stickerPackEndpoints.GET("/author", handler.GetStickerPacksByAuthor)
-				stickerPackEndpoints.GET("/self", handler.GetUserStickerPacks)
+				//stickerPackEndpoints.GET("/self", handler.GetUserStickerPacks)
 
-				stickerPackEndpoints.POST("/create", handler.UploadStickerPack)
-				stickerPackEndpoints.POST("/add", handler.AddStickerPack)
+				//stickerPackEndpoints.POST("/create", handler.UploadStickerPack)
+				//stickerPackEndpoints.POST("/add", handler.AddStickerPack)
 			}
 		}
 		// [WS]

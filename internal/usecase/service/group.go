@@ -151,6 +151,39 @@ func (g *Group) Unsubscribe(email, groupLink string) error {
 	return g.repo.Unsubscribe(email, groupLink)
 }
 
+func (g *Group) CheckSub(email, groupLink string) (bool, error) {
+	return g.repo.CheckSub(email, groupLink)
+}
+
+func (g *Group) CheckAdmin(email, groupLink string) (bool, error) {
+	return g.repo.CheckAdmin(email, groupLink)
+}
+
+func addGroupManagement(groups []*entities.Group) []*entities.Group {
+	for _, group := range groups {
+		if !group.HideOwner {
+			owner := entities.GroupManagement{
+				Link: group.OwnerLink,
+				Role: "owner",
+			}
+			group.Management = append(group.Management, owner)
+		}
+	}
+	return groups
+}
+
+func (g *Group) GetPendingRequests(managerEmail, groupLink string, limit, offset int) ([]*entities.User, error) {
+	isOwner, err := g.repo.IsOwner(managerEmail, groupLink)
+	if err != nil {
+		return nil, err
+	}
+	if !isOwner {
+		return nil, apperror.NewServerError(apperror.Forbidden, nil)
+	}
+
+	return g.repo.GetPendingRequests(groupLink, limit, offset)
+}
+
 func (g *Group) AcceptRequest(managerEmail, userLink, groupLink string) error {
 	isOwner, err := g.repo.IsOwner(managerEmail, groupLink)
 	if err != nil {
@@ -185,37 +218,4 @@ func (g *Group) DeclineRequest(managerEmail, userLink, groupLink string) error {
 	}
 
 	return g.repo.DeclineRequest(userLink, groupLink)
-}
-
-func (g *Group) GetPendingRequests(managerEmail, groupLink string, limit, offset int) ([]*entities.User, error) {
-	isOwner, err := g.repo.IsOwner(managerEmail, groupLink)
-	if err != nil {
-		return nil, err
-	}
-	if !isOwner {
-		return nil, apperror.NewServerError(apperror.Forbidden, nil)
-	}
-
-	return g.repo.GetPendingRequests(groupLink, limit, offset)
-}
-
-func (g *Group) CheckSub(email, groupLink string) (bool, error) {
-	return g.repo.CheckSub(email, groupLink)
-}
-
-func (g *Group) CheckAdmin(email, groupLink string) (bool, error) {
-	return g.repo.CheckAdmin(email, groupLink)
-}
-
-func addGroupManagement(groups []*entities.Group) []*entities.Group {
-	for _, group := range groups {
-		if !group.HideOwner {
-			owner := entities.GroupManagement{
-				Link: group.OwnerLink,
-				Role: "owner",
-			}
-			group.Management = append(group.Management, owner)
-		}
-	}
-	return groups
 }

@@ -19,26 +19,6 @@ func NewFeedStorage(db *sqlx.DB) repository.FeedRepository {
 	}
 }
 
-func (storage *FeedStorage) GetFriendsPosts(email string, feedDTO *dto.FeedDTO) ([]*entities.Post, error) {
-	var posts []*entities.Post
-	rows, err := storage.db.Queryx(FriendsPostsQuery, email, feedDTO.BatchSize, feedDTO.LastPostDate)
-	defer utildb.CloseRows(rows)
-	if err != nil {
-		return nil, apperror.NewServerError(apperror.InternalServerError, err)
-	}
-
-	posts, err = getSliceFromRows[entities.Post](rows, feedDTO.BatchSize)
-	if err != nil {
-		return nil, apperror.NewServerError(apperror.InternalServerError, err)
-	}
-
-	return posts, nil
-}
-
-func (storage *FeedStorage) GetGroupsPosts(email string, feedDTO *dto.FeedDTO) ([]*entities.Post, error) {
-	// TODO: к 3 рк :)
-	return nil, nil
-}
 func (storage *FeedStorage) GetFeedPosts(email string, feedDTO *dto.FeedDTO) ([]*entities.Post, error) {
 	var posts []*entities.Post
 	rows, err := storage.db.Queryx(GetFeedQuery, email, feedDTO.BatchSize, feedDTO.LastPostDate)
@@ -54,3 +34,25 @@ func (storage *FeedStorage) GetFeedPosts(email string, feedDTO *dto.FeedDTO) ([]
 
 	return posts, nil
 }
+
+//
+//func (storage *FeedStorage) GetFriendsPosts(email string, feedDTO *dto.FeedDTO) ([]*entities.Post, error) {
+//	var posts []*entities.Post
+//	rows, err := storage.db.Queryx(FriendsPostsQuery, email, feedDTO.BatchSize, feedDTO.LastPostDate)
+//	defer utildb.CloseRows(rows)
+//	if err != nil {
+//		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+//	}
+//
+//	posts, err = getSliceFromRows[entities.Post](rows, feedDTO.BatchSize)
+//	if err != nil {
+//		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+//	}
+//
+//	return posts, nil
+//}
+//
+//func (storage *FeedStorage) GetGroupsPosts(email string, feedDTO *dto.FeedDTO) ([]*entities.Post, error) {
+//	// TODO: к 3 рк :)
+//	return nil, nil
+//}

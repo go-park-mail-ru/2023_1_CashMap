@@ -19,10 +19,13 @@ type Group interface {
 	GetSubscribers(groupLink string, limit int, offset int) ([]*entities.User, error)
 	Subscribe(email, groupLink string) error
 	Unsubscribe(email, groupLink string) error
+
+	CheckSub(email, groupLink string) (bool, error)
+	CheckAdmin(email, groupLink string) (bool, error)
+
+	// [PRIVATE GROUPS]
 	AcceptRequest(managerEmail, userLink, groupLink string) error
 	AcceptAllRequests(managerEmail, groupLink string) error
 	DeclineRequest(managerEmail, userLink, groupLink string) error
 	GetPendingRequests(managerEmail, groupLink string, limit, offset int) ([]*entities.User, error)
-	CheckSub(email, groupLink string) (bool, error)
-	CheckAdmin(email, groupLink string) (bool, error)
 }

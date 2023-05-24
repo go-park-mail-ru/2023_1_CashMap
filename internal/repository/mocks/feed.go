@@ -49,33 +49,3 @@ func (mr *MockFeedRepositoryMockRecorder) GetFeedPosts(arg0, arg1 interface{}) *
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFeedPosts", reflect.TypeOf((*MockFeedRepository)(nil).GetFeedPosts), arg0, arg1)
 }
-
-// GetFriendsPosts mocks base method.
-func (m *MockFeedRepository) GetFriendsPosts(arg0 string, arg1 *dto.FeedDTO) ([]*entities.Post, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetFriendsPosts", arg0, arg1)
-	ret0, _ := ret[0].([]*entities.Post)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetFriendsPosts indicates an expected call of GetFriendsPosts.
-func (mr *MockFeedRepositoryMockRecorder) GetFriendsPosts(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFriendsPosts", reflect.TypeOf((*MockFeedRepository)(nil).GetFriendsPosts), arg0, arg1)
-}
-
-// GetGroupsPosts mocks base method.
-func (m *MockFeedRepository) GetGroupsPosts(arg0 string, arg1 *dto.FeedDTO) ([]*entities.Post, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGroupsPosts", arg0, arg1)
-	ret0, _ := ret[0].([]*entities.Post)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetGroupsPosts indicates an expected call of GetGroupsPosts.
-func (mr *MockFeedRepositoryMockRecorder) GetGroupsPosts(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupsPosts", reflect.TypeOf((*MockFeedRepository)(nil).GetGroupsPosts), arg0, arg1)
-}

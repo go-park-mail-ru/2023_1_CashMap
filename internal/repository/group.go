@@ -20,15 +20,18 @@ type Group interface {
 	GetSubscribers(groupLink string, limit int, offset int) ([]*entities.User, error)
 	Subscribe(email, groupLink string) error
 	Unsubscribe(email, groupLink string) error
+
+	IsOwner(userEmail, groupLink string) (bool, error)
+	CheckSub(email, groupLink string) (bool, error)
+	CheckAdmin(email, groupLink string) (bool, error)
+
+	// [PRIVATE GROUPS]
 	AcceptRequest(userLink, groupLink string) error
 	AcceptAllRequests(groupLink string) error
 	DeclineRequest(userLink, groupLink string) error
 	GetPendingRequests(groupLink string, limit, offset int) ([]*entities.User, error)
 
-	IsOwner(userEmail, groupLink string) (bool, error)
-	CheckSub(email, groupLink string) (bool, error)
-	CheckAdmin(email, groupLink string) (bool, error)
-	// TODO добавить права доступа к группе
+	// [GROUP MANAGEMENT]
 	// Grants(userEmail, groupLink string)
 	// AddManager(manager *dto.AddManager) error
 	// RemoveManager(link string) error
