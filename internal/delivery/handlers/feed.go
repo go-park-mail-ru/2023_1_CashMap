@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"depeche/internal/delivery/dto"
+	"depeche/internal/entities/response"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
 	"github.com/gin-gonic/gin"
@@ -52,9 +53,17 @@ func (handler *FeedHandler) GetFeed(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"posts": posts,
+	_response := response.GetFeedResponse{
+		Body: response.GetFeedBody{
+			Posts: posts,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }

@@ -4,9 +4,12 @@ import (
 	"depeche/internal/delivery/dto"
 	"depeche/internal/delivery/utils"
 	"depeche/internal/entities"
+	"depeche/internal/entities/response"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
+	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/mailru/easyjson"
 	"net/http"
 	"strconv"
 )
@@ -36,11 +39,19 @@ func (s *Sticker) GetStickerById(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"sticker": sticker,
+	_response := response.GetStickerByIdResponse{
+		Body: response.GetStickerByIdBody{
+			Sticker: sticker,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 func (s *Sticker) GetStickerPackInfo(ctx *gin.Context) {
@@ -58,11 +69,19 @@ func (s *Sticker) GetStickerPackInfo(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"stickerpack": pack,
+	_response := response.GetStickerPackInfoResponse{
+		Body: response.GetStickerPackInfoBody{
+			Stickerpack: pack,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 func (s *Sticker) GetStickerPack(ctx *gin.Context) {
@@ -80,11 +99,19 @@ func (s *Sticker) GetStickerPack(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"stickerpack": pack,
+	_response := response.GetStickerPackInfoResponse{
+		Body: response.GetStickerPackInfoBody{
+			Stickerpack: pack,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 func (s *Sticker) GetUserStickerPacks(ctx *gin.Context) {
@@ -105,11 +132,19 @@ func (s *Sticker) GetUserStickerPacks(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"stickerpacks": packs,
+	_response := response.GetUserStickerPacksResponse{
+		Body: response.GetUserStickerPacksBody{
+			Stickerpacks: packs,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 
 }
 
@@ -136,11 +171,19 @@ func (s *Sticker) GetStickerPacksByAuthor(ctx *gin.Context) {
 		}
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"stickerpacks": packs,
+	_response := response.GetUserStickerPacksResponse{
+		Body: response.GetUserStickerPacksBody{
+			Stickerpacks: packs,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 func (s *Sticker) GetNewStickerPacks(ctx *gin.Context) {
@@ -156,11 +199,19 @@ func (s *Sticker) GetNewStickerPacks(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"stickerpacks": packs,
+	_response := response.GetUserStickerPacksResponse{
+		Body: response.GetUserStickerPacksBody{
+			Stickerpacks: packs,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 func (s *Sticker) AddStickerPack(ctx *gin.Context) {
@@ -184,9 +235,9 @@ func (s *Sticker) AddStickerPack(ctx *gin.Context) {
 }
 
 func (s *Sticker) UploadStickerPack(ctx *gin.Context) {
-	body, err := utils.GetBody[dto.UploadStickerPack](ctx)
-	if err != nil {
-		_ = ctx.Error(err)
+	inputDTO := new(response.UploadStickerPackRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
 		return
 	}
 
@@ -196,15 +247,23 @@ func (s *Sticker) UploadStickerPack(ctx *gin.Context) {
 		return
 	}
 
-	pack, err := s.service.UploadStickerPack(email, body)
+	pack, err := s.service.UploadStickerPack(email, inputDTO.Body)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"stickerpack": pack,
+	_response := response.UploadStickerPackResponse{
+		Body: response.UploadStickerPackBody{
+			Stickerpack: pack,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }

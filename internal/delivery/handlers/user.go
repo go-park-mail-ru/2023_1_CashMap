@@ -7,10 +7,12 @@ import (
 	"depeche/internal/delivery/utils"
 	"depeche/internal/entities"
 	_ "depeche/internal/entities/doc"
+	"depeche/internal/entities/response"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
 	"errors"
 	"fmt"
+	"github.com/mailru/easyjson"
 	"net/http"
 	"time"
 
@@ -45,19 +47,19 @@ func NewUserHandler(userService usecase.User, authService auth.Auth, csrfService
 //	@Failure		500	{object}	middleware.ErrorResponse
 //	@Router			/auth/sign-in [post]
 func (uh *UserHandler) SignIn(ctx *gin.Context) {
-	body, err := utils.GetBody[dto.SignIn](ctx)
+	inputDTO := new(response.SignInRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
+		return
+	}
+
+	_, err := uh.service.SignIn(inputDTO.Body)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
-	_, err = uh.service.SignIn(body)
-	if err != nil {
-		_ = ctx.Error(err)
-		return
-	}
-
-	token, err := uh.authService.Authenticate(body.Email)
+	token, err := uh.authService.Authenticate(inputDTO.Body.Email)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -74,7 +76,7 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 
 	http.SetCookie(ctx.Writer, sessionCookie)
 
-	csrfToken, err := uh.csrfService.CreateCSRFToken(body.Email)
+	csrfToken, err := uh.csrfService.CreateCSRFToken(inputDTO.Body.Email)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -98,19 +100,19 @@ func (uh *UserHandler) SignIn(ctx *gin.Context) {
 //	@Failure		500		{object}	middleware.ErrorResponse
 //	@Router			/auth/sign-up [post]
 func (uh *UserHandler) SignUp(ctx *gin.Context) {
-	body, err := utils.GetBody[dto.SignUp](ctx)
+	inputDTO := new(response.SignUpRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
+		return
+	}
+
+	_, err := uh.service.SignUp(inputDTO.Body)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
-	_, err = uh.service.SignUp(body)
-	if err != nil {
-		_ = ctx.Error(err)
-		return
-	}
-
-	token, err := uh.authService.Authenticate(body.Email)
+	token, err := uh.authService.Authenticate(inputDTO.Body.Email)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -127,7 +129,7 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 
 	http.SetCookie(ctx.Writer, sessionCookie)
 
-	csrfToken, err := uh.csrfService.CreateCSRFToken(body.Email)
+	csrfToken, err := uh.csrfService.CreateCSRFToken(inputDTO.Body.Email)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -252,9 +254,9 @@ func (uh *UserHandler) CheckAuth(ctx *gin.Context) {
 //	@Failure		500	{object}	middleware.ErrorResponse
 //	@Router			/api/user/sub [post]
 func (uh *UserHandler) Subscribe(ctx *gin.Context) {
-	body, err := utils.GetBody[dto.Subscribes](ctx)
-	if err != nil {
-		_ = ctx.Error(err)
+	inputDTO := new(response.SubscribeRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
 		return
 	}
 
@@ -264,7 +266,7 @@ func (uh *UserHandler) Subscribe(ctx *gin.Context) {
 		return
 	}
 
-	err = uh.service.Subscribe(email, body.Link)
+	err = uh.service.Subscribe(email, inputDTO.Body.Link)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -285,18 +287,19 @@ func (uh *UserHandler) Subscribe(ctx *gin.Context) {
 //	@Failure		500	{object}	middleware.ErrorResponse
 //	@Router			/api/user/unsub [post]
 func (uh *UserHandler) Unsubscribe(ctx *gin.Context) {
-	body, err := utils.GetBody[dto.Subscribes](ctx)
-	if err != nil {
-		_ = ctx.Error(err)
+	inputDTO := new(response.UnsubscribeRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
 		return
 	}
+
 	email, err := utils.GetEmail(ctx)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
-	err = uh.service.Unsubscribe(email, body.Link)
+	err = uh.service.Unsubscribe(email, inputDTO.Body.Link)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -317,17 +320,18 @@ func (uh *UserHandler) Unsubscribe(ctx *gin.Context) {
 //	@Failure		500	{object}	middleware.ErrorResponse
 //	@Router			/api/user/reject [post]
 func (uh *UserHandler) Reject(ctx *gin.Context) {
-	body, err := utils.GetBody[dto.Subscribes](ctx)
-	if err != nil {
-		_ = ctx.Error(err)
+	inputDTO := new(response.RejectRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
 		return
 	}
+
 	email, err := utils.GetEmail(ctx)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
-	err = uh.service.Reject(email, body.Link)
+	err = uh.service.Reject(email, inputDTO.Body.Link)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -355,11 +359,20 @@ func (uh *UserHandler) Profile(ctx *gin.Context) {
 		return
 	}
 	profile := dto.NewProfileFromUser(user)
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"profile": profile,
+
+	_response := response.ProfileResponse{
+		Body: response.ProfileBody{
+			Profile: profile,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 // Self godoc
@@ -386,11 +399,19 @@ func (uh *UserHandler) Self(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"profile": profile,
+	_response := response.SelfResponse{
+		Body: response.SelfBody{
+			Profile: profile,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 // EditProfile godoc
@@ -407,9 +428,9 @@ func (uh *UserHandler) Self(ctx *gin.Context) {
 //	@Failure		500	{object}	middleware.ErrorResponse
 //	@Router			/api/user/profile/edit [patch]
 func (uh *UserHandler) EditProfile(ctx *gin.Context) {
-	body, err := utils.GetBody[dto.EditProfile](ctx)
-	if err != nil {
-		_ = ctx.Error(err)
+	inputDTO := new(response.EditProfileRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
 		return
 	}
 
@@ -419,7 +440,7 @@ func (uh *UserHandler) EditProfile(ctx *gin.Context) {
 		return
 	}
 
-	err = uh.service.EditProfile(email, body)
+	err = uh.service.EditProfile(email, inputDTO.Body)
 	if err != nil {
 		_ = ctx.Error(err)
 	}
@@ -464,11 +485,19 @@ func (uh *UserHandler) Friends(ctx *gin.Context) {
 		friends = append(friends, dto.NewProfileFromUser(user))
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"friends": friends,
+	_response := response.FriendsResponse{
+		Body: response.FriendsBody{
+			Friends: friends,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 // Subscribes godoc
@@ -527,11 +556,19 @@ func (uh *UserHandler) Subscribes(ctx *gin.Context) {
 		subs = append(subs, dto.NewProfileFromUser(user))
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"subs": subs,
+	_response := response.SubscribesResponse{
+		Body: response.SubscribesBody{
+			Subs: subs,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 func (uh *UserHandler) RandomUsers(ctx *gin.Context) {
@@ -558,11 +595,19 @@ func (uh *UserHandler) RandomUsers(ctx *gin.Context) {
 		profiles = append(profiles, dto.NewProfileFromUser(user))
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"profiles": profiles,
+	_response := response.RandomUsersResponse{
+		Body: response.RandomUsersBody{
+			Profiles: profiles,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 func (uh *UserHandler) PendingRequests(ctx *gin.Context) {
@@ -587,11 +632,19 @@ func (uh *UserHandler) PendingRequests(ctx *gin.Context) {
 		profiles = append(profiles, dto.NewProfileFromUser(user))
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"profiles": profiles,
+	_response := response.RandomUsersResponse{
+		Body: response.RandomUsersBody{
+			Profiles: profiles,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 func (uh *UserHandler) GetGlobalSearchResult(ctx *gin.Context) {
@@ -615,12 +668,20 @@ func (uh *UserHandler) GetGlobalSearchResult(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"users":        userSearchResult,
-			"communitites": communitiesSearchResult,
+	_response := response.GetGlobalSearchResultResponse{
+		Body: response.GetGlobalSearchResultBody{
+			Users:       userSearchResult,
+			Communities: communitiesSearchResult,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 func (uh *UserHandler) UserStatus(ctx *gin.Context) {
@@ -635,11 +696,19 @@ func (uh *UserHandler) UserStatus(ctx *gin.Context) {
 		_ = ctx.Error(err)
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"status": dto.StatusToString[status],
+	_response := response.UserStatusResponse{
+		Body: response.UserStatusBody{
+			Status: dto.StatusToString[status],
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 //nolint:unused

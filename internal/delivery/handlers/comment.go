@@ -3,11 +3,13 @@ package handlers
 import (
 	"depeche/internal/delivery/dto"
 	"depeche/internal/delivery/utils"
+	"depeche/internal/entities/response"
 	"depeche/internal/usecase"
 	"depeche/pkg/apperror"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/mailru/easyjson"
 	"net/http"
 	"strconv"
 )
@@ -40,11 +42,19 @@ func (gh *CommentHandler) GetCommentById(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"comment": comment,
+	_response := response.GetCommentByIdResponse{
+		Body: response.GetCommentByIdBody{
+			Comment: comment,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 func (gh *CommentHandler) GetCommentByPostId(ctx *gin.Context) {
@@ -77,22 +87,26 @@ func (gh *CommentHandler) GetCommentByPostId(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"comments": comments,
-			"has_next": hasNext,
+	_response := response.GetCommentByPostIdResponse{
+		Body: response.GetCommentByPostIdBody{
+			Comments: comments,
+			HasNext:  hasNext,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 func (gh *CommentHandler) CreateComment(ctx *gin.Context) {
-	var request = struct {
-		*dto.CreateCommentDTO `json:"body"`
-	}{}
-
-	err := ctx.ShouldBindJSON(&request)
-	if err != nil {
-		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse CreateCommentDTO")))
+	inputDTO := new(response.CreateCommentRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
 		return
 	}
 
@@ -101,27 +115,31 @@ func (gh *CommentHandler) CreateComment(ctx *gin.Context) {
 		_ = ctx.Error(err)
 	}
 
-	comment, err := gh.service.CreateComment(email, request.CreateCommentDTO)
+	comment, err := gh.service.CreateComment(email, inputDTO.Body)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"body": gin.H{
-			"comment": comment,
+	_response := response.CreateCommentResponse{
+		Body: response.CreateCommentBody{
+			Comment: comment,
 		},
-	})
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 }
 
 func (gh *CommentHandler) EditComment(ctx *gin.Context) {
-	var request = struct {
-		*dto.EditCommentDTO `json:"body"`
-	}{}
-
-	err := ctx.ShouldBindJSON(&request)
-	if err != nil {
-		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse EditCommentDTO")))
+	inputDTO := new(response.EditCommentRequest)
+	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
 		return
 	}
 
@@ -130,7 +148,7 @@ func (gh *CommentHandler) EditComment(ctx *gin.Context) {
 		_ = ctx.Error(err)
 	}
 
-	err = gh.service.EditComment(email, request.EditCommentDTO)
+	err = gh.service.EditComment(email, inputDTO.Body)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
