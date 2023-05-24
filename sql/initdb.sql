@@ -374,16 +374,16 @@ values (5, 'cats cats cats', true, '5/cover', 'cats, cats and also cats :з', ''
 
 
 insert into sticker(url, stickerpack_id)
-values ('5/sticker_cats_001.webm', 5),
-       ('5/sticker_cats_002.webm', 5),
-       ('5/sticker_cats_003.webm', 5),
-       ('5/sticker_cats_004.webm', 5),
-       ('5/sticker_cats_005.webm', 5),
-       ('5/sticker_cats_006.webm', 5),
-       ('5/sticker_cats_007.webm', 5),
-       ('5/sticker_cats_008.webm', 5),
-       ('5/sticker_cats_009.webm', 5),
-       ('5/sticker_cats_010.webm', 5);
+values ('5/sticker_cats_001.gif', 5),
+       ('5/sticker_cats_002.gif', 5),
+       ('5/sticker_cats_003.gif', 5),
+       ('5/sticker_cats_004.gif', 5),
+       ('5/sticker_cats_005.gif', 5),
+       ('5/sticker_cats_006.gif', 5),
+       ('5/sticker_cats_007.gif', 5),
+       ('5/sticker_cats_008.gif', 5),
+       ('5/sticker_cats_009.gif', 5),
+       ('5/sticker_cats_010.gif', 5);
 
 
 insert into stickerpack (id, title, depeche_authored, cover, description, creation_date)
