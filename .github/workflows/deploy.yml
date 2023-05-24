@@ -65,6 +65,7 @@ jobs:
       - name: Reload app
         uses: appleboy/ssh-action@master
         with:
+          command_timeout: 40m
           host: ${{ secrets.HOST_IP }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
