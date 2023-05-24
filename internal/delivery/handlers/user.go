@@ -161,6 +161,7 @@ func (uh *UserHandler) LogOut(ctx *gin.Context) {
 	userSession, err := uh.authService.CheckSession(token)
 	if err != nil {
 		_ = ctx.Error(apperror.NewServerError(apperror.NoAuth, nil))
+		return
 	}
 
 	csrfToken := ctx.Request.Header.Get("X-Csrf-Token")
