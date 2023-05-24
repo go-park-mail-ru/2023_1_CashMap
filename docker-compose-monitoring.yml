@@ -34,5 +34,3 @@ services:
     ports:
       - "3000:3000"
     user: ":"
-    volumes:
-      - ./data/grafana:/var/lib/grafana
