@@ -5,6 +5,8 @@ import (
 	"depeche/internal/entities"
 )
 
+//go:generate easyjson --all post.go
+
 type GetPostsByUserLinkResponse struct {
 	Body GetPostsByUserLinkBody `json:"body"`
 }

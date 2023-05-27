@@ -182,6 +182,7 @@ CREATE TABLE ChatMember
 (
     chat_id int REFERENCES Chat (id) ON DELETE CASCADE,
     user_id int REFERENCES UserProfile (id),
+    last_read text default '',
     role    text DEFAULT 'member' CHECK ( role in ('member', 'admin') ),
     UNIQUE (chat_id, user_id)
 );

@@ -1,5 +1,7 @@
 package dto
 
+//go:generate easyjson --all comment.go
+
 type CreateCommentDTO struct {
 	PostID  *uint   `json:"post_id"`
 	ReplyTo *string `json:"reply_to"`

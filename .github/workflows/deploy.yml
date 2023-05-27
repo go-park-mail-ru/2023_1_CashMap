@@ -29,6 +29,12 @@ jobs:
           echo REDIS_PASS=${{ secrets.REDIS_PASS }} >> .env
           echo DATABASE_HOST= ${{ secrets.DATABASE_HOST }} >> .env
 
+      - name: Install easyjson
+        run:  go get github.com/mailru/easyjson && go install github.com/mailru/easyjson/...@latest
+
+      - name: Generate easyjson
+        run: go generate ./...
+
       - name: Build
         run : go build ./...
 

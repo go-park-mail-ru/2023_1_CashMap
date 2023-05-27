@@ -16,4 +16,7 @@ type MessageRepository interface {
 	GetUserInfoByMessageId(messageID uint) (*entities.UserInfo, error)
 	AddMessageAttachments(messageID uint, attachments []string) error
 	GetMessageAttachments(messageID uint) ([]string, error)
+	CheckRead(email string, chatID uint) (bool, error)
+	GetUnreadChatsCount(email string) (int, error)
+	SetLastRead(email string, chatID int, time string) error
 }

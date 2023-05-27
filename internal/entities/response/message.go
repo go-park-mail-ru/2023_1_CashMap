@@ -5,6 +5,8 @@ import (
 	"depeche/internal/entities"
 )
 
+//go:generate easyjson --all message.go
+
 type SendRequest struct {
 	Body *dto.NewMessageDTO `json:"body"`
 }
@@ -27,6 +29,14 @@ type GetChatsResponse struct {
 
 type GetChatsBody struct {
 	Chats []*entities.Chat `json:"chats"`
+}
+
+type GetUnreadChatsCountResponse struct {
+	Body GetUnreadChatsCountBody `json:"body"`
+}
+
+type GetUnreadChatsCountBody struct {
+	Count int `json:"count"`
 }
 
 type GetMessagesByChatIDResponse struct {

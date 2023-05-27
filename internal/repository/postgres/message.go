@@ -362,6 +362,35 @@ func (storage *MessageStorage) GetMessageAttachments(messageID uint) ([]string, 
 	return attachments, nil
 }
 
+func (storage *MessageStorage) CheckRead(email string, chatID uint) (bool, error) {
+	var read bool
+	err := storage.db.QueryRowx(CheckChatRead, email, chatID).Scan(read)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	return read, nil
+}
+
+func (storage *MessageStorage) GetUnreadChatsCount(email string) (int, error) {
+	var count int
+	err := storage.db.QueryRowx(GetUnreadChatCount, email).Scan(count)
+	if err != nil {
+		return 0, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	return count, nil
+}
+
+func (storage *MessageStorage) SetLastRead(email string, chatID int, time string) error {
+	_, err := storage.db.Exec(SetLastRead, email, chatID, time)
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	return nil
+}
+
 func (storage *MessageStorage) addChatMembers(senderEmail string, userLinks []string, chatID uint, tx *sqlx.Tx) error {
 	var senderLink string
 	err := tx.Get(&senderLink, "SELECT link FROM UserProfile WHERE email = $1", senderEmail)

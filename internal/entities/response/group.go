@@ -5,6 +5,8 @@ import (
 	"depeche/internal/entities"
 )
 
+//go:generate easyjson --all group.go
+
 type GetGroupResponse struct {
 	Body GetGroupBody `json:"body"`
 }

@@ -54,7 +54,7 @@ func easyjson4086215fDecodeDepecheInternalEntities(in *jlexer.Lexer, out *Messag
 				if out.SenderInfo == nil {
 					out.SenderInfo = new(UserInfo)
 				}
-				easyjson4086215fDecodeDepecheInternalEntities1(in, out.SenderInfo)
+				(*out.SenderInfo).UnmarshalEasyJSON(in)
 			}
 		case "chat_id":
 			if in.IsNull() {
@@ -84,7 +84,7 @@ func easyjson4086215fDecodeDepecheInternalEntities(in *jlexer.Lexer, out *Messag
 				if out.Sticker == nil {
 					out.Sticker = new(Sticker)
 				}
-				easyjson4086215fDecodeDepecheInternalEntities2(in, out.Sticker)
+				(*out.Sticker).UnmarshalEasyJSON(in)
 			}
 		case "text_content":
 			if in.IsNull() {
@@ -188,7 +188,7 @@ func easyjson4086215fEncodeDepecheInternalEntities(out *jwriter.Writer, in Messa
 		if in.SenderInfo == nil {
 			out.RawString("null")
 		} else {
-			easyjson4086215fEncodeDepecheInternalEntities1(out, *in.SenderInfo)
+			(*in.SenderInfo).MarshalEasyJSON(out)
 		}
 	}
 	{
@@ -215,7 +215,7 @@ func easyjson4086215fEncodeDepecheInternalEntities(out *jwriter.Writer, in Messa
 		if in.Sticker == nil {
 			out.RawString("null")
 		} else {
-			easyjson4086215fEncodeDepecheInternalEntities2(out, *in.Sticker)
+			(*in.Sticker).MarshalEasyJSON(out)
 		}
 	}
 	{
@@ -304,228 +304,4 @@ func (v *Message) UnmarshalJSON(data []byte) error {
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Message) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson4086215fDecodeDepecheInternalEntities(l, v)
-}
-func easyjson4086215fDecodeDepecheInternalEntities2(in *jlexer.Lexer, out *Sticker) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeFieldName(false)
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "id":
-			out.ID = uint(in.Uint())
-		case "url":
-			out.Url = string(in.String())
-		case "stickerpack_id":
-			out.StickerpackID = uint(in.Uint())
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson4086215fEncodeDepecheInternalEntities2(out *jwriter.Writer, in Sticker) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"id\":"
-		out.RawString(prefix[1:])
-		out.Uint(uint(in.ID))
-	}
-	{
-		const prefix string = ",\"url\":"
-		out.RawString(prefix)
-		out.String(string(in.Url))
-	}
-	{
-		const prefix string = ",\"stickerpack_id\":"
-		out.RawString(prefix)
-		out.Uint(uint(in.StickerpackID))
-	}
-	out.RawByte('}')
-}
-func easyjson4086215fDecodeDepecheInternalEntities1(in *jlexer.Lexer, out *UserInfo) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeFieldName(false)
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "first_name":
-			if in.IsNull() {
-				in.Skip()
-				out.FirstName = nil
-			} else {
-				if out.FirstName == nil {
-					out.FirstName = new(string)
-				}
-				*out.FirstName = string(in.String())
-			}
-		case "last_name":
-			if in.IsNull() {
-				in.Skip()
-				out.LastName = nil
-			} else {
-				if out.LastName == nil {
-					out.LastName = new(string)
-				}
-				*out.LastName = string(in.String())
-			}
-		case "avatar_url":
-			if in.IsNull() {
-				in.Skip()
-				out.AvatarUrl = nil
-			} else {
-				if out.AvatarUrl == nil {
-					out.AvatarUrl = new(string)
-				}
-				*out.AvatarUrl = string(in.String())
-			}
-		case "user_link":
-			if in.IsNull() {
-				in.Skip()
-				out.Link = nil
-			} else {
-				if out.Link == nil {
-					out.Link = new(string)
-				}
-				*out.Link = string(in.String())
-			}
-		case "isFriend":
-			if in.IsNull() {
-				in.Skip()
-				out.IsFriend = nil
-			} else {
-				if out.IsFriend == nil {
-					out.IsFriend = new(bool)
-				}
-				*out.IsFriend = bool(in.Bool())
-			}
-		case "isSubscriber":
-			if in.IsNull() {
-				in.Skip()
-				out.IsSubscriber = nil
-			} else {
-				if out.IsSubscriber == nil {
-					out.IsSubscriber = new(bool)
-				}
-				*out.IsSubscriber = bool(in.Bool())
-			}
-		case "isSubscribed":
-			if in.IsNull() {
-				in.Skip()
-				out.IsSubscribed = nil
-			} else {
-				if out.IsSubscribed == nil {
-					out.IsSubscribed = new(bool)
-				}
-				*out.IsSubscribed = bool(in.Bool())
-			}
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson4086215fEncodeDepecheInternalEntities1(out *jwriter.Writer, in UserInfo) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"first_name\":"
-		out.RawString(prefix[1:])
-		if in.FirstName == nil {
-			out.RawString("null")
-		} else {
-			out.String(string(*in.FirstName))
-		}
-	}
-	{
-		const prefix string = ",\"last_name\":"
-		out.RawString(prefix)
-		if in.LastName == nil {
-			out.RawString("null")
-		} else {
-			out.String(string(*in.LastName))
-		}
-	}
-	{
-		const prefix string = ",\"avatar_url\":"
-		out.RawString(prefix)
-		if in.AvatarUrl == nil {
-			out.RawString("null")
-		} else {
-			out.String(string(*in.AvatarUrl))
-		}
-	}
-	{
-		const prefix string = ",\"user_link\":"
-		out.RawString(prefix)
-		if in.Link == nil {
-			out.RawString("null")
-		} else {
-			out.String(string(*in.Link))
-		}
-	}
-	{
-		const prefix string = ",\"isFriend\":"
-		out.RawString(prefix)
-		if in.IsFriend == nil {
-			out.RawString("null")
-		} else {
-			out.Bool(bool(*in.IsFriend))
-		}
-	}
-	{
-		const prefix string = ",\"isSubscriber\":"
-		out.RawString(prefix)
-		if in.IsSubscriber == nil {
-			out.RawString("null")
-		} else {
-			out.Bool(bool(*in.IsSubscriber))
-		}
-	}
-	{
-		const prefix string = ",\"isSubscribed\":"
-		out.RawString(prefix)
-		if in.IsSubscribed == nil {
-			out.RawString("null")
-		} else {
-			out.Bool(bool(*in.IsSubscribed))
-		}
-	}
-	out.RawByte('}')
 }

@@ -344,6 +344,33 @@ var (
 	left join photo p on u.avatar_id = p.id
 	where cm.chat_id = $1
 	`
+
+	CheckChatRead = `
+	with last_msg as
+    (select creation_date from message m where chat_id = $1 order by creation_date desc limit 1),
+last_read as
+    (select cm.last_read from chatmember cm join userprofile u on u.id = cm.user_id where u.email = $2 and cm.chat_id = $1)
+select
+    case when last_msg.creation_date > last_read.last_read then false else true end is_read
+    from last_msg cross join last_read;
+	`
+
+	GetUnreadChatCount = `
+		select count(*) from chatmember cm join userprofile u on cm.user_id = u.id
+    join (select creation_date, chat_id from message m  order by creation_date desc limit 1) m
+        on cm.chat_id = m.chat_id
+	where u.email = $1
+	and m.creation_date > cm.last_read;
+	`
+
+	SetLastRead = `
+	update chatmember cm
+	set last_read = $3
+	from userprofile u join chatmember cm2 on cm2.user_id = u.id
+	where cm2.chat_id = $2 and u.email = $1
+  	and cm.chat_id = cm2.chat_id
+	and cm.user_id = cm2.user_id
+	`
 )
 
 var (

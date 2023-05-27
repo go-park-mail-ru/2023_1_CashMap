@@ -1,5 +1,7 @@
 package entities
 
+//go:generate easyjson --all group.go
+
 type Group struct {
 	ID           uint              `json:"-"                    db:"id"`
 	Link         string            `json:"link"                 db:"link"`

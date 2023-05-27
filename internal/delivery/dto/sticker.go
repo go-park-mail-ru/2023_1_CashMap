@@ -1,5 +1,7 @@
 package dto
 
+//go:generate easyjson --all sticker.go
+
 type UploadStickerPack struct {
 	Title       string   `json:"title"`
 	Description string   `json:"description"`

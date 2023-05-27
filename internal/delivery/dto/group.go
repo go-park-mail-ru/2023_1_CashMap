@@ -1,5 +1,7 @@
 package dto
 
+//go:generate easyjson --all group.go
+
 type Group struct {
 	Title     string `json:"title"`
 	Info      string `json:"group_info"`

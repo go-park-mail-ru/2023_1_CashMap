@@ -1,5 +1,7 @@
 package entities
 
+//go:generate easyjson --all user.go
+
 // User entity info
 //
 //	@Description	User account information
