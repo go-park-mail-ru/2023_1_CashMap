@@ -5,6 +5,8 @@ import (
 	"depeche/internal/entities"
 )
 
+//go:generate mockgen --destination=mocks/group.go depeche/internal/repository Group
+
 type Group interface {
 	GetGroupByLink(link string) (*entities.Group, error)
 	GetUserGroupsByLink(link string, limit int, offset int) ([]*entities.Group, error)

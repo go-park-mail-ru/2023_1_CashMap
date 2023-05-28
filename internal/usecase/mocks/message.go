@@ -96,6 +96,21 @@ func (mr *MockMessageUsecaseMockRecorder) GetMessagesByChatID(arg0, arg1 interfa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessagesByChatID", reflect.TypeOf((*MockMessageUsecase)(nil).GetMessagesByChatID), arg0, arg1)
 }
 
+// GetUnreadChatsCount mocks base method.
+func (m *MockMessageUsecase) GetUnreadChatsCount(arg0 string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUnreadChatsCount", arg0)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUnreadChatsCount indicates an expected call of GetUnreadChatsCount.
+func (mr *MockMessageUsecaseMockRecorder) GetUnreadChatsCount(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUnreadChatsCount", reflect.TypeOf((*MockMessageUsecase)(nil).GetUnreadChatsCount), arg0)
+}
+
 // HasDialog mocks base method.
 func (m *MockMessageUsecase) HasDialog(arg0 string, arg1 *dto.HasDialogDTO) (*int, error) {
 	m.ctrl.T.Helper()
@@ -124,4 +139,18 @@ func (m *MockMessageUsecase) Send(arg0 string, arg1 *dto.NewMessageDTO) (*entiti
 func (mr *MockMessageUsecaseMockRecorder) Send(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Send", reflect.TypeOf((*MockMessageUsecase)(nil).Send), arg0, arg1)
+}
+
+// SetLastRead mocks base method.
+func (m *MockMessageUsecase) SetLastRead(arg0 string, arg1 int, arg2 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetLastRead", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetLastRead indicates an expected call of SetLastRead.
+func (mr *MockMessageUsecaseMockRecorder) SetLastRead(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetLastRead", reflect.TypeOf((*MockMessageUsecase)(nil).SetLastRead), arg0, arg1, arg2)
 }

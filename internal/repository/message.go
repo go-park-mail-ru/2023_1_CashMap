@@ -5,6 +5,8 @@ import (
 	"depeche/internal/entities"
 )
 
+//go:generate mockgen --destination=mocks/message.go depeche/internal/repository MessageRepository
+
 type MessageRepository interface {
 	SelectMessagesByChatID(senderEmail string, dto *dto.GetMessagesDTO) ([]*entities.Message, error)
 	SelectChats(senderEmail string, dto *dto.GetChatsDTO) ([]*entities.Chat, error)

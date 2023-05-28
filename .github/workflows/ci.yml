@@ -21,7 +21,10 @@ jobs:
       - name: Install easyjson
         run:  go get github.com/mailru/easyjson && go install github.com/mailru/easyjson/...@latest
 
-      - name: Generate easyjson
+      - name: Install mockgen
+        run: go install github.com/golang/mock/mockgen@v1.6.0
+
+      - name: Generate easyjson & mocks
         run: go generate ./...
 
       - name: Run linters

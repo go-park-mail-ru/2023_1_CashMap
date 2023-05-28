@@ -49,6 +49,21 @@ func (mr *MockMessageRepositoryMockRecorder) AddMessageAttachments(arg0, arg1 in
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddMessageAttachments", reflect.TypeOf((*MockMessageRepository)(nil).AddMessageAttachments), arg0, arg1)
 }
 
+// CheckRead mocks base method.
+func (m *MockMessageRepository) CheckRead(arg0 string, arg1 uint) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckRead", arg0, arg1)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CheckRead indicates an expected call of CheckRead.
+func (mr *MockMessageRepositoryMockRecorder) CheckRead(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckRead", reflect.TypeOf((*MockMessageRepository)(nil).CheckRead), arg0, arg1)
+}
+
 // CreateChat mocks base method.
 func (m *MockMessageRepository) CreateChat(arg0 string, arg1 *dto.CreateChatDTO) (uint, error) {
 	m.ctrl.T.Helper()
@@ -92,6 +107,21 @@ func (m *MockMessageRepository) GetMessageAttachments(arg0 uint) ([]string, erro
 func (mr *MockMessageRepositoryMockRecorder) GetMessageAttachments(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessageAttachments", reflect.TypeOf((*MockMessageRepository)(nil).GetMessageAttachments), arg0)
+}
+
+// GetUnreadChatsCount mocks base method.
+func (m *MockMessageRepository) GetUnreadChatsCount(arg0 string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUnreadChatsCount", arg0)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUnreadChatsCount indicates an expected call of GetUnreadChatsCount.
+func (mr *MockMessageRepositoryMockRecorder) GetUnreadChatsCount(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUnreadChatsCount", reflect.TypeOf((*MockMessageRepository)(nil).GetUnreadChatsCount), arg0)
 }
 
 // GetUserInfoByMessageId mocks base method.
@@ -182,4 +212,18 @@ func (m *MockMessageRepository) SelectMessagesByChatID(arg0 string, arg1 *dto.Ge
 func (mr *MockMessageRepositoryMockRecorder) SelectMessagesByChatID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectMessagesByChatID", reflect.TypeOf((*MockMessageRepository)(nil).SelectMessagesByChatID), arg0, arg1)
+}
+
+// SetLastRead mocks base method.
+func (m *MockMessageRepository) SetLastRead(arg0 string, arg1 int, arg2 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetLastRead", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetLastRead indicates an expected call of SetLastRead.
+func (mr *MockMessageRepositoryMockRecorder) SetLastRead(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetLastRead", reflect.TypeOf((*MockMessageRepository)(nil).SetLastRead), arg0, arg1, arg2)
 }

@@ -5,6 +5,8 @@ import (
 	"depeche/internal/entities"
 )
 
+//go:generate mockgen --destination=mocks/user.go depeche/internal/repository UserRepository
+
 type UserRepository interface {
 	GetUser(query string, args ...interface{}) (*entities.User, error)
 
