@@ -50,6 +50,8 @@ func (service *MessageService) Send(email string, message *dto.NewMessageDTO) (*
 		msg.Attachments = message.Attachments
 	}
 
+	_ = service.MessageRepository.SetLastRead(email, int(*msg.ChatId), *msg.CreatedAt)
+
 	return msg, nil
 }
 
