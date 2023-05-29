@@ -6,7 +6,12 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o main -ldflags="-s -w" -a -installsuffix
 
 FROM alpine
 WORKDIR /depeche-auth
-COPY --from=builder ./depeche-auth .
+COPY --from=builder ./depeche-auth/main .
+COPY --from=builder ./depeche-auth/.env .
+
+RUN mkdir ./configs
+
+COPY --from=builder ./depeche-auth/configs ./configs
 
 EXPOSE 8081
 

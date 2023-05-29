@@ -6,7 +6,16 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o main -ldflags="-s -w" -a -installsuffix
 
 FROM alpine
 WORKDIR /depeche-static
-COPY --from=builder ./depeche-static .
+COPY --from=builder ./depeche-static/main .
+COPY --from=builder ./depeche-static/.env .
+
+RUN mkdir ./configs
+
+COPY --from=builder ./depeche-static/configs ./configs
+
+RUN mkdir ./static
+
+COPY --from=builder ./depeche-static/static ./static
 
 EXPOSE 8082
 

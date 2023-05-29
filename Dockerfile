@@ -6,7 +6,12 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o main -ldflags="-s -w" -a -installsuffix
 
 FROM alpine
 WORKDIR /depeche-backend
-COPY --from=builder ./depeche-backend .
+COPY --from=builder ./depeche-backend/main .
+COPY --from=builder ./depeche-backend/.env .
+
+RUN mkdir ./configs
+
+COPY --from=builder ./depeche-backend/configs ./configs
 
 EXPOSE 8080
 
