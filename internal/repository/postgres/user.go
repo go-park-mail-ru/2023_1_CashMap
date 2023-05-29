@@ -594,6 +594,16 @@ func (ur *UserRepository) SearchCommunitiesByTitle(email string, searchDTO *dto.
 	return communities, nil
 }
 
+const DEPECHE_GROUP_LINK = "id4"
+
+func (ur *UserRepository) SubscribeOnDefaultGroup(email string) error {
+	_, err := ur.DB.Exec(GroupSubscribe, email, DEPECHE_GROUP_LINK)
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	return nil
+}
+
 type communityForSearch struct {
 	ID       uint   `db:"id"`
 	Title    string `db:"title"`

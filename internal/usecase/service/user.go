@@ -64,6 +64,8 @@ func (us *UserService) SignUp(user *dto.SignUp) (*entities.User, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	_ = us.repo.SubscribeOnDefaultGroup(user.Email)
 	return stored, nil
 }
 

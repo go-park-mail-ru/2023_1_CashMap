@@ -39,4 +39,6 @@ type UserRepository interface {
 
 	SearchUserByName(email string, searchDTO *dto.GlobalSearchDTO) ([]*entities.UserInfo, error)
 	SearchCommunitiesByTitle(email string, searchDTO *dto.GlobalSearchDTO) ([]*entities.CommunityInfo, error)
+
+	SubscribeOnDefaultGroup(email string) error
 }
