@@ -6,7 +6,7 @@ var (
 	select  u.id, u.link, u.email,
 	    u.first_name, u.last_name, 
 		u.sex, u.bio, u.status,
-		u.birthday, u.last_active, 
+		u.birthday, u.last_active, u.avg_avatar_color,
 		case when p.url is null 
 			then ''
 			else p.url end avatar
@@ -19,7 +19,7 @@ var (
 	    u.first_name, u.last_name, 
 		u.sex, u.bio, u.status,
 		u.birthday, u.last_active, 
-		u.password,
+		u.password, u.avg_avatar_color,
        case when p.url is null 
            then ''
            else p.url end avatar
@@ -32,7 +32,7 @@ var (
 	select u.id, u.link, u.email,
 	    u.first_name, u.last_name, 
 		u.sex, u.bio, u.status,
-		u.birthday, u.last_active, 
+		u.birthday, u.last_active, u.avg_avatar_color, 
        case when p.url is null 
            then ''
            else p.url end avatar
@@ -45,7 +45,7 @@ var (
 	select u.id, u.link, u.email,
 	    u.first_name, u.last_name, 
 		u.sex, u.bio, u.status,
-		u.birthday, u.last_active, 
+		u.birthday, u.last_active, u.avg_avatar_color, 
 	  case when p.url is null
 	      then '' 
 	      else p.url end avatar from
@@ -61,12 +61,16 @@ var (
 	   f1.subscriber = $1
 	limit $3 offset $2
 	`
-
+	UpdateAvgAvatarHex = `
+	update userprofile 
+	set avg_avatar_color = $1
+	where id = $2
+	`
 	SubscribesById = `
 	select u.id, u.link, u.email,
 	    u.first_name, u.last_name, 
 		u.sex, u.bio, u.status,
-		u.birthday, u.last_active, 
+		u.birthday, u.last_active, u.avg_avatar_color, 
 		case when p.url is null
             then ''
         	else p.url
@@ -93,7 +97,7 @@ var (
 	select u.id, u.link, u.email,
 	    u.first_name, u.last_name, 
 		u.sex, u.bio, u.status,
-		u.birthday, u.last_active, 
+		u.birthday, u.last_active, u.avg_avatar_color, 
 		case when p.url is null
             then ''
         	else p.url
@@ -121,7 +125,7 @@ var (
 	select u.id, u.link, u.email,
 	    u.first_name, u.last_name, 
 		u.sex, u.bio, u.status,
-		u.birthday, u.last_active, 
+		u.birthday, u.last_active, u.avg_avatar_color, 
 		case when p.url is null
                 then ''
             else p.url
@@ -234,7 +238,7 @@ var (
        u.id, u.link, u.email,
        u.first_name, u.last_name,
        u.sex, u.bio, u.status,
-       u.birthday, u.last_active,
+       u.birthday, u.last_active, u.avg_avatar_color,
        case when
            p.url is null
        then

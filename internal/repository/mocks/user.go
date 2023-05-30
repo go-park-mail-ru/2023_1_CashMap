@@ -366,6 +366,20 @@ func (mr *MockUserRepositoryMockRecorder) UpdateAvatar(arg0, arg1 interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAvatar", reflect.TypeOf((*MockUserRepository)(nil).UpdateAvatar), arg0, arg1)
 }
 
+// UpdateAvgAvatarColor mocks base method.
+func (m *MockUserRepository) UpdateAvgAvatarColor(arg0 string, arg1 uint) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAvgAvatarColor", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateAvgAvatarColor indicates an expected call of UpdateAvgAvatarColor.
+func (mr *MockUserRepositoryMockRecorder) UpdateAvgAvatarColor(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAvgAvatarColor", reflect.TypeOf((*MockUserRepository)(nil).UpdateAvgAvatarColor), arg0, arg1)
+}
+
 // UpdateUser mocks base method.
 func (m *MockUserRepository) UpdateUser(arg0 string, arg1 *dto.EditProfile) (*entities.User, error) {
 	m.ctrl.T.Helper()

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"depeche/internal/color"
 	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
 	"depeche/internal/repository"
@@ -14,7 +15,8 @@ import (
 )
 
 type UserService struct {
-	repo repository.UserRepository
+	repo  repository.UserRepository
+	color color.AvgColorService
 }
 
 func NewUserService(repo repository.UserRepository) usecase.User {
@@ -99,9 +101,10 @@ func (us *UserService) GetAllUsers(email string, limit, offset int) ([]*entities
 }
 
 func (us *UserService) EditProfile(email string, profile *dto.EditProfile) error {
-
+	var id uint
 	if profile.NewPassword != nil {
 		user, err := us.repo.GetUserByEmail(email)
+		id = user.ID
 		if err != nil {
 			return err
 		}
@@ -119,7 +122,10 @@ func (us *UserService) EditProfile(email string, profile *dto.EditProfile) error
 		if err != nil {
 			return err
 		}
+		avgColor, _ := us.color.AverageColor(*profile.Avatar)
+		_ = us.repo.UpdateAvgAvatarColor(avgColor, id)
 		profile.Avatar = nil
+
 	}
 
 	// TODO validate errors

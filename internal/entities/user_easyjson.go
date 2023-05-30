@@ -252,6 +252,8 @@ func easyjson9e1087fdDecodeDepecheInternalEntities1(in *jlexer.Lexer, out *User)
 			out.LastActive = string(in.String())
 		case "private":
 			out.Private = bool(in.Bool())
+		case "avg_avatar_color":
+			out.AvgAvatarColor = string(in.String())
 		default:
 			in.SkipRecursive()
 		}
@@ -330,6 +332,11 @@ func easyjson9e1087fdEncodeDepecheInternalEntities1(out *jwriter.Writer, in User
 		const prefix string = ",\"private\":"
 		out.RawString(prefix)
 		out.Bool(bool(in.Private))
+	}
+	{
+		const prefix string = ",\"avg_avatar_color\":"
+		out.RawString(prefix)
+		out.String(string(in.AvgAvatarColor))
 	}
 	out.RawByte('}')
 }

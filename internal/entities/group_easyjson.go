@@ -214,10 +214,12 @@ func easyjson1c045807EncodeDepecheInternalEntities1(out *jwriter.Writer, in Grou
 		out.RawString(prefix)
 		out.Bool(bool(in.IsDeleted))
 	}
-	if len(in.Management) != 0 {
+	{
 		const prefix string = ",\"management\":"
 		out.RawString(prefix)
-		{
+		if in.Management == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
 			out.RawByte('[')
 			for v2, v3 := range in.Management {
 				if v2 > 0 {
