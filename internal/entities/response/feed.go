@@ -2,6 +2,8 @@ package response
 
 import "depeche/internal/entities"
 
+//go:generate easyjson --all feed.go
+
 type GetFeedResponse struct {
 	Body GetFeedBody `json:"body"`
 }

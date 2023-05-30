@@ -5,6 +5,8 @@ import (
 	"strconv"
 )
 
+//go:generate easyjson --all models.go
+
 // [INCOMING]
 
 type SignIn struct {

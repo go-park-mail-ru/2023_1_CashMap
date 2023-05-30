@@ -69,6 +69,8 @@ func easyjson9b8f5552DecodeDepecheInternalEntities(in *jlexer.Lexer, out *Chat) 
 				}
 				in.Delim(']')
 			}
+		case "read":
+			out.Read = bool(in.Bool())
 		default:
 			in.SkipRecursive()
 		}
@@ -107,6 +109,11 @@ func easyjson9b8f5552EncodeDepecheInternalEntities(out *jwriter.Writer, in Chat)
 			}
 			out.RawByte(']')
 		}
+	}
+	{
+		const prefix string = ",\"read\":"
+		out.RawString(prefix)
+		out.Bool(bool(in.Read))
 	}
 	out.RawByte('}')
 }

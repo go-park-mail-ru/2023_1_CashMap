@@ -1,5 +1,7 @@
 package entities
 
+//go:generate easyjson --all stickers.go
+
 type Sticker struct {
 	ID            uint   `json:"id"             db:"id"`
 	Url           string `json:"url"            db:"url"`

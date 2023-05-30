@@ -1,5 +1,7 @@
 package entities
 
+//go:generate easyjson --all comment.go
+
 type Comment struct {
 	ID            *uint              `json:"id" db:"id"`
 	PostID        *uint              `json:"post_id" db:"post_id"`

@@ -5,6 +5,8 @@ import (
 	"depeche/internal/entities"
 )
 
+//go:generate mockgen --destination=mocks/feed.go depeche/internal/usecase Feed
+
 type Feed interface {
 	CollectPosts(email string, dto *dto.FeedDTO) ([]*entities.Post, error)
 }

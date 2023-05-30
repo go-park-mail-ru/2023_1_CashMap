@@ -5,6 +5,8 @@ import (
 	"depeche/internal/entities"
 )
 
+//go:generate easyjson --all comment.go
+
 type GetCommentByIdResponse struct {
 	Body GetCommentByIdBody `json:"body"`
 }

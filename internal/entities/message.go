@@ -1,5 +1,7 @@
 package entities
 
+//go:generate easyjson --all message.go
+
 type Message struct {
 	Id          *uint     `json:"id" db:"id"`
 	UserId      *uint     `json:"-" db:"user_id"`

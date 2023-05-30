@@ -157,6 +157,8 @@ func initRouter(handler handlers.Handler, authMW *middleware.AuthMiddleware, poo
 			messageEndpointsGroup.POST("/chat/create", handler.NewChat)
 			messageEndpointsGroup.GET("/chat/check", handler.HasDialog)
 			messageEndpointsGroup.POST("/send", handler.Send, wsMiddleware.SendMsg)
+			messageEndpointsGroup.POST("/set-read", handler.SetLastRead)
+			messageEndpointsGroup.GET("/unread", handler.GetUnreadChatsCount)
 		}
 
 		// [POST]

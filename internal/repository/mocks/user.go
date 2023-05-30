@@ -323,6 +323,20 @@ func (mr *MockUserRepositoryMockRecorder) Subscribe(arg0, arg1, arg2 interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Subscribe", reflect.TypeOf((*MockUserRepository)(nil).Subscribe), arg0, arg1, arg2)
 }
 
+// SubscribeOnDefaultGroup mocks base method.
+func (m *MockUserRepository) SubscribeOnDefaultGroup(arg0 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SubscribeOnDefaultGroup", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SubscribeOnDefaultGroup indicates an expected call of SubscribeOnDefaultGroup.
+func (mr *MockUserRepositoryMockRecorder) SubscribeOnDefaultGroup(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeOnDefaultGroup", reflect.TypeOf((*MockUserRepository)(nil).SubscribeOnDefaultGroup), arg0)
+}
+
 // Unsubscribe mocks base method.
 func (m *MockUserRepository) Unsubscribe(arg0, arg1 string) (bool, error) {
 	m.ctrl.T.Helper()

@@ -1,5 +1,7 @@
 package entities
 
+//go:generate easyjson --all post.go
+
 // Post entity info
 //
 //	@Description	All post information

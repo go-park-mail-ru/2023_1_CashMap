@@ -1248,10 +1248,10 @@ func easyjson1c045807DecodeDepecheInternalEntitiesResponse14(in *jlexer.Lexer, o
 				}
 				(*out.GroupInfo).UnmarshalEasyJSON(in)
 			}
-		case "is_sub":
-			out.IsSub = bool(in.Bool())
 		case "is_admin":
 			out.IsAdmin = bool(in.Bool())
+		case "is_sub":
+			out.IsSub = bool(in.Bool())
 		default:
 			in.SkipRecursive()
 		}
@@ -1276,14 +1276,14 @@ func easyjson1c045807EncodeDepecheInternalEntitiesResponse14(out *jwriter.Writer
 		}
 	}
 	{
-		const prefix string = ",\"is_sub\":"
-		out.RawString(prefix)
-		out.Bool(bool(in.IsSub))
-	}
-	{
 		const prefix string = ",\"is_admin\":"
 		out.RawString(prefix)
 		out.Bool(bool(in.IsAdmin))
+	}
+	{
+		const prefix string = ",\"is_sub\":"
+		out.RawString(prefix)
+		out.Bool(bool(in.IsSub))
 	}
 	out.RawByte('}')
 }
