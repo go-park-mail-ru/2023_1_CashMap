@@ -835,6 +835,7 @@ var (
 where sub.email = $1 
 and post.creation_date < $3
 and not post.is_deleted
+and not community.is_deleted
 order by creation_date DESC
 limit $2
 	`

@@ -12,7 +12,7 @@ type Group struct {
 	OwnerLink    string            `json:"-"                    db:"owner_link"`
 	HideOwner    bool              `json:"hide_owner"           db:"hide_author"`
 	IsDeleted    bool              `json:"is_deleted"           db:"is_deleted"`
-	Management   []GroupManagement `json:"management,omitempty"`
+	Management   []GroupManagement `json:"management"`
 }
 
 type GroupManagement struct {
