@@ -117,7 +117,7 @@ func TestUserService_SignUp(t *testing.T) {
 					FirstName: in.FirstName,
 					LastName:  in.LastName,
 				}).Return(&entities.User{}, nil)
-				repo.EXPECT().SubscribeOnDefaultGroup(in.Email)
+				//repo.EXPECT().SubscribeOnDefaultGroup(in.Email)
 			},
 		},
 		{
