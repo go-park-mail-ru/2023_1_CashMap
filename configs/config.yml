@@ -10,7 +10,7 @@ db:
   database: "depeche_db"
 auth_ms:
   host: "auth"
-  port: 8091
+  port: 8081
 static_ms:
   host: "static"
   port: 8082
