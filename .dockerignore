@@ -1,0 +1,9 @@
+./static_service_test.go
+./docker
+./docker-compose.yml
+./docker-compose-monitoring.yml
+./Dockerfile
+./Dockerfile-auth
+./Dockerfile-static
+./README.md
+./.github
