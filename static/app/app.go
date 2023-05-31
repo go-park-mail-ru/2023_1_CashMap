@@ -39,13 +39,6 @@ func StartStaticApp() {
 	colorHandler := delivery.NewColorHandler(colorService)
 	srv := grpc.NewServer()
 	static_api.RegisterColorServiceServer(srv, colorHandler)
-	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.StaticMs.ColorPort))
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err := srv.Serve(listener); err != nil {
-		log.Fatal(err)
-	}
 
 	authServiceClient := api.NewAuthServiceClient(grpcClient)
 	authService := service.NewAuthService(authServiceClient)
@@ -70,6 +63,16 @@ func StartStaticApp() {
 		staticEndpointsGroup.GET("/download", staticHandler.GetFile)
 		staticEndpointsGroup.DELETE("/remove", staticHandler.DeleteFile)
 	}
+
+	go func() {
+		listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.StaticMs.ColorPort))
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := srv.Serve(listener); err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	go func() {
 		err := metricRouter.Run(":8092")

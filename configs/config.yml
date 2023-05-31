@@ -32,3 +32,4 @@ static_ms:
 #static_ms:
 #  host: "localhost"
 #  port: 8082
+#  color_port: 8182

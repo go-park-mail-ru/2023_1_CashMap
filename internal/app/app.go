@@ -4,6 +4,7 @@ import (
 	"depeche/authorization_ms/api"
 	"depeche/configs"
 	"depeche/docs"
+	"depeche/internal/color"
 	"depeche/internal/delivery/handlers"
 	"depeche/internal/delivery/middleware"
 	"depeche/internal/delivery/wsPool"
@@ -13,6 +14,7 @@ import (
 	"depeche/internal/usecase/service"
 	"depeche/pkg/connector"
 	middleware2 "depeche/pkg/middleware"
+	api2 "depeche/static/static_grpc"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/penglongli/gin-metrics/ginmetrics"
@@ -47,6 +49,13 @@ func Run() {
 	authClient := api.NewAuthServiceClient(conn)
 	csrfClient := api.NewCSRFServiceClient(conn)
 
+	colorConn, err := grpc.Dial(fmt.Sprintf("%s:%d", cfg.StaticMs.Host, cfg.StaticMs.ColorPort),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatal(err)
+	}
+	colorClient := api2.NewColorServiceClient(colorConn)
+	colorService := color.NewAvgColorService(colorClient)
 	userStorage := postgres.NewPostgresUserRepo(db)
 	feedStorage := postgres.NewFeedStorage(db)
 	postStorage := postgres.NewPostRepository(db)
@@ -55,7 +64,7 @@ func Run() {
 	stickerStorage := postgres.NewStickerRepository(db)
 	commentStorage := postgres.NewCommentStorage(db)
 
-	userService := service.NewUserService(userStorage)
+	userService := service.NewUserService(userStorage, colorService)
 	authorizationService := client.NewAuthService(authClient)
 	csrfService := client.NewCSRFService(csrfClient)
 	feedService := service.NewFeedService(feedStorage, postStorage)

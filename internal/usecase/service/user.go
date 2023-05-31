@@ -16,12 +16,13 @@ import (
 
 type UserService struct {
 	repo  repository.UserRepository
-	color color.AvgColorService
+	color color.AvgColorUsecase
 }
 
-func NewUserService(repo repository.UserRepository) usecase.User {
+func NewUserService(repo repository.UserRepository, color color.AvgColorUsecase) usecase.User {
 	return &UserService{
-		repo: repo,
+		repo:  repo,
+		color: color,
 	}
 }
 
@@ -122,8 +123,10 @@ func (us *UserService) EditProfile(email string, profile *dto.EditProfile) error
 		if err != nil {
 			return err
 		}
-		avgColor, _ := us.color.AverageColor(*profile.Avatar)
-		_ = us.repo.UpdateAvgAvatarColor(avgColor, id)
+		avgColor, err := us.color.AverageColor(*profile.Avatar)
+		if err == nil {
+			_ = us.repo.UpdateAvgAvatarColor(avgColor, id)
+		}
 		profile.Avatar = nil
 
 	}

@@ -26,6 +26,7 @@ func (a *AvgColorService) AverageColor(url string) (string, error) {
 	color, err := a.client.AverageColor(a.ctx, &api.Url{
 		Url: url,
 	})
+
 	if err != nil {
 		return "", apperror.NewServerError(apperror.BadRequest, err)
 	}
