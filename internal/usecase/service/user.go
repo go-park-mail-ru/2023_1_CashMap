@@ -3,6 +3,7 @@ package service
 import (
 	"depeche/internal/color"
 	"depeche/internal/delivery/dto"
+	"depeche/internal/delivery/wsPool"
 	"depeche/internal/entities"
 	"depeche/internal/repository"
 	"depeche/internal/usecase"
@@ -15,14 +16,16 @@ import (
 )
 
 type UserService struct {
-	repo  repository.UserRepository
-	color color.AvgColorUsecase
+	repo   repository.UserRepository
+	color  color.AvgColorUsecase
+	online wsPool.OnlineChecker
 }
 
-func NewUserService(repo repository.UserRepository, color color.AvgColorUsecase) usecase.User {
+func NewUserService(repo repository.UserRepository, color color.AvgColorUsecase, online wsPool.OnlineChecker) usecase.User {
 	return &UserService{
-		repo:  repo,
-		color: color,
+		repo:   repo,
+		color:  color,
+		online: online,
 	}
 }
 
@@ -89,7 +92,9 @@ func (us *UserService) GetProfileByLink(email string, link string) (*entities.Us
 	if err != nil {
 		return nil, err
 	}
-
+	if us.online.CheckOnline(link) {
+		user.LastActive = "now"
+	}
 	return user, nil
 }
 

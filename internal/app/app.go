@@ -63,8 +63,9 @@ func Run() {
 	groupStorage := postgres.NewGroupRepository(db)
 	stickerStorage := postgres.NewStickerRepository(db)
 	commentStorage := postgres.NewCommentStorage(db)
+	pool := wsPool.NewConnectionPool(userStorage)
 
-	userService := service.NewUserService(userStorage, colorService)
+	userService := service.NewUserService(userStorage, colorService, pool)
 	authorizationService := client.NewAuthService(authClient)
 	csrfService := client.NewCSRFService(csrfClient)
 	feedService := service.NewFeedService(feedStorage, postStorage)
@@ -91,8 +92,6 @@ func Run() {
 	authMiddleware := middleware.NewAuthMiddleware(authorizationService)
 
 	csrfMiddleware := middleware.NewCSRFMiddleware(csrfService)
-
-	pool := wsPool.NewConnectionPool()
 
 	wsMiddleware := middleware.NewWsMiddleware(pool, msgService)
 

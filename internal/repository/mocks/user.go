@@ -308,6 +308,20 @@ func (mr *MockUserRepositoryMockRecorder) SearchUserByName(arg0, arg1 interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchUserByName", reflect.TypeOf((*MockUserRepository)(nil).SearchUserByName), arg0, arg1)
 }
 
+// SetOffline mocks base method.
+func (m *MockUserRepository) SetOffline(arg0, arg1 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetOffline", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetOffline indicates an expected call of SetOffline.
+func (mr *MockUserRepositoryMockRecorder) SetOffline(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetOffline", reflect.TypeOf((*MockUserRepository)(nil).SetOffline), arg0, arg1)
+}
+
 // Subscribe mocks base method.
 func (m *MockUserRepository) Subscribe(arg0, arg1, arg2 string) (bool, error) {
 	m.ctrl.T.Helper()
@@ -367,7 +381,7 @@ func (mr *MockUserRepositoryMockRecorder) UpdateAvatar(arg0, arg1 interface{}) *
 }
 
 // UpdateAvgAvatarColor mocks base method.
-func (m *MockUserRepository) UpdateAvgAvatarColor(arg0 string, arg1 uint) error {
+func (m *MockUserRepository) UpdateAvgAvatarColor(arg0, arg1 string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateAvgAvatarColor", arg0, arg1)
 	ret0, _ := ret[0].(error)

@@ -42,4 +42,5 @@ type UserRepository interface {
 
 	SubscribeOnDefaultGroup(email string) error
 	UpdateAvgAvatarColor(avgHex, email string) error
+	SetOffline(email, time string) error
 }

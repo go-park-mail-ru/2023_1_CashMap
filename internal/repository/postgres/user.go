@@ -617,3 +617,11 @@ func (ur *UserRepository) UpdateAvgAvatarColor(avgHex, email string) error {
 	}
 	return nil
 }
+
+func (ur *UserRepository) SetOffline(email, time string) error {
+	_, err := ur.DB.Exec(SetOffline, time, email)
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	return nil
+}

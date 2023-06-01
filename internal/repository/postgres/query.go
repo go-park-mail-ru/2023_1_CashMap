@@ -315,6 +315,12 @@ select exists(select * from friendrequests f1
 	      f2 is null and
 	      not f1.rejected)
 	`
+
+	SetOffline = `
+	update userprofile
+	set last_active = $1
+	where email = $2
+	`
 )
 
 var (
