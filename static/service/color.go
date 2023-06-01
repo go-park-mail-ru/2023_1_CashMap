@@ -42,5 +42,10 @@ func (c *ColorService) AverageColor(url string) (string, error) {
 		return "", err
 	}
 
-	return colors[0].AsString(), nil
+	if len(colors) == 1 {
+		colors = append(colors, colors[0])
+	}
+	result := fmt.Sprintf("#%s #%s", colors[0].AsString(), colors[1].AsString())
+
+	return result, nil
 }
