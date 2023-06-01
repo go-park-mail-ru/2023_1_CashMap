@@ -64,7 +64,7 @@ var (
 	UpdateAvgAvatarHex = `
 	update userprofile 
 	set avg_avatar_color = $1
-	where id = $2
+	where email = $2
 	`
 	SubscribesById = `
 	select u.id, u.link, u.email,

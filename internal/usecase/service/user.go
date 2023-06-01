@@ -102,10 +102,8 @@ func (us *UserService) GetAllUsers(email string, limit, offset int) ([]*entities
 }
 
 func (us *UserService) EditProfile(email string, profile *dto.EditProfile) error {
-	var id uint
 	if profile.NewPassword != nil {
 		user, err := us.repo.GetUserByEmail(email)
-		id = user.ID
 		if err != nil {
 			return err
 		}
@@ -124,8 +122,10 @@ func (us *UserService) EditProfile(email string, profile *dto.EditProfile) error
 			return err
 		}
 		avgColor, err := us.color.AverageColor(*profile.Avatar)
-		if err == nil {
-			_ = us.repo.UpdateAvgAvatarColor(avgColor, id)
+		if err != nil {
+			_ = us.repo.UpdateAvgAvatarColor("", email)
+		} else {
+			_ = us.repo.UpdateAvgAvatarColor(avgColor, email)
 		}
 		profile.Avatar = nil
 

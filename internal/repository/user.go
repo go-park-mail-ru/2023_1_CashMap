@@ -41,5 +41,5 @@ type UserRepository interface {
 	SearchCommunitiesByTitle(email string, searchDTO *dto.GlobalSearchDTO) ([]*entities.CommunityInfo, error)
 
 	SubscribeOnDefaultGroup(email string) error
-	UpdateAvgAvatarColor(avgHex string, userID uint) error
+	UpdateAvgAvatarColor(avgHex, email string) error
 }

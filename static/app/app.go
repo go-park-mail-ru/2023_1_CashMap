@@ -29,7 +29,7 @@ func StartStaticApp() {
 	fileService := service.NewFileUsecase(fileRepository)
 	staticHandler := delivery.NewFileHandler(fileService)
 
-	grpcClient, err := grpc.Dial(fmt.Sprintf("%s:%d", "auth", cfg.AuthMs.Port),
+	grpcClient, err := grpc.Dial(fmt.Sprintf("%s:%d", cfg.AuthMs.Host, cfg.AuthMs.Port),
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatal(err)
