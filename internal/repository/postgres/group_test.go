@@ -13,7 +13,6 @@ import (
 
 func TestGroupRepository_GetGroupByLink(t *testing.T) {
 	type dbBehaviour struct {
-		data  *sqlmock.Rows
 		error error
 	}
 	tests := []struct {
@@ -111,7 +110,6 @@ func TestGroupRepository_GetGroupByLink(t *testing.T) {
 
 func TestGroupRepository_GetUserGroupsByEmail(t *testing.T) {
 	type dbBehaviour struct {
-		data  *sqlmock.Rows
 		error error
 	}
 	tests := []struct {
@@ -236,7 +234,6 @@ func TestGroupRepository_GetUserGroupsByEmail(t *testing.T) {
 
 func TestGroupRepository_GetUserGroupsByLink(t *testing.T) {
 	type dbBehaviour struct {
-		data  *sqlmock.Rows
 		error error
 	}
 	tests := []struct {
@@ -361,7 +358,6 @@ func TestGroupRepository_GetUserGroupsByLink(t *testing.T) {
 
 func TestGroupRepository_GetManagedGroups(t *testing.T) {
 	type dbBehaviour struct {
-		data  *sqlmock.Rows
 		error error
 	}
 	tests := []struct {
@@ -486,7 +482,6 @@ func TestGroupRepository_GetManagedGroups(t *testing.T) {
 
 func TestGroupRepository_GetPopularGroups(t *testing.T) {
 	type dbBehaviour struct {
-		data  *sqlmock.Rows
 		error error
 	}
 	tests := []struct {
