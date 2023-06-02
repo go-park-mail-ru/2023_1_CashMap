@@ -27,13 +27,6 @@ func (g *Group) GetGroup(link string) (*entities.Group, error) {
 	if err != nil {
 		return nil, err
 	}
-	if !group.HideOwner {
-		owner := entities.GroupManagement{
-			Link: group.OwnerLink,
-			Role: "owner",
-		}
-		group.Management = append(group.Management, owner)
-	}
 	return group, nil
 }
 
@@ -212,5 +205,3 @@ func (g *Group) CheckSub(email, groupLink string) (bool, error) {
 func (g *Group) CheckAdmin(email, groupLink string) (bool, error) {
 	return g.repo.CheckAdmin(email, groupLink)
 }
-
-
