@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+// protoc --go_out=. --go-grpc_out=. --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative *.proto
+option go_package = "./;api";
+package static;
+
+message Color {
+  string colorStr = 1;
+}
+
+message Url {
+  string url = 1;
+}
+
+service ColorService {
+  rpc AverageColor(Url) returns (Color);
+}

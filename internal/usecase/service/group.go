@@ -1,6 +1,7 @@
 package service
 
 import (
+	"depeche/internal/color"
 	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
 	"depeche/internal/repository"
@@ -10,12 +11,14 @@ import (
 )
 
 type Group struct {
-	repo repository.Group
+	repo  repository.Group
+	color color.AvgColorUsecase
 }
 
-func NewGroupService(repo repository.Group) usecase.Group {
+func NewGroupService(repo repository.Group, color color.AvgColorUsecase) usecase.Group {
 	return &Group{
-		repo: repo,
+		repo:  repo,
+		color: color,
 	}
 }
 
@@ -39,7 +42,7 @@ func (g *Group) GetUserGroupsByLink(link string, limit int, offset int) ([]*enti
 	if err != nil {
 		return nil, err
 	}
-	groups = addGroupManagement(groups)
+
 	return groups, nil
 }
 
@@ -48,7 +51,6 @@ func (g *Group) GetUserGroupsByEmail(email string, limit int, offset int) ([]*en
 	if err != nil {
 		return nil, err
 	}
-	groups = addGroupManagement(groups)
 	return groups, nil
 }
 
@@ -57,7 +59,6 @@ func (g *Group) GetPopularGroups(email string, limit int, offset int) ([]*entiti
 	if err != nil {
 		return nil, err
 	}
-	groups = addGroupManagement(groups)
 	return groups, nil
 }
 
@@ -66,7 +67,6 @@ func (g *Group) GetManagedGroups(email string, limit int, offset int) ([]*entiti
 	if err != nil {
 		return nil, err
 	}
-	groups = addGroupManagement(groups)
 	return groups, nil
 }
 
@@ -98,6 +98,12 @@ func (g *Group) UpdateGroup(link string, ownerEmail string, group *dto.UpdateGro
 		err = g.repo.UpdateGroupAvatar(*group.Avatar, link)
 		if err != nil {
 			return err
+		}
+		avgColor, err := g.color.AverageColor(*group.Avatar)
+		if err != nil {
+			_ = g.repo.UpdateAvgGroupAvatarColor("", link)
+		} else {
+			_ = g.repo.UpdateAvgGroupAvatarColor(avgColor, link)
 		}
 		group.Avatar = nil
 	}
@@ -207,15 +213,4 @@ func (g *Group) CheckAdmin(email, groupLink string) (bool, error) {
 	return g.repo.CheckAdmin(email, groupLink)
 }
 
-func addGroupManagement(groups []*entities.Group) []*entities.Group {
-	for _, group := range groups {
-		if !group.HideOwner {
-			owner := entities.GroupManagement{
-				Link: group.OwnerLink,
-				Role: "owner",
-			}
-			group.Management = append(group.Management, owner)
-		}
-	}
-	return groups
-}
+

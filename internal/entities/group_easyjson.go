@@ -40,6 +40,12 @@ func easyjson1c045807DecodeDepecheInternalEntities(in *jlexer.Lexer, out *GroupM
 			out.Link = string(in.String())
 		case "role":
 			out.Role = string(in.String())
+		case "first_name":
+			out.FirstName = string(in.String())
+		case "last_name":
+			out.LastName = string(in.String())
+		case "avatar":
+			out.Avatar = string(in.String())
 		default:
 			in.SkipRecursive()
 		}
@@ -63,6 +69,21 @@ func easyjson1c045807EncodeDepecheInternalEntities(out *jwriter.Writer, in Group
 		const prefix string = ",\"role\":"
 		out.RawString(prefix)
 		out.String(string(in.Role))
+	}
+	{
+		const prefix string = ",\"first_name\":"
+		out.RawString(prefix)
+		out.String(string(in.FirstName))
+	}
+	{
+		const prefix string = ",\"last_name\":"
+		out.RawString(prefix)
+		out.String(string(in.LastName))
+	}
+	{
+		const prefix string = ",\"avatar\":"
+		out.RawString(prefix)
+		out.String(string(in.Avatar))
 	}
 	out.RawByte('}')
 }
@@ -119,6 +140,8 @@ func easyjson1c045807DecodeDepecheInternalEntities1(in *jlexer.Lexer, out *Group
 			out.Privacy = string(in.String())
 		case "avatar_url":
 			out.Avatar = string(in.String())
+		case "avg_avatar_color":
+			out.AvgAvatarColor = string(in.String())
 		case "subscribers":
 			out.MembersCount = int(in.Int())
 		case "creation_date":
@@ -135,7 +158,7 @@ func easyjson1c045807DecodeDepecheInternalEntities1(in *jlexer.Lexer, out *Group
 				in.Delim('[')
 				if out.Management == nil {
 					if !in.IsDelim(']') {
-						out.Management = make([]GroupManagement, 0, 2)
+						out.Management = make([]GroupManagement, 0, 0)
 					} else {
 						out.Management = []GroupManagement{}
 					}
@@ -195,6 +218,11 @@ func easyjson1c045807EncodeDepecheInternalEntities1(out *jwriter.Writer, in Grou
 		out.String(string(in.Avatar))
 	}
 	{
+		const prefix string = ",\"avg_avatar_color\":"
+		out.RawString(prefix)
+		out.String(string(in.AvgAvatarColor))
+	}
+	{
 		const prefix string = ",\"subscribers\":"
 		out.RawString(prefix)
 		out.Int(int(in.MembersCount))
@@ -214,10 +242,12 @@ func easyjson1c045807EncodeDepecheInternalEntities1(out *jwriter.Writer, in Grou
 		out.RawString(prefix)
 		out.Bool(bool(in.IsDeleted))
 	}
-	if len(in.Management) != 0 {
+	{
 		const prefix string = ",\"management\":"
 		out.RawString(prefix)
-		{
+		if in.Management == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
 			out.RawByte('[')
 			for v2, v3 := range in.Management {
 				if v2 > 0 {

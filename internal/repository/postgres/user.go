@@ -609,3 +609,19 @@ type communityForSearch struct {
 	Title    string `db:"title"`
 	Distance float64
 }
+
+func (ur *UserRepository) UpdateAvgAvatarColor(avgHex, email string) error {
+	_, err := ur.DB.Exec(UpdateAvgAvatarHex, avgHex, email)
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	return nil
+}
+
+func (ur *UserRepository) SetOffline(email, time string) error {
+	_, err := ur.DB.Exec(SetOffline, time, email)
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	return nil
+}

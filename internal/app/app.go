@@ -4,6 +4,7 @@ import (
 	"depeche/authorization_ms/api"
 	"depeche/configs"
 	"depeche/docs"
+	"depeche/internal/color"
 	"depeche/internal/delivery/handlers"
 	"depeche/internal/delivery/middleware"
 	"depeche/internal/delivery/wsPool"
@@ -13,6 +14,7 @@ import (
 	"depeche/internal/usecase/service"
 	"depeche/pkg/connector"
 	middleware2 "depeche/pkg/middleware"
+	api2 "depeche/static/static_grpc"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/penglongli/gin-metrics/ginmetrics"
@@ -47,6 +49,13 @@ func Run() {
 	authClient := api.NewAuthServiceClient(conn)
 	csrfClient := api.NewCSRFServiceClient(conn)
 
+	colorConn, err := grpc.Dial(fmt.Sprintf("%s:%d", cfg.StaticMs.Host, cfg.StaticMs.ColorPort),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatal(err)
+	}
+	colorClient := api2.NewColorServiceClient(colorConn)
+	colorService := color.NewAvgColorService(colorClient)
 	userStorage := postgres.NewPostgresUserRepo(db)
 	feedStorage := postgres.NewFeedStorage(db)
 	postStorage := postgres.NewPostRepository(db)
@@ -54,13 +63,14 @@ func Run() {
 	groupStorage := postgres.NewGroupRepository(db)
 	stickerStorage := postgres.NewStickerRepository(db)
 	commentStorage := postgres.NewCommentStorage(db)
+	pool := wsPool.NewConnectionPool(userStorage)
 
-	userService := service.NewUserService(userStorage)
+	userService := service.NewUserService(userStorage, colorService, pool)
 	authorizationService := client.NewAuthService(authClient)
 	csrfService := client.NewCSRFService(csrfClient)
 	feedService := service.NewFeedService(feedStorage, postStorage)
 	postService := service.NewPostService(postStorage)
-	groupService := service.NewGroupService(groupStorage)
+	groupService := service.NewGroupService(groupStorage, colorService)
 	msgService := service.NewMessageService(messageStorage, userStorage)
 	stickerService := service.NewStickerService(stickerStorage)
 	commentService := service.NewCommentService(commentStorage)
@@ -82,8 +92,6 @@ func Run() {
 	authMiddleware := middleware.NewAuthMiddleware(authorizationService)
 
 	csrfMiddleware := middleware.NewCSRFMiddleware(csrfService)
-
-	pool := wsPool.NewConnectionPool()
 
 	wsMiddleware := middleware.NewWsMiddleware(pool, msgService)
 

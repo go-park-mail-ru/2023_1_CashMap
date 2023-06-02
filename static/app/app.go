@@ -8,12 +8,14 @@ import (
 	"depeche/static/delivery"
 	"depeche/static/repository"
 	"depeche/static/service"
+	static_api "depeche/static/static_grpc"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/penglongli/gin-metrics/ginmetrics"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
+	"net"
 )
 
 func StartStaticApp() {
@@ -27,11 +29,16 @@ func StartStaticApp() {
 	fileService := service.NewFileUsecase(fileRepository)
 	staticHandler := delivery.NewFileHandler(fileService)
 
-	grpcClient, err := grpc.Dial(fmt.Sprintf("%s:%d", "auth", cfg.AuthMs.Port),
+	grpcClient, err := grpc.Dial(fmt.Sprintf("%s:%d", cfg.AuthMs.Host, cfg.AuthMs.Port),
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	colorService := service.NewColorService()
+	colorHandler := delivery.NewColorHandler(colorService)
+	srv := grpc.NewServer()
+	static_api.RegisterColorServiceServer(srv, colorHandler)
 
 	authServiceClient := api.NewAuthServiceClient(grpcClient)
 	authService := service.NewAuthService(authServiceClient)
@@ -56,6 +63,16 @@ func StartStaticApp() {
 		staticEndpointsGroup.GET("/download", staticHandler.GetFile)
 		staticEndpointsGroup.DELETE("/remove", staticHandler.DeleteFile)
 	}
+
+	go func() {
+		listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.StaticMs.ColorPort))
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := srv.Serve(listener); err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	go func() {
 		err := metricRouter.Run(":8092")

@@ -24,6 +24,7 @@ CREATE TABLE UserProfile
     is_deleted      boolean  NOT NULL DEFAULT false,
     dying_time      interval NOT NULL DEFAULT INTERVAL '6 months',
     access_to_posts text     NOT NULL DEFAULT 'all',
+    avg_avatar_color text default '',
     PRIMARY KEY (id)
 
 );
@@ -51,6 +52,7 @@ CREATE TABLE groups
     link          text    UNIQUE,
     owner_id      int REFERENCES UserProfile(id),
     avatar_id     int REFERENCES Photo (id),
+    avg_avatar_color text default '',
     group_info           text DEFAULT '',
     privacy       text    NOT NULL DEFAULT 'open' CHECK ( privacy IN ('open', 'close') ),
     creation_date text    NOT NULL,

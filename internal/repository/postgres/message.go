@@ -364,7 +364,7 @@ func (storage *MessageStorage) GetMessageAttachments(messageID uint) ([]string, 
 
 func (storage *MessageStorage) CheckRead(email string, chatID uint) (bool, error) {
 	var read bool
-	err := storage.db.QueryRowx(CheckChatRead, email, chatID).Scan(read)
+	err := storage.db.QueryRowx(CheckChatRead, chatID, email).Scan(&read)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return false, nil
@@ -376,7 +376,7 @@ func (storage *MessageStorage) CheckRead(email string, chatID uint) (bool, error
 
 func (storage *MessageStorage) GetUnreadChatsCount(email string) (int, error) {
 	var count int
-	err := storage.db.QueryRowx(GetUnreadChatCount, email).Scan(count)
+	err := storage.db.QueryRowx(GetUnreadChatCount, email).Scan(&count)
 	if err != nil {
 		return 0, apperror.NewServerError(apperror.InternalServerError, err)
 	}
