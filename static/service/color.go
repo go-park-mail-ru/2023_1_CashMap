@@ -1,7 +1,6 @@
 package service
 
 import (
-	"depeche/static/repository"
 	"fmt"
 	"github.com/EdlinOrg/prominentcolor"
 	"image"
@@ -25,7 +24,7 @@ func NewColorService() ColorUsecase {
 
 func (c *ColorService) AverageColor(url string) (string, error) {
 	filename := strings.TrimPrefix(strings.TrimSuffix(url, "&type=img"), "static-service/download?name=")
-	f, err := os.Open(repository.IMG_STATIC_PATH + filename)
+	f, err := os.Open("static/files/img/" + filename)
 	defer func(f *os.File) {
 		_ = f.Close()
 	}(f)
