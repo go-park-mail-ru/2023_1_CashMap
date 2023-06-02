@@ -41,6 +41,17 @@ var (
 	where u.link = $1
 	`
 
+	GroupManagerByLink = `
+	select u.link, 
+	    u.first_name, u.last_name, 
+       case when p.url is null 
+           then ''
+           else p.url end avatar
+	from userprofile u
+         left join photo p on u.avatar_id = p.id
+	where u.link = $1
+	`
+
 	FriendsById = `
 	select u.id, u.link, u.email,
 	    u.first_name, u.last_name, 

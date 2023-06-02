@@ -18,6 +18,9 @@ type Group struct {
 }
 
 type GroupManagement struct {
-	Link string `json:"link"`
-	Role string `json:"role"`
+	Link      string `json:"link" db:"link"`
+	Role      string `json:"role"`
+	FirstName string `json:"first_name" db:"first_name"`
+	LastName  string `json:"last_name" db:"last_name"`
+	Avatar    string `json:"avatar" db:"avatar"`
 }

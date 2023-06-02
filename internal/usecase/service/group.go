@@ -42,7 +42,7 @@ func (g *Group) GetUserGroupsByLink(link string, limit int, offset int) ([]*enti
 	if err != nil {
 		return nil, err
 	}
-	groups = addGroupManagement(groups)
+
 	return groups, nil
 }
 
@@ -51,7 +51,6 @@ func (g *Group) GetUserGroupsByEmail(email string, limit int, offset int) ([]*en
 	if err != nil {
 		return nil, err
 	}
-	groups = addGroupManagement(groups)
 	return groups, nil
 }
 
@@ -60,7 +59,6 @@ func (g *Group) GetPopularGroups(email string, limit int, offset int) ([]*entiti
 	if err != nil {
 		return nil, err
 	}
-	groups = addGroupManagement(groups)
 	return groups, nil
 }
 
@@ -69,7 +67,6 @@ func (g *Group) GetManagedGroups(email string, limit int, offset int) ([]*entiti
 	if err != nil {
 		return nil, err
 	}
-	groups = addGroupManagement(groups)
 	return groups, nil
 }
 
@@ -216,15 +213,4 @@ func (g *Group) CheckAdmin(email, groupLink string) (bool, error) {
 	return g.repo.CheckAdmin(email, groupLink)
 }
 
-func addGroupManagement(groups []*entities.Group) []*entities.Group {
-	for _, group := range groups {
-		if !group.HideOwner {
-			owner := entities.GroupManagement{
-				Link: group.OwnerLink,
-				Role: "owner",
-			}
-			group.Management = append(group.Management, owner)
-		}
-	}
-	return groups
-}
+

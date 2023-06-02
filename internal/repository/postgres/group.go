@@ -34,6 +34,12 @@ func (gr *GroupRepository) GetGroupByLink(link string) (*entities.Group, error) 
 		}
 		return nil, apperror.NewServerError(apperror.InternalServerError, err)
 	}
+	owner := &entities.GroupManagement{}
+	err = gr.db.QueryRowx(GroupManagerByLink, group.OwnerLink).StructScan(owner)
+	if err != nil {
+		return nil, apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	group.Management = append(group.Management, *owner)
 	return group, nil
 }
 func (gr *GroupRepository) GetUserGroupsByLink(link string, limit int, offset int) ([]*entities.Group, error) {
@@ -51,6 +57,12 @@ func (gr *GroupRepository) GetUserGroupsByLink(link string, limit int, offset in
 		if err := rows.StructScan(group); err != nil {
 			return nil, apperror.NewServerError(apperror.InternalServerError, err)
 		}
+		owner := &entities.GroupManagement{}
+		err = gr.db.QueryRowx(GroupManagerByLink, group.OwnerLink).StructScan(owner)
+		if err != nil {
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+		group.Management = append(group.Management, *owner)
 		groups = append(groups, group)
 	}
 	return groups, nil
@@ -70,6 +82,12 @@ func (gr *GroupRepository) GetUserGroupsByEmail(email string, limit int, offset 
 		if err := rows.StructScan(group); err != nil {
 			return nil, apperror.NewServerError(apperror.InternalServerError, err)
 		}
+		owner := &entities.GroupManagement{}
+		err = gr.db.QueryRowx(GroupManagerByLink, group.OwnerLink).StructScan(owner)
+		if err != nil {
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+		group.Management = append(group.Management, *owner)
 		groups = append(groups, group)
 	}
 	return groups, nil
@@ -90,6 +108,12 @@ func (gr *GroupRepository) GetPopularGroups(email string, limit int, offset int)
 		if err := rows.StructScan(group); err != nil {
 			return nil, apperror.NewServerError(apperror.InternalServerError, err)
 		}
+		owner := &entities.GroupManagement{}
+		err = gr.db.QueryRowx(GroupManagerByLink, group.OwnerLink).StructScan(owner)
+		if err != nil {
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+		group.Management = append(group.Management, *owner)
 		groups = append(groups, group)
 	}
 	return groups, nil
@@ -110,6 +134,12 @@ func (gr *GroupRepository) GetManagedGroups(email string, limit int, offset int)
 		if err := rows.StructScan(group); err != nil {
 			return nil, apperror.NewServerError(apperror.InternalServerError, err)
 		}
+		owner := &entities.GroupManagement{}
+		err = gr.db.QueryRowx(GroupManagerByLink, group.OwnerLink).StructScan(owner)
+		if err != nil {
+			return nil, apperror.NewServerError(apperror.InternalServerError, err)
+		}
+		group.Management = append(group.Management, *owner)
 		groups = append(groups, group)
 	}
 	return groups, nil
