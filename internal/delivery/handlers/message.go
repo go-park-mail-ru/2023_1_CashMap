@@ -299,9 +299,14 @@ func (handler *MessageHandler) SetLastRead(ctx *gin.Context) {
 		return
 	}
 
-	inputDTO := new(dto.SetLastReadTime)
-	if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
-		_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
+	//inputDTO := new(dto.SetLastReadTime)
+	//if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
+	//	_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
+	//	return
+	//}
+	inputDTO, err := utils.GetBody[dto.SetLastReadTime](ctx)
+	if err != nil {
+		_ = ctx.Error(err)
 		return
 	}
 
