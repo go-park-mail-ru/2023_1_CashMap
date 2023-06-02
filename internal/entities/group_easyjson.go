@@ -140,6 +140,8 @@ func easyjson1c045807DecodeDepecheInternalEntities1(in *jlexer.Lexer, out *Group
 			out.Privacy = string(in.String())
 		case "avatar_url":
 			out.Avatar = string(in.String())
+		case "avg_avatar_color":
+			out.AvgAvatarColor = string(in.String())
 		case "subscribers":
 			out.MembersCount = int(in.Int())
 		case "creation_date":
@@ -214,6 +216,11 @@ func easyjson1c045807EncodeDepecheInternalEntities1(out *jwriter.Writer, in Grou
 		const prefix string = ",\"avatar_url\":"
 		out.RawString(prefix)
 		out.String(string(in.Avatar))
+	}
+	{
+		const prefix string = ",\"avg_avatar_color\":"
+		out.RawString(prefix)
+		out.String(string(in.AvgAvatarColor))
 	}
 	{
 		const prefix string = ",\"subscribers\":"

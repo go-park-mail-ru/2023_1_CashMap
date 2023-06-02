@@ -398,7 +398,7 @@ var (
 	GroupByLink = `
 	select g.title, g.link, g.group_info info, g.privacy,
 	       g.creation_date, g.hide_author, u.link owner_link,
-	       g.is_deleted, g.subscribers,
+	       g.is_deleted, g.subscribers, g.avg_avatar_color,
 	case when p.url is null 
            then ''
            else p.url end avatar
@@ -411,7 +411,7 @@ var (
 	GroupsByUserlink = `
 	select g.title, g.link, g.group_info info, g.privacy,
 	       g.creation_date, g.hide_author, u2.link owner_link,
-	       g.is_deleted, g.subscribers,
+	       g.is_deleted, g.subscribers, g.avg_avatar_color,
 	case when p.url is null 
            then ''
            else p.url end avatar
@@ -429,7 +429,7 @@ var (
 	GroupsByUserEmail = `
 	select g.title, g.link, g.group_info info, g.privacy,
 	       g.creation_date, g.hide_author, u2.link owner_link,
-	       g.is_deleted, g.subscribers,
+	       g.is_deleted, g.subscribers, g.avg_avatar_color,
 	case when p.url is null 
            then ''
            else p.url end avatar
@@ -447,7 +447,7 @@ var (
 	GetGroups = `
 		select g.title, g.link, g.group_info info, g.privacy,
 	       g.creation_date, g.hide_author, u.link owner_link,
-	       g.is_deleted, g.subscribers,
+	       g.is_deleted, g.subscribers, g.avg_avatar_color,
 	case when p.url is null 
            then ''
            else p.url end avatar
@@ -462,7 +462,7 @@ var (
 	GetManaged = `
 	select g.title, g.link, g.group_info info, g.privacy,
 	       g.creation_date, g.hide_author, u.link owner_link,
-	       g.is_deleted, g.subscribers,
+	       g.is_deleted, g.subscribers, g.avg_avatar_color,
 	case when p.url is null 
            then ''
            else p.url end avatar
