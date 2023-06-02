@@ -10,6 +10,7 @@ import (
 	"depeche/pkg/apperror"
 	"errors"
 	"github.com/asaskevich/govalidator"
+	"sort"
 )
 
 type MessageService struct {
@@ -117,6 +118,10 @@ func (service *MessageService) GetChatsList(senderEmail string, dto *dto.GetChat
 		lastMsg, _ := service.MessageRepository.LastChatMsg(int(chat.ChatID))
 		chat.LastMsg = *lastMsg
 	}
+
+	sort.Slice(chats, func(i, j int) bool {
+		return *chats[j].LastMsg.CreatedAt < *chats[i].LastMsg.CreatedAt
+	})
 	return chats, nil
 }
 
