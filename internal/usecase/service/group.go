@@ -1,6 +1,7 @@
 package service
 
 import (
+	"depeche/internal/color"
 	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
 	"depeche/internal/repository"
@@ -10,12 +11,14 @@ import (
 )
 
 type Group struct {
-	repo repository.Group
+	repo  repository.Group
+	color color.AvgColorUsecase
 }
 
-func NewGroupService(repo repository.Group) usecase.Group {
+func NewGroupService(repo repository.Group, color color.AvgColorUsecase) usecase.Group {
 	return &Group{
-		repo: repo,
+		repo:  repo,
+		color: color,
 	}
 }
 
@@ -98,6 +101,12 @@ func (g *Group) UpdateGroup(link string, ownerEmail string, group *dto.UpdateGro
 		err = g.repo.UpdateGroupAvatar(*group.Avatar, link)
 		if err != nil {
 			return err
+		}
+		avgColor, err := g.color.AverageColor(*group.Avatar)
+		if err != nil {
+			_ = g.repo.UpdateAvgGroupAvatarColor("", link)
+		} else {
+			_ = g.repo.UpdateAvgGroupAvatarColor(avgColor, link)
 		}
 		group.Avatar = nil
 	}

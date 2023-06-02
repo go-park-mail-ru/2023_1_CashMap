@@ -70,7 +70,7 @@ func Run() {
 	csrfService := client.NewCSRFService(csrfClient)
 	feedService := service.NewFeedService(feedStorage, postStorage)
 	postService := service.NewPostService(postStorage)
-	groupService := service.NewGroupService(groupStorage)
+	groupService := service.NewGroupService(groupStorage, colorService)
 	msgService := service.NewMessageService(messageStorage, userStorage)
 	stickerService := service.NewStickerService(stickerStorage)
 	commentService := service.NewCommentService(commentStorage)

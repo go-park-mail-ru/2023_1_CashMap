@@ -609,6 +609,11 @@ var (
 		INSERT INTO GroupManagement (user_id, group_id, user_role)
 		VALUES ((SELECT id FROM UserProfile WHERE email = $1), $2, $3)
 	`
+	UpdateAvgGroupAvatarColor = `
+	update groups 
+	set avg_avatar_color = $1
+	where link = $2
+	`
 )
 
 var (
@@ -733,6 +738,28 @@ var (
 		VALUES (:community_id, (SELECT id FROM UserProfile WHERE email = :sender_email), :owner_id, :show_author, :text,
 				:init_time, :change_time)
 		RETURNING id
+	`
+
+	PostsByEmail = `
+SELECT post.id,
+			   text_content,
+			   author.link as author_link,
+			   post.likes_amount,
+			   post.show_author,
+			   post.creation_date,
+			   post.change_date,
+			   CASE WHEN like_table.post_id is null THEN FALSE ELSE TRUE END as is_liked,
+			   post.comments_amount
+		FROM Post AS post
+				 JOIN UserProfile AS author ON post.author_id = author.id
+				 LEFT JOIN groups as community on post.group_id = community.id
+				 LEFT JOIN UserProfile as owner ON post.owner_id = owner.id
+				LEFT JOIN PostLike as like_table ON like_table.user_id = (SELECT id FROM UserProfile WHERE email = $4) AND like_table.post_id = post.id
+		WHERE post.owner_id = (SELECT id FROM UserProfile WHERE email = $1)
+		  AND post.creation_date < $2
+		  AND post.is_deleted = false
+		ORDER BY post.creation_date DESC
+		LIMIT $3
 	`
 )
 
@@ -868,11 +895,11 @@ var (
          left join userprofile owner on post.owner_id = owner.id
          left join friendrequests f on owner.id = f.subscribed
 
-         join userprofile sub on sub.id = f.subscriber or  g.user_id = sub.id
+         join userprofile sub on sub.id = f.subscriber or g.user_id = sub.id or owner.id = sub.id
 where sub.email = $1 
 and post.creation_date < $3
 and not post.is_deleted
-and not community.is_deleted
+and (community.is_deleted is null or not community.is_deleted)
 order by creation_date DESC
 limit $2
 	`

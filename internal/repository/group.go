@@ -30,6 +30,9 @@ type Group interface {
 	IsOwner(userEmail, groupLink string) (bool, error)
 	CheckSub(email, groupLink string) (bool, error)
 	CheckAdmin(email, groupLink string) (bool, error)
+
+	UpdateAvgGroupAvatarColor(color, link string) error
+
 	// TODO добавить права доступа к группе
 	// Grants(userEmail, groupLink string)
 	// AddManager(manager *dto.AddManager) error

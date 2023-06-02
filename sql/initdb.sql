@@ -52,6 +52,7 @@ CREATE TABLE groups
     link          text    UNIQUE,
     owner_id      int REFERENCES UserProfile(id),
     avatar_id     int REFERENCES Photo (id),
+    avatar_avg_color text default '',
     group_info           text DEFAULT '',
     privacy       text    NOT NULL DEFAULT 'open' CHECK ( privacy IN ('open', 'close') ),
     creation_date text    NOT NULL,

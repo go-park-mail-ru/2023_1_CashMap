@@ -284,6 +284,20 @@ func (mr *MockGroupMockRecorder) Unsubscribe(arg0, arg1 interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unsubscribe", reflect.TypeOf((*MockGroup)(nil).Unsubscribe), arg0, arg1)
 }
 
+// UpdateAvgGroupAvatarColor mocks base method.
+func (m *MockGroup) UpdateAvgGroupAvatarColor(arg0, arg1 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAvgGroupAvatarColor", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateAvgGroupAvatarColor indicates an expected call of UpdateAvgGroupAvatarColor.
+func (mr *MockGroupMockRecorder) UpdateAvgGroupAvatarColor(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAvgGroupAvatarColor", reflect.TypeOf((*MockGroup)(nil).UpdateAvgGroupAvatarColor), arg0, arg1)
+}
+
 // UpdateGroup mocks base method.
 func (m *MockGroup) UpdateGroup(arg0 string, arg1 *dto.UpdateGroup) error {
 	m.ctrl.T.Helper()

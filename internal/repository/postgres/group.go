@@ -352,6 +352,14 @@ func (gr *GroupRepository) CheckAdmin(email, groupLink string) (bool, error) {
 	return isAdmin, nil
 }
 
+func (gr *GroupRepository) UpdateAvgGroupAvatarColor(color, link string) error {
+	_, err := gr.db.Exec(UpdateAvgGroupAvatarColor, color, link)
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	return nil
+}
+
 //func (gr *GroupRepository) AddManager(manager *dto.AddManager) error {
 //	//TODO implement me
 //	panic("implement me")
