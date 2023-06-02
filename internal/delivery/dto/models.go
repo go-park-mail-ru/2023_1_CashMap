@@ -51,7 +51,8 @@ type Profile struct {
 	Link       string `json:"user_link"   example:"id100500"`
 	FirstName  string `json:"first_name"  example:"Василий"`
 	LastName   string `json:"last_name"   example:"Петров"`
-	Avatar     string `json:"avatar_url"      example:""`
+	Avatar     string `json:"avatar_url"  example:""`
+	AvgColor   string `json:"avg_avatar_color"`
 	Sex        string `json:"sex"         example:"male"`
 	Status     string `json:"status"      example:"Текст статуса."`
 	Bio        string `json:"bio"         example:"Текст с информацией о себе."`
@@ -87,6 +88,7 @@ func NewProfileFromUser(user *entities.User) *Profile {
 		FirstName:  user.FirstName,
 		LastName:   user.LastName,
 		Avatar:     user.Avatar,
+		AvgColor:   user.AvgAvatarColor,
 		Status:     user.Status,
 		Bio:        user.Bio,
 		BirthDay:   user.BirthDay,
