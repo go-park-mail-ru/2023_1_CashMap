@@ -784,7 +784,10 @@ var (
 		ORDER BY msg.creation_date DESC 
 		LIMIT $3
 	`
-
+	LastChatMsg = `
+	select msg.id, msg.chat_id, msg.text_content, msg.message_content_type, msg.sticker_id, msg.creation_date, msg.change_date, msg.reply_to, msg.is_deleted
+	FROM Message AS msg where msg.chat_id = $1 order by msg.creation_date desc limit 1
+	`
 	ChatsQuery = `
 		SELECT chat.id as chat_id
 		FROM ChatMember as member

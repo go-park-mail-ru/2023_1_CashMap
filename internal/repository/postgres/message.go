@@ -391,6 +391,15 @@ func (storage *MessageStorage) SetLastRead(email string, chatID int, time string
 	return nil
 }
 
+func (storage *MessageStorage) LastChatMsg(chatId int) (*entities.Message, error) {
+	msg := &entities.Message{}
+	err := storage.db.QueryRowx(LastChatMsg, chatId).StructScan(msg)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+	return msg, nil
+}
+
 func (storage *MessageStorage) addChatMembers(senderEmail string, userLinks []string, chatID uint, tx *sqlx.Tx) error {
 	var senderLink string
 	err := tx.Get(&senderLink, "SELECT link FROM UserProfile WHERE email = $1", senderEmail)

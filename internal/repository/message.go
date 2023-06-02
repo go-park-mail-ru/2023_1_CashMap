@@ -21,4 +21,5 @@ type MessageRepository interface {
 	CheckRead(email string, chatID uint) (bool, error)
 	GetUnreadChatsCount(email string) (int, error)
 	SetLastRead(email string, chatID int, time string) error
+	LastChatMsg(chatId int) (*entities.Message, error)
 }

@@ -169,6 +169,21 @@ func (mr *MockMessageRepositoryMockRecorder) HasDialog(arg0, arg1 interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasDialog", reflect.TypeOf((*MockMessageRepository)(nil).HasDialog), arg0, arg1)
 }
 
+// LastChatMsg mocks base method.
+func (m *MockMessageRepository) LastChatMsg(arg0 int) (*entities.Message, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LastChatMsg", arg0)
+	ret0, _ := ret[0].(*entities.Message)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LastChatMsg indicates an expected call of LastChatMsg.
+func (mr *MockMessageRepositoryMockRecorder) LastChatMsg(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LastChatMsg", reflect.TypeOf((*MockMessageRepository)(nil).LastChatMsg), arg0)
+}
+
 // SaveMsg mocks base method.
 func (m *MockMessageRepository) SaveMsg(arg0 *dto.NewMessageDTO) (*entities.Message, error) {
 	m.ctrl.T.Helper()

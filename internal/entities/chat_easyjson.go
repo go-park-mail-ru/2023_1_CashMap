@@ -71,6 +71,8 @@ func easyjson9b8f5552DecodeDepecheInternalEntities(in *jlexer.Lexer, out *Chat) 
 			}
 		case "read":
 			out.Read = bool(in.Bool())
+		case "last_msg":
+			(out.LastMsg).UnmarshalEasyJSON(in)
 		default:
 			in.SkipRecursive()
 		}
@@ -114,6 +116,11 @@ func easyjson9b8f5552EncodeDepecheInternalEntities(out *jwriter.Writer, in Chat)
 		const prefix string = ",\"read\":"
 		out.RawString(prefix)
 		out.Bool(bool(in.Read))
+	}
+	{
+		const prefix string = ",\"last_msg\":"
+		out.RawString(prefix)
+		(in.LastMsg).MarshalEasyJSON(out)
 	}
 	out.RawByte('}')
 }

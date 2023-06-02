@@ -114,6 +114,8 @@ func (service *MessageService) GetChatsList(senderEmail string, dto *dto.GetChat
 	for _, chat := range chats {
 		read, _ := service.MessageRepository.CheckRead(senderEmail, chat.ChatID)
 		chat.Read = read
+		lastMsg, _ := service.MessageRepository.LastChatMsg(int(chat.ChatID))
+		chat.LastMsg = *lastMsg
 	}
 	return chats, nil
 }
