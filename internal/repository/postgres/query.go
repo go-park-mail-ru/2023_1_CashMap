@@ -378,10 +378,9 @@ select
 
 	GetUnreadChatCount = `
 		select count(*) from chatmember cm join userprofile u on cm.user_id = u.id
-    join (select creation_date, chat_id from message m  order by creation_date desc limit 1) m
-        on cm.chat_id = m.chat_id
-	where u.email = $1
-	and m.creation_date > cm.last_read;
+    	join (select max(creation_date) last_msg, chat_id from message group by chat_id) msgs on msgs.chat_id  = cm.chat_id
+		where u.email = $1
+		and msgs.last_msg > cm.last_read
 	`
 
 	SetLastRead = `
@@ -885,7 +884,7 @@ var (
 
 var (
 	GetFeedQuery = `
-	SELECT post.id,
+	SELECT distinct post.id,
        text_content,
        author.link as author_link,
        post.likes_amount,

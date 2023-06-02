@@ -364,7 +364,7 @@ func (storage *MessageStorage) GetMessageAttachments(messageID uint) ([]string, 
 
 func (storage *MessageStorage) CheckRead(email string, chatID uint) (bool, error) {
 	var read bool
-	err := storage.db.QueryRowx(CheckChatRead, chatID, email).Scan(read)
+	err := storage.db.QueryRowx(CheckChatRead, chatID, email).Scan(&read)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return false, nil
