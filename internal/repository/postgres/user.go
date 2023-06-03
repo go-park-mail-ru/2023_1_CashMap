@@ -382,7 +382,7 @@ func (ur *UserRepository) SearchUserByName(email string, searchDTO *dto.GlobalSe
 	searchName := utils.NormalizeString(*searchDTO.SearchQuery)
 	splitSearchName := strings.Split(searchName, " ")
 
-	rows, err := ur.DB.Queryx("SELECT id, first_name, last_name FROM UserProfile AS profile")
+	rows, err := ur.DB.Queryx("SELECT id, first_name, last_name FROM UserProfile AS profile WHERE is_deleted = false")
 	defer utildb.CloseRows(rows)
 	if err != nil {
 		return nil, apperror.NewServerError(apperror.InternalServerError, err)
@@ -485,7 +485,7 @@ func (ur *UserRepository) SearchCommunitiesByTitle(email string, searchDTO *dto.
 	searchName := utils.NormalizeString(*searchDTO.SearchQuery)
 	splitSearchQuery := strings.Split(searchName, " ")
 
-	rows, err := ur.DB.Queryx("SELECT id, title FROM groups")
+	rows, err := ur.DB.Queryx("SELECT id, title FROM groups WHERE is_deleted=false")
 	defer utildb.CloseRows(rows)
 	if err != nil {
 		return nil, apperror.NewServerError(apperror.InternalServerError, err)
