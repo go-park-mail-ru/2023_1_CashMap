@@ -4,6 +4,8 @@ go 1.20
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
+	github.com/EdlinOrg/prominentcolor v1.0.0
+	github.com/agnivade/levenshtein v1.1.1
 	github.com/fatih/structs v1.1.0
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.9.0
@@ -29,7 +31,6 @@ require (
 )
 
 require (
-	github.com/EdlinOrg/prominentcolor v1.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
