@@ -3,7 +3,7 @@
 
 - <a href="https://github.com/frontend-park-mail-ru/2023_1_CashMap" target="_blank">Репозиторий фронтенда</a>
 
-- <a href="http://95.163.212.121:8000/" target="_blank">Деплой</a>
+- <a href="https://depeche.su" target="_blank">Деплой</a>
 
 - <a href="http://95.163.212.121:8080/swagger/index.html" target="_blank">Сваггер</a>
 
