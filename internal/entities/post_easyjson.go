@@ -58,7 +58,7 @@ func easyjson5a72dc82DecodeDepecheInternalEntities(in *jlexer.Lexer, out *Post) 
 				if out.OwnerInfo == nil {
 					out.OwnerInfo = new(UserInfo)
 				}
-				easyjson5a72dc82DecodeDepecheInternalEntities1(in, out.OwnerInfo)
+				(*out.OwnerInfo).UnmarshalEasyJSON(in)
 			}
 		case "show_author":
 			out.ShouldShowAuthor = bool(in.Bool())
@@ -138,7 +138,7 @@ func easyjson5a72dc82EncodeDepecheInternalEntities(out *jwriter.Writer, in Post)
 		if in.OwnerInfo == nil {
 			out.RawString("null")
 		} else {
-			easyjson5a72dc82EncodeDepecheInternalEntities1(out, *in.OwnerInfo)
+			(*in.OwnerInfo).MarshalEasyJSON(out)
 		}
 	}
 	{
@@ -223,175 +223,7 @@ func (v *Post) UnmarshalJSON(data []byte) error {
 func (v *Post) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson5a72dc82DecodeDepecheInternalEntities(l, v)
 }
-func easyjson5a72dc82DecodeDepecheInternalEntities1(in *jlexer.Lexer, out *UserInfo) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeFieldName(false)
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "first_name":
-			if in.IsNull() {
-				in.Skip()
-				out.FirstName = nil
-			} else {
-				if out.FirstName == nil {
-					out.FirstName = new(string)
-				}
-				*out.FirstName = string(in.String())
-			}
-		case "last_name":
-			if in.IsNull() {
-				in.Skip()
-				out.LastName = nil
-			} else {
-				if out.LastName == nil {
-					out.LastName = new(string)
-				}
-				*out.LastName = string(in.String())
-			}
-		case "avatar_url":
-			if in.IsNull() {
-				in.Skip()
-				out.AvatarUrl = nil
-			} else {
-				if out.AvatarUrl == nil {
-					out.AvatarUrl = new(string)
-				}
-				*out.AvatarUrl = string(in.String())
-			}
-		case "user_link":
-			if in.IsNull() {
-				in.Skip()
-				out.Link = nil
-			} else {
-				if out.Link == nil {
-					out.Link = new(string)
-				}
-				*out.Link = string(in.String())
-			}
-		case "isFriend":
-			if in.IsNull() {
-				in.Skip()
-				out.IsFriend = nil
-			} else {
-				if out.IsFriend == nil {
-					out.IsFriend = new(bool)
-				}
-				*out.IsFriend = bool(in.Bool())
-			}
-		case "isSubscriber":
-			if in.IsNull() {
-				in.Skip()
-				out.IsSubscriber = nil
-			} else {
-				if out.IsSubscriber == nil {
-					out.IsSubscriber = new(bool)
-				}
-				*out.IsSubscriber = bool(in.Bool())
-			}
-		case "isSubscribed":
-			if in.IsNull() {
-				in.Skip()
-				out.IsSubscribed = nil
-			} else {
-				if out.IsSubscribed == nil {
-					out.IsSubscribed = new(bool)
-				}
-				*out.IsSubscribed = bool(in.Bool())
-			}
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson5a72dc82EncodeDepecheInternalEntities1(out *jwriter.Writer, in UserInfo) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"first_name\":"
-		out.RawString(prefix[1:])
-		if in.FirstName == nil {
-			out.RawString("null")
-		} else {
-			out.String(string(*in.FirstName))
-		}
-	}
-	{
-		const prefix string = ",\"last_name\":"
-		out.RawString(prefix)
-		if in.LastName == nil {
-			out.RawString("null")
-		} else {
-			out.String(string(*in.LastName))
-		}
-	}
-	{
-		const prefix string = ",\"avatar_url\":"
-		out.RawString(prefix)
-		if in.AvatarUrl == nil {
-			out.RawString("null")
-		} else {
-			out.String(string(*in.AvatarUrl))
-		}
-	}
-	{
-		const prefix string = ",\"user_link\":"
-		out.RawString(prefix)
-		if in.Link == nil {
-			out.RawString("null")
-		} else {
-			out.String(string(*in.Link))
-		}
-	}
-	{
-		const prefix string = ",\"isFriend\":"
-		out.RawString(prefix)
-		if in.IsFriend == nil {
-			out.RawString("null")
-		} else {
-			out.Bool(bool(*in.IsFriend))
-		}
-	}
-	{
-		const prefix string = ",\"isSubscriber\":"
-		out.RawString(prefix)
-		if in.IsSubscriber == nil {
-			out.RawString("null")
-		} else {
-			out.Bool(bool(*in.IsSubscriber))
-		}
-	}
-	{
-		const prefix string = ",\"isSubscribed\":"
-		out.RawString(prefix)
-		if in.IsSubscribed == nil {
-			out.RawString("null")
-		} else {
-			out.Bool(bool(*in.IsSubscribed))
-		}
-	}
-	out.RawByte('}')
-}
-func easyjson5a72dc82DecodeDepecheInternalEntities2(in *jlexer.Lexer, out *CommunityInfo) {
+func easyjson5a72dc82DecodeDepecheInternalEntities1(in *jlexer.Lexer, out *CommunityInfo) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -460,7 +292,7 @@ func easyjson5a72dc82DecodeDepecheInternalEntities2(in *jlexer.Lexer, out *Commu
 		in.Consumed()
 	}
 }
-func easyjson5a72dc82EncodeDepecheInternalEntities2(out *jwriter.Writer, in CommunityInfo) {
+func easyjson5a72dc82EncodeDepecheInternalEntities1(out *jwriter.Writer, in CommunityInfo) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -506,23 +338,23 @@ func easyjson5a72dc82EncodeDepecheInternalEntities2(out *jwriter.Writer, in Comm
 // MarshalJSON supports json.Marshaler interface
 func (v CommunityInfo) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson5a72dc82EncodeDepecheInternalEntities2(&w, v)
+	easyjson5a72dc82EncodeDepecheInternalEntities1(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v CommunityInfo) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson5a72dc82EncodeDepecheInternalEntities2(w, v)
+	easyjson5a72dc82EncodeDepecheInternalEntities1(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *CommunityInfo) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson5a72dc82DecodeDepecheInternalEntities2(&r, v)
+	easyjson5a72dc82DecodeDepecheInternalEntities1(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *CommunityInfo) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson5a72dc82DecodeDepecheInternalEntities2(l, v)
+	easyjson5a72dc82DecodeDepecheInternalEntities1(l, v)
 }

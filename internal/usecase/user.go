@@ -5,6 +5,8 @@ import (
 	"depeche/internal/entities"
 )
 
+//go:generate mockgen --destination=mocks/user.go depeche/internal/usecase User
+
 type User interface {
 	SignIn(user *dto.SignIn) (*entities.User, error)
 	SignUp(user *dto.SignUp) (*entities.User, error)

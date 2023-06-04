@@ -1,6 +1,8 @@
 package wsPool
 
 import (
+	"depeche/internal/repository"
+	"depeche/internal/utils"
 	"depeche/pkg/apperror"
 	"errors"
 	"fmt"
@@ -10,13 +12,19 @@ import (
 	"sync"
 )
 
+type OnlineChecker interface {
+	CheckOnline(link string) bool
+}
+
 type ConnectionPool struct {
 	conns    map[string][]*websocket.Conn
 	mx       *sync.RWMutex
 	upgrader websocket.Upgrader
+
+	userRepo repository.UserRepository
 }
 
-func NewConnectionPool() *ConnectionPool {
+func NewConnectionPool(repo repository.UserRepository) *ConnectionPool {
 	return &ConnectionPool{
 		conns: make(map[string][]*websocket.Conn),
 		mx:    &sync.RWMutex{},
@@ -26,6 +34,7 @@ func NewConnectionPool() *ConnectionPool {
 				return true
 			},
 		},
+		userRepo: repo,
 	}
 }
 
@@ -97,6 +106,18 @@ func (cp *ConnectionPool) SendMsg(email string, msg []byte) error {
 	return nil
 }
 
+func (cp *ConnectionPool) CheckOnline(link string) bool {
+	user, err := cp.userRepo.GetUserByLink(link)
+	if err != nil {
+		return false
+	}
+	cp.mx.RLock()
+	defer cp.mx.RUnlock()
+	_, exists := cp.conns[user.Email]
+	fmt.Printf("user %s onilne: %t", link, exists)
+	return exists
+}
+
 func (cp *ConnectionPool) RemoveConn(email string, conn *websocket.Conn) error {
 	cp.mx.Lock()
 	defer cp.mx.Unlock()
@@ -104,6 +125,11 @@ func (cp *ConnectionPool) RemoveConn(email string, conn *websocket.Conn) error {
 		if conn == stored {
 			cp.conns[email][i] = cp.conns[email][len(cp.conns[email])-1]
 			cp.conns[email] = cp.conns[email][:len(cp.conns[email])-1]
+			if len(cp.conns[email]) == 0 {
+				delete(cp.conns, email)
+			}
+			_ = cp.userRepo.SetOffline(email, utils.CurrentTimeString())
+			fmt.Printf("user %s went offline: %s", email, utils.CurrentTimeString())
 			return nil
 		}
 	}

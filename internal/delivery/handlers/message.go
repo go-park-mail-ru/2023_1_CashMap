@@ -263,3 +263,56 @@ func (handler *MessageHandler) HasDialog(ctx *gin.Context) {
 	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
 
 }
+
+func (handler *MessageHandler) GetUnreadChatsCount(ctx *gin.Context) {
+	email, err := utils.GetEmail(ctx)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	count, err := handler.MessageUsecase.GetUnreadChatsCount(email)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	_response := response.GetUnreadChatsCountResponse{
+		Body: response.GetUnreadChatsCountBody{
+			Count: count,
+		},
+	}
+
+	responseJSON, err := _response.MarshalJSON()
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/json; charset=utf-8", responseJSON)
+}
+
+func (handler *MessageHandler) SetLastRead(ctx *gin.Context) {
+	email, err := utils.GetEmail(ctx)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	//inputDTO := new(dto.SetLastReadTime)
+	//if err := easyjson.UnmarshalFromReader(ctx.Request.Body, inputDTO); err != nil {
+	//	_ = ctx.Error(apperror.NewServerError(apperror.BadRequest, errors.New("failed to parse struct")))
+	//	return
+	//}
+	inputDTO, err := utils.GetBody[dto.SetLastReadTime](ctx)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	err = handler.MessageUsecase.SetLastRead(email, inputDTO.ChatID, inputDTO.Time)
+	if err != nil {
+		_ = ctx.Error(apperror.NewServerError(apperror.InternalServerError, err))
+		return
+	}
+}

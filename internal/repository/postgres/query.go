@@ -6,7 +6,7 @@ var (
 	select  u.id, u.link, u.email,
 	    u.first_name, u.last_name, 
 		u.sex, u.bio, u.status,
-		u.birthday, u.last_active, 
+		u.birthday, u.last_active, u.avg_avatar_color,
 		case when p.url is null 
 			then ''
 			else p.url end avatar
@@ -19,7 +19,7 @@ var (
 	    u.first_name, u.last_name, 
 		u.sex, u.bio, u.status,
 		u.birthday, u.last_active, 
-		u.password,
+		u.password, u.avg_avatar_color,
        case when p.url is null 
            then ''
            else p.url end avatar
@@ -32,7 +32,18 @@ var (
 	select u.id, u.link, u.email,
 	    u.first_name, u.last_name, 
 		u.sex, u.bio, u.status,
-		u.birthday, u.last_active, 
+		u.birthday, u.last_active, u.avg_avatar_color, 
+       case when p.url is null 
+           then ''
+           else p.url end avatar
+	from userprofile u
+         left join photo p on u.avatar_id = p.id
+	where u.link = $1
+	`
+
+	GroupManagerByLink = `
+	select u.link, 
+	    u.first_name, u.last_name, 
        case when p.url is null 
            then ''
            else p.url end avatar
@@ -45,7 +56,7 @@ var (
 	select u.id, u.link, u.email,
 	    u.first_name, u.last_name, 
 		u.sex, u.bio, u.status,
-		u.birthday, u.last_active, 
+		u.birthday, u.last_active, u.avg_avatar_color, 
 	  case when p.url is null
 	      then '' 
 	      else p.url end avatar from
@@ -61,12 +72,16 @@ var (
 	   f1.subscriber = $1
 	limit $3 offset $2
 	`
-
+	UpdateAvgAvatarHex = `
+	update userprofile 
+	set avg_avatar_color = $1
+	where email = $2
+	`
 	SubscribesById = `
 	select u.id, u.link, u.email,
 	    u.first_name, u.last_name, 
 		u.sex, u.bio, u.status,
-		u.birthday, u.last_active, 
+		u.birthday, u.last_active, u.avg_avatar_color, 
 		case when p.url is null
             then ''
         	else p.url
@@ -93,7 +108,7 @@ var (
 	select u.id, u.link, u.email,
 	    u.first_name, u.last_name, 
 		u.sex, u.bio, u.status,
-		u.birthday, u.last_active, 
+		u.birthday, u.last_active, u.avg_avatar_color, 
 		case when p.url is null
             then ''
         	else p.url
@@ -121,7 +136,7 @@ var (
 	select u.id, u.link, u.email,
 	    u.first_name, u.last_name, 
 		u.sex, u.bio, u.status,
-		u.birthday, u.last_active, 
+		u.birthday, u.last_active, u.avg_avatar_color, 
 		case when p.url is null
                 then ''
             else p.url
@@ -234,7 +249,7 @@ var (
        u.id, u.link, u.email,
        u.first_name, u.last_name,
        u.sex, u.bio, u.status,
-       u.birthday, u.last_active,
+       u.birthday, u.last_active, u.avg_avatar_color,
        case when
            p.url is null
        then
@@ -311,6 +326,12 @@ select exists(select * from friendrequests f1
 	      f2 is null and
 	      not f1.rejected)
 	`
+
+	SetOffline = `
+	update userprofile
+	set last_active = $1
+	where email = $2
+	`
 )
 
 var (
@@ -344,13 +365,39 @@ var (
 	left join photo p on u.avatar_id = p.id
 	where cm.chat_id = $1
 	`
+
+	CheckChatRead = `
+	with last_msg as
+    (select creation_date from message m where chat_id = $1 order by creation_date desc limit 1),
+last_read as
+    (select cm.last_read from chatmember cm join userprofile u on u.id = cm.user_id where u.email = $2 and cm.chat_id = $1)
+select
+    case when last_msg.creation_date > last_read.last_read then false else true end is_read
+    from last_msg cross join last_read;
+	`
+
+	GetUnreadChatCount = `
+		select count(*) from chatmember cm join userprofile u on cm.user_id = u.id
+    	join (select max(creation_date) last_msg, chat_id from message group by chat_id) msgs on msgs.chat_id  = cm.chat_id
+		where u.email = $1
+		and msgs.last_msg > cm.last_read
+	`
+
+	SetLastRead = `
+	update chatmember cm
+	set last_read = $3
+	from userprofile u join chatmember cm2 on cm2.user_id = u.id
+	where cm2.chat_id = $2 and u.email = $1
+  	and cm.chat_id = cm2.chat_id
+	and cm.user_id = cm2.user_id
+	`
 )
 
 var (
 	GroupByLink = `
 	select g.title, g.link, g.group_info info, g.privacy,
 	       g.creation_date, g.hide_author, u.link owner_link,
-	       g.is_deleted, g.subscribers,
+	       g.is_deleted, g.subscribers, g.avg_avatar_color,
 	case when p.url is null 
            then ''
            else p.url end avatar
@@ -363,7 +410,7 @@ var (
 	GroupsByUserlink = `
 	select g.title, g.link, g.group_info info, g.privacy,
 	       g.creation_date, g.hide_author, u2.link owner_link,
-	       g.is_deleted, g.subscribers,
+	       g.is_deleted, g.subscribers, g.avg_avatar_color,
 	case when p.url is null 
            then ''
            else p.url end avatar
@@ -381,7 +428,7 @@ var (
 	GroupsByUserEmail = `
 	select g.title, g.link, g.group_info info, g.privacy,
 	       g.creation_date, g.hide_author, u2.link owner_link,
-	       g.is_deleted, g.subscribers,
+	       g.is_deleted, g.subscribers, g.avg_avatar_color,
 	case when p.url is null 
            then ''
            else p.url end avatar
@@ -399,7 +446,7 @@ var (
 	GetGroups = `
 		select g.title, g.link, g.group_info info, g.privacy,
 	       g.creation_date, g.hide_author, u.link owner_link,
-	       g.is_deleted, g.subscribers,
+	       g.is_deleted, g.subscribers, g.avg_avatar_color,
 	case when p.url is null 
            then ''
            else p.url end avatar
@@ -414,7 +461,7 @@ var (
 	GetManaged = `
 	select g.title, g.link, g.group_info info, g.privacy,
 	       g.creation_date, g.hide_author, u.link owner_link,
-	       g.is_deleted, g.subscribers,
+	       g.is_deleted, g.subscribers, g.avg_avatar_color,
 	case when p.url is null 
            then ''
            else p.url end avatar
@@ -572,6 +619,11 @@ var (
 		INSERT INTO GroupManagement (user_id, group_id, user_role)
 		VALUES ((SELECT id FROM UserProfile WHERE email = $1), $2, $3)
 	`
+	UpdateAvgGroupAvatarColor = `
+	update groups 
+	set avg_avatar_color = $1
+	where link = $2
+	`
 )
 
 var (
@@ -697,6 +749,28 @@ var (
 				:init_time, :change_time)
 		RETURNING id
 	`
+
+	PostsByEmail = `
+SELECT post.id,
+			   text_content,
+			   author.link as author_link,
+			   post.likes_amount,
+			   post.show_author,
+			   post.creation_date,
+			   post.change_date,
+			   CASE WHEN like_table.post_id is null THEN FALSE ELSE TRUE END as is_liked,
+			   post.comments_amount
+		FROM Post AS post
+				 JOIN UserProfile AS author ON post.author_id = author.id
+				 LEFT JOIN groups as community on post.group_id = community.id
+				 LEFT JOIN UserProfile as owner ON post.owner_id = owner.id
+				LEFT JOIN PostLike as like_table ON like_table.user_id = (SELECT id FROM UserProfile WHERE email = $4) AND like_table.post_id = post.id
+		WHERE post.owner_id = (SELECT id FROM UserProfile WHERE email = $1)
+		  AND post.creation_date < $2
+		  AND post.is_deleted = false
+		ORDER BY post.creation_date DESC
+		LIMIT $3
+	`
 )
 
 var (
@@ -710,7 +784,10 @@ var (
 		ORDER BY msg.creation_date DESC 
 		LIMIT $3
 	`
-
+	LastChatMsg = `
+	select msg.id, msg.chat_id, msg.text_content, msg.message_content_type, msg.sticker_id, msg.creation_date, msg.change_date, msg.reply_to, msg.is_deleted
+	FROM Message AS msg where msg.chat_id = $1 order by msg.creation_date desc limit 1
+	`
 	ChatsQuery = `
 		SELECT chat.id as chat_id
 		FROM ChatMember as member
@@ -810,7 +887,7 @@ var (
 
 var (
 	GetFeedQuery = `
-	SELECT post.id,
+	SELECT distinct post.id,
        text_content,
        author.link as author_link,
        post.likes_amount,
@@ -831,10 +908,11 @@ var (
          left join userprofile owner on post.owner_id = owner.id
          left join friendrequests f on owner.id = f.subscribed
 
-         join userprofile sub on sub.id = f.subscriber or  g.user_id = sub.id
+         join userprofile sub on sub.id = f.subscriber or g.user_id = sub.id or owner.id = sub.id
 where sub.email = $1 
 and post.creation_date < $3
 and not post.is_deleted
+and (community.is_deleted is null or not community.is_deleted)
 order by creation_date DESC
 limit $2
 	`

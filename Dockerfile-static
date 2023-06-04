@@ -8,6 +8,11 @@ FROM alpine
 WORKDIR /depeche-static
 COPY --from=builder ./depeche-static .
 
+RUN mkdir "static/files"
+RUN mkdir "static/files/img"
+RUN mkdir "static/files/doc"
+RUN mkdir "static/files/sticker"
+
 EXPOSE 8082
 
 

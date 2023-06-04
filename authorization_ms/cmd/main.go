@@ -10,9 +10,11 @@ import (
 	"depeche/pkg/connector"
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 	"log"
 	"net"
+	"net/http"
 )
 
 func main() {
@@ -39,13 +41,13 @@ func main() {
 
 	prometheus.MustRegister(metrics.RequestCounter)
 	prometheus.MustRegister(metrics.DurationHistogram)
-	//http.Handle("/metrics", promhttp.Handler())
-	//go func() {
-	//	err := http.ListenAndServe(":8091", nil)
-	//	if err != nil {
-	//		log.Fatal(err)
-	//	}
-	//}()
+	http.Handle("/metrics", promhttp.Handler())
+	go func() {
+		err := http.ListenAndServe(":8091", nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.AuthMs.Port))
 	if err != nil {

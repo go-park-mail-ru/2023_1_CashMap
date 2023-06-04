@@ -5,6 +5,8 @@ import (
 	"depeche/internal/entities"
 )
 
+//go:generate mockgen --destination=mocks/user.go depeche/internal/repository UserRepository
+
 type UserRepository interface {
 	GetUser(query string, args ...interface{}) (*entities.User, error)
 
@@ -37,4 +39,8 @@ type UserRepository interface {
 
 	SearchUserByName(email string, searchDTO *dto.GlobalSearchDTO) ([]*entities.UserInfo, error)
 	SearchCommunitiesByTitle(email string, searchDTO *dto.GlobalSearchDTO) ([]*entities.CommunityInfo, error)
+
+	SubscribeOnDefaultGroup(email string) error
+	UpdateAvgAvatarColor(avgHex, email string) error
+	SetOffline(email, time string) error
 }

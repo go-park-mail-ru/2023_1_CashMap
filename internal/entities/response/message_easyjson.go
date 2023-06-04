@@ -458,7 +458,7 @@ func (v *HasDialogBody) UnmarshalJSON(data []byte) error {
 func (v *HasDialogBody) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson4086215fDecodeDepecheInternalEntitiesResponse5(l, v)
 }
-func easyjson4086215fDecodeDepecheInternalEntitiesResponse6(in *jlexer.Lexer, out *GetMessagesByChatIDResponse) {
+func easyjson4086215fDecodeDepecheInternalEntitiesResponse6(in *jlexer.Lexer, out *GetUnreadChatsCountResponse) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -489,7 +489,139 @@ func easyjson4086215fDecodeDepecheInternalEntitiesResponse6(in *jlexer.Lexer, ou
 		in.Consumed()
 	}
 }
-func easyjson4086215fEncodeDepecheInternalEntitiesResponse6(out *jwriter.Writer, in GetMessagesByChatIDResponse) {
+func easyjson4086215fEncodeDepecheInternalEntitiesResponse6(out *jwriter.Writer, in GetUnreadChatsCountResponse) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"body\":"
+		out.RawString(prefix[1:])
+		(in.Body).MarshalEasyJSON(out)
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v GetUnreadChatsCountResponse) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson4086215fEncodeDepecheInternalEntitiesResponse6(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v GetUnreadChatsCountResponse) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson4086215fEncodeDepecheInternalEntitiesResponse6(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *GetUnreadChatsCountResponse) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson4086215fDecodeDepecheInternalEntitiesResponse6(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *GetUnreadChatsCountResponse) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson4086215fDecodeDepecheInternalEntitiesResponse6(l, v)
+}
+func easyjson4086215fDecodeDepecheInternalEntitiesResponse7(in *jlexer.Lexer, out *GetUnreadChatsCountBody) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "count":
+			out.Count = int(in.Int())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson4086215fEncodeDepecheInternalEntitiesResponse7(out *jwriter.Writer, in GetUnreadChatsCountBody) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"count\":"
+		out.RawString(prefix[1:])
+		out.Int(int(in.Count))
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v GetUnreadChatsCountBody) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson4086215fEncodeDepecheInternalEntitiesResponse7(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v GetUnreadChatsCountBody) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson4086215fEncodeDepecheInternalEntitiesResponse7(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *GetUnreadChatsCountBody) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson4086215fDecodeDepecheInternalEntitiesResponse7(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *GetUnreadChatsCountBody) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson4086215fDecodeDepecheInternalEntitiesResponse7(l, v)
+}
+func easyjson4086215fDecodeDepecheInternalEntitiesResponse8(in *jlexer.Lexer, out *GetMessagesByChatIDResponse) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "body":
+			(out.Body).UnmarshalEasyJSON(in)
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson4086215fEncodeDepecheInternalEntitiesResponse8(out *jwriter.Writer, in GetMessagesByChatIDResponse) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -504,27 +636,27 @@ func easyjson4086215fEncodeDepecheInternalEntitiesResponse6(out *jwriter.Writer,
 // MarshalJSON supports json.Marshaler interface
 func (v GetMessagesByChatIDResponse) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson4086215fEncodeDepecheInternalEntitiesResponse6(&w, v)
+	easyjson4086215fEncodeDepecheInternalEntitiesResponse8(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v GetMessagesByChatIDResponse) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson4086215fEncodeDepecheInternalEntitiesResponse6(w, v)
+	easyjson4086215fEncodeDepecheInternalEntitiesResponse8(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *GetMessagesByChatIDResponse) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson4086215fDecodeDepecheInternalEntitiesResponse6(&r, v)
+	easyjson4086215fDecodeDepecheInternalEntitiesResponse8(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *GetMessagesByChatIDResponse) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson4086215fDecodeDepecheInternalEntitiesResponse6(l, v)
+	easyjson4086215fDecodeDepecheInternalEntitiesResponse8(l, v)
 }
-func easyjson4086215fDecodeDepecheInternalEntitiesResponse7(in *jlexer.Lexer, out *GetMessagesByChatIDBody) {
+func easyjson4086215fDecodeDepecheInternalEntitiesResponse9(in *jlexer.Lexer, out *GetMessagesByChatIDBody) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -586,7 +718,7 @@ func easyjson4086215fDecodeDepecheInternalEntitiesResponse7(in *jlexer.Lexer, ou
 		in.Consumed()
 	}
 }
-func easyjson4086215fEncodeDepecheInternalEntitiesResponse7(out *jwriter.Writer, in GetMessagesByChatIDBody) {
+func easyjson4086215fEncodeDepecheInternalEntitiesResponse9(out *jwriter.Writer, in GetMessagesByChatIDBody) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -621,27 +753,27 @@ func easyjson4086215fEncodeDepecheInternalEntitiesResponse7(out *jwriter.Writer,
 // MarshalJSON supports json.Marshaler interface
 func (v GetMessagesByChatIDBody) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson4086215fEncodeDepecheInternalEntitiesResponse7(&w, v)
+	easyjson4086215fEncodeDepecheInternalEntitiesResponse9(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v GetMessagesByChatIDBody) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson4086215fEncodeDepecheInternalEntitiesResponse7(w, v)
+	easyjson4086215fEncodeDepecheInternalEntitiesResponse9(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *GetMessagesByChatIDBody) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson4086215fDecodeDepecheInternalEntitiesResponse7(&r, v)
+	easyjson4086215fDecodeDepecheInternalEntitiesResponse9(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *GetMessagesByChatIDBody) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson4086215fDecodeDepecheInternalEntitiesResponse7(l, v)
+	easyjson4086215fDecodeDepecheInternalEntitiesResponse9(l, v)
 }
-func easyjson4086215fDecodeDepecheInternalEntitiesResponse8(in *jlexer.Lexer, out *GetChatsResponse) {
+func easyjson4086215fDecodeDepecheInternalEntitiesResponse10(in *jlexer.Lexer, out *GetChatsResponse) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -672,7 +804,7 @@ func easyjson4086215fDecodeDepecheInternalEntitiesResponse8(in *jlexer.Lexer, ou
 		in.Consumed()
 	}
 }
-func easyjson4086215fEncodeDepecheInternalEntitiesResponse8(out *jwriter.Writer, in GetChatsResponse) {
+func easyjson4086215fEncodeDepecheInternalEntitiesResponse10(out *jwriter.Writer, in GetChatsResponse) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -687,27 +819,27 @@ func easyjson4086215fEncodeDepecheInternalEntitiesResponse8(out *jwriter.Writer,
 // MarshalJSON supports json.Marshaler interface
 func (v GetChatsResponse) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson4086215fEncodeDepecheInternalEntitiesResponse8(&w, v)
+	easyjson4086215fEncodeDepecheInternalEntitiesResponse10(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v GetChatsResponse) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson4086215fEncodeDepecheInternalEntitiesResponse8(w, v)
+	easyjson4086215fEncodeDepecheInternalEntitiesResponse10(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *GetChatsResponse) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson4086215fDecodeDepecheInternalEntitiesResponse8(&r, v)
+	easyjson4086215fDecodeDepecheInternalEntitiesResponse10(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *GetChatsResponse) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson4086215fDecodeDepecheInternalEntitiesResponse8(l, v)
+	easyjson4086215fDecodeDepecheInternalEntitiesResponse10(l, v)
 }
-func easyjson4086215fDecodeDepecheInternalEntitiesResponse9(in *jlexer.Lexer, out *GetChatsBody) {
+func easyjson4086215fDecodeDepecheInternalEntitiesResponse11(in *jlexer.Lexer, out *GetChatsBody) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -767,7 +899,7 @@ func easyjson4086215fDecodeDepecheInternalEntitiesResponse9(in *jlexer.Lexer, ou
 		in.Consumed()
 	}
 }
-func easyjson4086215fEncodeDepecheInternalEntitiesResponse9(out *jwriter.Writer, in GetChatsBody) {
+func easyjson4086215fEncodeDepecheInternalEntitiesResponse11(out *jwriter.Writer, in GetChatsBody) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -797,23 +929,23 @@ func easyjson4086215fEncodeDepecheInternalEntitiesResponse9(out *jwriter.Writer,
 // MarshalJSON supports json.Marshaler interface
 func (v GetChatsBody) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson4086215fEncodeDepecheInternalEntitiesResponse9(&w, v)
+	easyjson4086215fEncodeDepecheInternalEntitiesResponse11(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v GetChatsBody) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson4086215fEncodeDepecheInternalEntitiesResponse9(w, v)
+	easyjson4086215fEncodeDepecheInternalEntitiesResponse11(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *GetChatsBody) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson4086215fDecodeDepecheInternalEntitiesResponse9(&r, v)
+	easyjson4086215fDecodeDepecheInternalEntitiesResponse11(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *GetChatsBody) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson4086215fDecodeDepecheInternalEntitiesResponse9(l, v)
+	easyjson4086215fDecodeDepecheInternalEntitiesResponse11(l, v)
 }

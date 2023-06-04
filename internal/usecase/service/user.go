@@ -1,7 +1,9 @@
 package service
 
 import (
+	"depeche/internal/color"
 	"depeche/internal/delivery/dto"
+	"depeche/internal/delivery/wsPool"
 	"depeche/internal/entities"
 	"depeche/internal/repository"
 	"depeche/internal/usecase"
@@ -14,12 +16,16 @@ import (
 )
 
 type UserService struct {
-	repo repository.UserRepository
+	repo   repository.UserRepository
+	color  color.AvgColorUsecase
+	online wsPool.OnlineChecker
 }
 
-func NewUserService(repo repository.UserRepository) usecase.User {
+func NewUserService(repo repository.UserRepository, color color.AvgColorUsecase, online wsPool.OnlineChecker) usecase.User {
 	return &UserService{
-		repo: repo,
+		repo:   repo,
+		color:  color,
+		online: online,
 	}
 }
 
@@ -64,6 +70,8 @@ func (us *UserService) SignUp(user *dto.SignUp) (*entities.User, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	//_ = us.repo.SubscribeOnDefaultGroup(user.Email)
 	return stored, nil
 }
 
@@ -84,7 +92,9 @@ func (us *UserService) GetProfileByLink(email string, link string) (*entities.Us
 	if err != nil {
 		return nil, err
 	}
-
+	if us.online.CheckOnline(link) {
+		user.LastActive = "now"
+	}
 	return user, nil
 }
 
@@ -97,7 +107,6 @@ func (us *UserService) GetAllUsers(email string, limit, offset int) ([]*entities
 }
 
 func (us *UserService) EditProfile(email string, profile *dto.EditProfile) error {
-
 	if profile.NewPassword != nil {
 		user, err := us.repo.GetUserByEmail(email)
 		if err != nil {
@@ -117,7 +126,14 @@ func (us *UserService) EditProfile(email string, profile *dto.EditProfile) error
 		if err != nil {
 			return err
 		}
+		avgColor, err := us.color.AverageColor(*profile.Avatar)
+		if err != nil {
+			_ = us.repo.UpdateAvgAvatarColor("", email)
+		} else {
+			_ = us.repo.UpdateAvgAvatarColor(avgColor, email)
+		}
 		profile.Avatar = nil
+
 	}
 
 	// TODO validate errors

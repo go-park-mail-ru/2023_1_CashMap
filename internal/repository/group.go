@@ -5,6 +5,8 @@ import (
 	"depeche/internal/entities"
 )
 
+//go:generate mockgen --destination=mocks/group.go depeche/internal/repository Group
+
 type Group interface {
 	GetGroupByLink(link string) (*entities.Group, error)
 	GetUserGroupsByLink(link string, limit int, offset int) ([]*entities.Group, error)
@@ -28,6 +30,9 @@ type Group interface {
 	IsOwner(userEmail, groupLink string) (bool, error)
 	CheckSub(email, groupLink string) (bool, error)
 	CheckAdmin(email, groupLink string) (bool, error)
+
+	UpdateAvgGroupAvatarColor(color, link string) error
+
 	// TODO добавить права доступа к группе
 	// Grants(userEmail, groupLink string)
 	// AddManager(manager *dto.AddManager) error

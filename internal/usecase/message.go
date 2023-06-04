@@ -5,6 +5,8 @@ import (
 	"depeche/internal/entities"
 )
 
+//go:generate mockgen --destination=mocks/message.go depeche/internal/usecase MessageUsecase
+
 type MessageUsecase interface {
 	GetMessagesByChatID(senderEmail string, dto *dto.GetMessagesDTO) ([]*entities.Message, bool, error)
 	GetChatsList(senderEmail string, dto *dto.GetChatsDTO) ([]*entities.Chat, error)
@@ -12,4 +14,6 @@ type MessageUsecase interface {
 	HasDialog(senderEmail string, dto *dto.HasDialogDTO) (*int, error)
 	Send(email string, message *dto.NewMessageDTO) (*entities.Message, error)
 	GetMembersByChatId(chatId uint) ([]*entities.User, error)
+	GetUnreadChatsCount(email string) (int, error)
+	SetLastRead(email string, chatID int, time string) error
 }

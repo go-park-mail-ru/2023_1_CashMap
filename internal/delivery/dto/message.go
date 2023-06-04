@@ -1,5 +1,7 @@
 package dto
 
+//go:generate easyjson --all message.go
+
 type NewMessageDTO struct {
 	UserId      uint     `json:"-"`
 	ChatId      uint     `json:"chat_id"`
@@ -27,4 +29,9 @@ type GetChatsDTO struct {
 
 type HasDialogDTO struct {
 	UserLink *string `form:"user_link" json:"user_link" valid:"required"`
+}
+
+type SetLastReadTime struct {
+	ChatID int    `json:"chat_id"`
+	Time   string `json:"time"`
 }

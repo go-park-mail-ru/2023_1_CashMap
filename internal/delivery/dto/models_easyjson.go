@@ -270,6 +270,8 @@ func easyjsonD2b7633eDecodeDepecheInternalDeliveryDto3(in *jlexer.Lexer, out *Pr
 			out.LastName = string(in.String())
 		case "avatar_url":
 			out.Avatar = string(in.String())
+		case "avg_avatar_color":
+			out.AvgColor = string(in.String())
 		case "sex":
 			out.Sex = string(in.String())
 		case "status":
@@ -317,6 +319,11 @@ func easyjsonD2b7633eEncodeDepecheInternalDeliveryDto3(out *jwriter.Writer, in P
 		const prefix string = ",\"avatar_url\":"
 		out.RawString(prefix)
 		out.String(string(in.Avatar))
+	}
+	{
+		const prefix string = ",\"avg_avatar_color\":"
+		out.RawString(prefix)
+		out.String(string(in.AvgColor))
 	}
 	{
 		const prefix string = ",\"sex\":"

@@ -17,7 +17,80 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjson4086215fDecodeDepecheInternalDeliveryDto(in *jlexer.Lexer, out *NewMessageDTO) {
+func easyjson4086215fDecodeDepecheInternalDeliveryDto(in *jlexer.Lexer, out *SetLastReadTime) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "chat_id":
+			out.ChatID = int(in.Int())
+		case "time":
+			out.Time = string(in.String())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson4086215fEncodeDepecheInternalDeliveryDto(out *jwriter.Writer, in SetLastReadTime) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"chat_id\":"
+		out.RawString(prefix[1:])
+		out.Int(int(in.ChatID))
+	}
+	{
+		const prefix string = ",\"time\":"
+		out.RawString(prefix)
+		out.String(string(in.Time))
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v SetLastReadTime) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson4086215fEncodeDepecheInternalDeliveryDto(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v SetLastReadTime) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson4086215fEncodeDepecheInternalDeliveryDto(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *SetLastReadTime) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson4086215fDecodeDepecheInternalDeliveryDto(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *SetLastReadTime) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson4086215fDecodeDepecheInternalDeliveryDto(l, v)
+}
+func easyjson4086215fDecodeDepecheInternalDeliveryDto1(in *jlexer.Lexer, out *NewMessageDTO) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -95,7 +168,7 @@ func easyjson4086215fDecodeDepecheInternalDeliveryDto(in *jlexer.Lexer, out *New
 		in.Consumed()
 	}
 }
-func easyjson4086215fEncodeDepecheInternalDeliveryDto(out *jwriter.Writer, in NewMessageDTO) {
+func easyjson4086215fEncodeDepecheInternalDeliveryDto1(out *jwriter.Writer, in NewMessageDTO) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -159,27 +232,27 @@ func easyjson4086215fEncodeDepecheInternalDeliveryDto(out *jwriter.Writer, in Ne
 // MarshalJSON supports json.Marshaler interface
 func (v NewMessageDTO) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson4086215fEncodeDepecheInternalDeliveryDto(&w, v)
+	easyjson4086215fEncodeDepecheInternalDeliveryDto1(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v NewMessageDTO) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson4086215fEncodeDepecheInternalDeliveryDto(w, v)
+	easyjson4086215fEncodeDepecheInternalDeliveryDto1(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *NewMessageDTO) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson4086215fDecodeDepecheInternalDeliveryDto(&r, v)
+	easyjson4086215fDecodeDepecheInternalDeliveryDto1(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *NewMessageDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson4086215fDecodeDepecheInternalDeliveryDto(l, v)
+	easyjson4086215fDecodeDepecheInternalDeliveryDto1(l, v)
 }
-func easyjson4086215fDecodeDepecheInternalDeliveryDto1(in *jlexer.Lexer, out *HasDialogDTO) {
+func easyjson4086215fDecodeDepecheInternalDeliveryDto2(in *jlexer.Lexer, out *HasDialogDTO) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -218,7 +291,7 @@ func easyjson4086215fDecodeDepecheInternalDeliveryDto1(in *jlexer.Lexer, out *Ha
 		in.Consumed()
 	}
 }
-func easyjson4086215fEncodeDepecheInternalDeliveryDto1(out *jwriter.Writer, in HasDialogDTO) {
+func easyjson4086215fEncodeDepecheInternalDeliveryDto2(out *jwriter.Writer, in HasDialogDTO) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -237,27 +310,27 @@ func easyjson4086215fEncodeDepecheInternalDeliveryDto1(out *jwriter.Writer, in H
 // MarshalJSON supports json.Marshaler interface
 func (v HasDialogDTO) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson4086215fEncodeDepecheInternalDeliveryDto1(&w, v)
+	easyjson4086215fEncodeDepecheInternalDeliveryDto2(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v HasDialogDTO) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson4086215fEncodeDepecheInternalDeliveryDto1(w, v)
+	easyjson4086215fEncodeDepecheInternalDeliveryDto2(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *HasDialogDTO) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson4086215fDecodeDepecheInternalDeliveryDto1(&r, v)
+	easyjson4086215fDecodeDepecheInternalDeliveryDto2(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *HasDialogDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson4086215fDecodeDepecheInternalDeliveryDto1(l, v)
+	easyjson4086215fDecodeDepecheInternalDeliveryDto2(l, v)
 }
-func easyjson4086215fDecodeDepecheInternalDeliveryDto2(in *jlexer.Lexer, out *GetMessagesDTO) {
+func easyjson4086215fDecodeDepecheInternalDeliveryDto3(in *jlexer.Lexer, out *GetMessagesDTO) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -316,7 +389,7 @@ func easyjson4086215fDecodeDepecheInternalDeliveryDto2(in *jlexer.Lexer, out *Ge
 		in.Consumed()
 	}
 }
-func easyjson4086215fEncodeDepecheInternalDeliveryDto2(out *jwriter.Writer, in GetMessagesDTO) {
+func easyjson4086215fEncodeDepecheInternalDeliveryDto3(out *jwriter.Writer, in GetMessagesDTO) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -353,27 +426,27 @@ func easyjson4086215fEncodeDepecheInternalDeliveryDto2(out *jwriter.Writer, in G
 // MarshalJSON supports json.Marshaler interface
 func (v GetMessagesDTO) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson4086215fEncodeDepecheInternalDeliveryDto2(&w, v)
+	easyjson4086215fEncodeDepecheInternalDeliveryDto3(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v GetMessagesDTO) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson4086215fEncodeDepecheInternalDeliveryDto2(w, v)
+	easyjson4086215fEncodeDepecheInternalDeliveryDto3(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *GetMessagesDTO) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson4086215fDecodeDepecheInternalDeliveryDto2(&r, v)
+	easyjson4086215fDecodeDepecheInternalDeliveryDto3(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *GetMessagesDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson4086215fDecodeDepecheInternalDeliveryDto2(l, v)
+	easyjson4086215fDecodeDepecheInternalDeliveryDto3(l, v)
 }
-func easyjson4086215fDecodeDepecheInternalDeliveryDto3(in *jlexer.Lexer, out *GetChatsDTO) {
+func easyjson4086215fDecodeDepecheInternalDeliveryDto4(in *jlexer.Lexer, out *GetChatsDTO) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -422,7 +495,7 @@ func easyjson4086215fDecodeDepecheInternalDeliveryDto3(in *jlexer.Lexer, out *Ge
 		in.Consumed()
 	}
 }
-func easyjson4086215fEncodeDepecheInternalDeliveryDto3(out *jwriter.Writer, in GetChatsDTO) {
+func easyjson4086215fEncodeDepecheInternalDeliveryDto4(out *jwriter.Writer, in GetChatsDTO) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -450,27 +523,27 @@ func easyjson4086215fEncodeDepecheInternalDeliveryDto3(out *jwriter.Writer, in G
 // MarshalJSON supports json.Marshaler interface
 func (v GetChatsDTO) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson4086215fEncodeDepecheInternalDeliveryDto3(&w, v)
+	easyjson4086215fEncodeDepecheInternalDeliveryDto4(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v GetChatsDTO) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson4086215fEncodeDepecheInternalDeliveryDto3(w, v)
+	easyjson4086215fEncodeDepecheInternalDeliveryDto4(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *GetChatsDTO) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson4086215fDecodeDepecheInternalDeliveryDto3(&r, v)
+	easyjson4086215fDecodeDepecheInternalDeliveryDto4(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *GetChatsDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson4086215fDecodeDepecheInternalDeliveryDto3(l, v)
+	easyjson4086215fDecodeDepecheInternalDeliveryDto4(l, v)
 }
-func easyjson4086215fDecodeDepecheInternalDeliveryDto4(in *jlexer.Lexer, out *CreateChatDTO) {
+func easyjson4086215fDecodeDepecheInternalDeliveryDto5(in *jlexer.Lexer, out *CreateChatDTO) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -522,7 +595,7 @@ func easyjson4086215fDecodeDepecheInternalDeliveryDto4(in *jlexer.Lexer, out *Cr
 		in.Consumed()
 	}
 }
-func easyjson4086215fEncodeDepecheInternalDeliveryDto4(out *jwriter.Writer, in CreateChatDTO) {
+func easyjson4086215fEncodeDepecheInternalDeliveryDto5(out *jwriter.Writer, in CreateChatDTO) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -548,23 +621,23 @@ func easyjson4086215fEncodeDepecheInternalDeliveryDto4(out *jwriter.Writer, in C
 // MarshalJSON supports json.Marshaler interface
 func (v CreateChatDTO) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson4086215fEncodeDepecheInternalDeliveryDto4(&w, v)
+	easyjson4086215fEncodeDepecheInternalDeliveryDto5(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v CreateChatDTO) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson4086215fEncodeDepecheInternalDeliveryDto4(w, v)
+	easyjson4086215fEncodeDepecheInternalDeliveryDto5(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *CreateChatDTO) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson4086215fDecodeDepecheInternalDeliveryDto4(&r, v)
+	easyjson4086215fDecodeDepecheInternalDeliveryDto5(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *CreateChatDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson4086215fDecodeDepecheInternalDeliveryDto4(l, v)
+	easyjson4086215fDecodeDepecheInternalDeliveryDto5(l, v)
 }

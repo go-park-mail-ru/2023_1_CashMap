@@ -4,13 +4,18 @@ import (
 	"depeche/internal/delivery/dto"
 	"depeche/internal/entities"
 	mock_repository "depeche/internal/repository/mocks"
+	"depeche/internal/utils"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
 
-var msgText = "someText"
-var userID uint = 1
+var (
+	msgText        = "someText"
+	createdAt      = utils.CurrentTimeString()
+	userID    uint = 1
+	chatID    uint = 1
+)
 
 func TestMessageService_Send(t *testing.T) {
 	tests := []struct {
@@ -43,13 +48,17 @@ func TestMessageService_Send(t *testing.T) {
 
 			SetupMessageMock: func(repo *mock_repository.MockMessageRepository, email string, dto *dto.NewMessageDTO) {
 				var id uint = 1
-				repo.EXPECT().SaveMsg(dto).Return(&entities.Message{
-					Text:   &msgText,
-					UserId: &userID,
-					Id:     &id,
-				}, nil).AnyTimes()
+				returned := &entities.Message{
+					Text:      &msgText,
+					UserId:    &userID,
+					Id:        &id,
+					CreatedAt: &createdAt,
+					ChatId:    &chatID,
+				}
+				repo.EXPECT().SaveMsg(dto).Return(returned, nil).AnyTimes()
 
 				repo.EXPECT().GetUserInfoByMessageId(id).Return(&entities.UserInfo{}, nil).AnyTimes()
+				repo.EXPECT().SetLastRead(email, int(*returned.ChatId), *returned.CreatedAt)
 			},
 
 			SetupUserMock: func(repo *mock_repository.MockUserRepository, email string) {

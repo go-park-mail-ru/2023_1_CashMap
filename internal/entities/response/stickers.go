@@ -5,6 +5,8 @@ import (
 	"depeche/internal/entities"
 )
 
+//go:generate easyjson --all stickers.go
+
 type GetStickerByIdResponse struct {
 	Body GetStickerByIdBody `json:"body"`
 }

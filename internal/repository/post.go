@@ -5,6 +5,8 @@ import (
 	"depeche/internal/entities"
 )
 
+//go:generate mockgen --destination=mocks/post.go depeche/internal/repository PostRepository
+
 type PostRepository interface {
 	SelectPostById(postId uint, email string) (*entities.Post, error)
 	SelectPostsByCommunityLink(info *dto.PostsGetByLink, email string) ([]*entities.Post, error)

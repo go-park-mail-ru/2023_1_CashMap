@@ -5,6 +5,8 @@ import (
 	"depeche/internal/entities"
 )
 
+//go:generate easyjson --all user.go
+
 type SignInRequest struct {
 	Body *dto.SignIn `json:"body"`
 }

@@ -308,6 +308,20 @@ func (mr *MockUserRepositoryMockRecorder) SearchUserByName(arg0, arg1 interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchUserByName", reflect.TypeOf((*MockUserRepository)(nil).SearchUserByName), arg0, arg1)
 }
 
+// SetOffline mocks base method.
+func (m *MockUserRepository) SetOffline(arg0, arg1 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetOffline", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetOffline indicates an expected call of SetOffline.
+func (mr *MockUserRepositoryMockRecorder) SetOffline(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetOffline", reflect.TypeOf((*MockUserRepository)(nil).SetOffline), arg0, arg1)
+}
+
 // Subscribe mocks base method.
 func (m *MockUserRepository) Subscribe(arg0, arg1, arg2 string) (bool, error) {
 	m.ctrl.T.Helper()
@@ -321,6 +335,20 @@ func (m *MockUserRepository) Subscribe(arg0, arg1, arg2 string) (bool, error) {
 func (mr *MockUserRepositoryMockRecorder) Subscribe(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Subscribe", reflect.TypeOf((*MockUserRepository)(nil).Subscribe), arg0, arg1, arg2)
+}
+
+// SubscribeOnDefaultGroup mocks base method.
+func (m *MockUserRepository) SubscribeOnDefaultGroup(arg0 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SubscribeOnDefaultGroup", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SubscribeOnDefaultGroup indicates an expected call of SubscribeOnDefaultGroup.
+func (mr *MockUserRepositoryMockRecorder) SubscribeOnDefaultGroup(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeOnDefaultGroup", reflect.TypeOf((*MockUserRepository)(nil).SubscribeOnDefaultGroup), arg0)
 }
 
 // Unsubscribe mocks base method.
@@ -350,6 +378,20 @@ func (m *MockUserRepository) UpdateAvatar(arg0, arg1 string) error {
 func (mr *MockUserRepositoryMockRecorder) UpdateAvatar(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAvatar", reflect.TypeOf((*MockUserRepository)(nil).UpdateAvatar), arg0, arg1)
+}
+
+// UpdateAvgAvatarColor mocks base method.
+func (m *MockUserRepository) UpdateAvgAvatarColor(arg0, arg1 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAvgAvatarColor", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateAvgAvatarColor indicates an expected call of UpdateAvgAvatarColor.
+func (mr *MockUserRepositoryMockRecorder) UpdateAvgAvatarColor(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAvgAvatarColor", reflect.TypeOf((*MockUserRepository)(nil).UpdateAvgAvatarColor), arg0, arg1)
 }
 
 // UpdateUser mocks base method.

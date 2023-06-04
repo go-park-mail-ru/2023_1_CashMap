@@ -10,6 +10,7 @@ import (
 	"depeche/pkg/apperror"
 	"errors"
 	"github.com/asaskevich/govalidator"
+	"sort"
 )
 
 type MessageService struct {
@@ -49,6 +50,8 @@ func (service *MessageService) Send(email string, message *dto.NewMessageDTO) (*
 		}
 		msg.Attachments = message.Attachments
 	}
+
+	_ = service.MessageRepository.SetLastRead(email, int(*msg.ChatId), *msg.CreatedAt)
 
 	return msg, nil
 }
@@ -105,7 +108,21 @@ func (service *MessageService) GetChatsList(senderEmail string, dto *dto.GetChat
 		*dto.Offset = 0
 	}
 
-	return service.MessageRepository.SelectChats(senderEmail, dto)
+	chats, err := service.MessageRepository.SelectChats(senderEmail, dto)
+	if err != nil {
+		return nil, err
+	}
+	for _, chat := range chats {
+		read, _ := service.MessageRepository.CheckRead(senderEmail, chat.ChatID)
+		chat.Read = read
+		lastMsg, _ := service.MessageRepository.LastChatMsg(int(chat.ChatID))
+		chat.LastMsg = *lastMsg
+	}
+
+	sort.Slice(chats, func(i, j int) bool {
+		return *chats[j].LastMsg.CreatedAt < *chats[i].LastMsg.CreatedAt
+	})
+	return chats, nil
 }
 
 func (service *MessageService) CreateChat(senderEmail string, dto *dto.CreateChatDTO) (*entities.Chat, error) {
@@ -142,4 +159,12 @@ func (service *MessageService) HasDialog(senderEmail string, dto *dto.HasDialogD
 		return nil, errors.New("invalid struct")
 	}
 	return service.MessageRepository.HasDialog(senderEmail, dto)
+}
+
+func (service *MessageService) GetUnreadChatsCount(email string) (int, error) {
+	return service.MessageRepository.GetUnreadChatsCount(email)
+}
+
+func (service *MessageService) SetLastRead(email string, chatID int, time string) error {
+	return service.MessageRepository.SetLastRead(email, chatID, time)
 }

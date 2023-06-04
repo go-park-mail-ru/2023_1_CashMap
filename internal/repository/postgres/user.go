@@ -594,8 +594,34 @@ func (ur *UserRepository) SearchCommunitiesByTitle(email string, searchDTO *dto.
 	return communities, nil
 }
 
+const DEPECHE_GROUP_LINK = "id4"
+
+func (ur *UserRepository) SubscribeOnDefaultGroup(email string) error {
+	_, err := ur.DB.Exec(GroupSubscribe, email, DEPECHE_GROUP_LINK)
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	return nil
+}
+
 type communityForSearch struct {
 	ID       uint   `db:"id"`
 	Title    string `db:"title"`
 	Distance float64
+}
+
+func (ur *UserRepository) UpdateAvgAvatarColor(avgHex, email string) error {
+	_, err := ur.DB.Exec(UpdateAvgAvatarHex, avgHex, email)
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	return nil
+}
+
+func (ur *UserRepository) SetOffline(email, time string) error {
+	_, err := ur.DB.Exec(SetOffline, time, email)
+	if err != nil {
+		return apperror.NewServerError(apperror.InternalServerError, err)
+	}
+	return nil
 }
