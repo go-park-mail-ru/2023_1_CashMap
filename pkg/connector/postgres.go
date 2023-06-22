@@ -9,6 +9,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/sethvargo/go-retry"
+	"runtime"
 	"strconv"
 	"time"
 )
@@ -74,10 +75,15 @@ func GetPostgresConnector(cfg *PostgresConfig) (*sql.DB, error) {
 		return nil, err
 	}
 
-	// TODO: Нужно оптимизировать динамически максимальное число открытых соеднинений (и idle - тоже)
-	db.SetMaxOpenConns(10)
-	//db.SetMaxIdleConns()
-	//db.SetConnMaxIdleTime()
+	// Управление открытыми соединениями
+	// Использование пула коннектов
+	const OPEN_CONS_FACTOR = 3
+	var cons = runtime.NumCPU()
+	db.SetMaxOpenConns(cons * OPEN_CONS_FACTOR)
+	db.SetMaxIdleConns(cons)
+	db.SetConnMaxIdleTime(10 * time.Second)
+	db.SetConnMaxLifetime(0)
+
 	return db, nil
 }
 

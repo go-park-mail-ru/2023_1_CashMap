@@ -6,6 +6,7 @@ session:
   db: 0
 db:
   host: "postgres"
+  user: "depeche"
   port: 5432
   database: "depeche_db"
 auth_ms:

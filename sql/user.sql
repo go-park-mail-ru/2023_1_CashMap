@@ -1,0 +1,10 @@
+CREATE ROLE depeche
+    LOGIN
+    PASSWORD ${POSTGRES_PASSWORD};
+
+GRANT
+    INSERT, SELECT, UPDATE
+ON
+    ALL TABLES IN SCHEMA public
+TO
+    depeche;
