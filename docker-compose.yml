@@ -15,6 +15,9 @@ services:
         condition: service_started
       static:
         condition: service_started
+    networks:
+      my_network:
+        ipv4_address: 172.28.0.0
 
   redis:
     image: redis:latest
@@ -25,6 +28,9 @@ services:
       - "6379:6379"
     command: >
       --requirepass ${REDIS_PASS}
+    networks:
+      my_network:
+        ipv4_address: 172.28.0.1
 
   postgres:
     image: postgres:15-alpine
@@ -52,6 +58,9 @@ services:
       retries: 5
       start_period: 10s
     restart: always
+    networks:
+      my_network:
+        ipv4_address: 172.28.0.2
 
   auth:
     container_name: depeche_auth_ms
@@ -66,6 +75,9 @@ services:
     depends_on:
       redis:
         condition: service_started
+    networks:
+      my_network:
+        ipv4_address: 172.28.0.3
 
 
   static:
@@ -83,7 +95,19 @@ services:
     volumes:
       - ./static/files/sticker:/depeche-static/static/files/sticker
       - static_files:/depeche-static/static
+    networks:
+      my_network:
+        ipv4_address: 172.28.0.4
 
 volumes:
   db_data:
   static_files:
+
+
+networks:
+  my_network:
+    name: seekers_network
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+          gateway: 172.28.0.4
