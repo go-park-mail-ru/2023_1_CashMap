@@ -16,8 +16,8 @@ CREATE TABLE Photo
 CREATE TABLE UserProfile
 (
     id              serial,
-    email           text     NOT NULL UNIQUE,
-    link            text UNIQUE DEFAULT '',
+    email           text     NOT NULL UNIQUE, -- email ипользуется для входа, поэтому должен быть уникальным
+    link            text UNIQUE DEFAULT '', -- линк должен быть уникальным
     first_name      text              DEFAULT '',
     last_name       text              DEFAULT '',
     password        text     NOT NULL,
@@ -71,7 +71,7 @@ CREATE TABLE groups
 (
     id            serial,
     title         text    NOT NULL,
-    link          text    UNIQUE,
+    link          text    UNIQUE, -- линк должен быть уникальным
     owner_id      int REFERENCES UserProfile(id),
     avatar_id     int REFERENCES Photo (id),
     avg_avatar_color text default '',
@@ -105,7 +105,7 @@ CREATE TABLE GroupSubscriber
     user_id      int REFERENCES UserProfile (id),
     group_id int REFERENCES groups (id),
     accepted bool default true,
-    unique (user_id, group_id)
+    unique (user_id, group_id) -- подписаться можно лишь однократно
 );
 
 
@@ -165,7 +165,7 @@ CREATE TABLE PostLike
 (
     user_id int REFERENCES UserProfile (id),
     post_id int REFERENCES Post (id),
-    UNIQUE (user_id, post_id)
+    UNIQUE (user_id, post_id) -- лайкнуть можно лишь однократно
 );
 
 
@@ -266,7 +266,7 @@ CREATE TABLE ChatMember
     user_id int REFERENCES UserProfile (id),
     last_read text default '',
     role    text DEFAULT 'member' CHECK ( role in ('member', 'admin') ),
-    UNIQUE (chat_id, user_id)
+    UNIQUE (chat_id, user_id) -- участником чата можно быть лишь однократно
 );
 
 
@@ -336,7 +336,7 @@ CREATE TABLE userstickerpack
 (
     user_id int references userprofile(id),
     pack_id int references stickerpack(id),
-    unique (user_id, pack_id)
+    unique (user_id, pack_id) -- один стикер пак можно добавить лишь однократно
 );
 
 
@@ -349,7 +349,7 @@ CREATE TABLE FriendRequests
     subscribed   serial references userprofile (id),
     request_time text,
     rejected     boolean default false,
-    unique (subscriber, subscribed)
+    unique (subscriber, subscribed) -- можно отправить одному человеку лишь одну заявку в друзья
 );
 
 CREATE OR REPLACE FUNCTION increase_subscribers_count()
@@ -506,3 +506,58 @@ values ('6/ezh_1.webp', 6),
        ('6/ezh_8.webp', 6),
        ('6/ezh_9.webp', 6),
        ('6/ezh_10.webp', 6);
+
+
+
+-- индекс для запроса https://github.com/go-park-mail-ru/2023_1_CashMap/blob/bc0a30922f148f4150dfa3caa6c7718bcbbcdabb/internal/repository/postgres/query.go#L31
+CREATE INDEX IF NOT EXISTS user_link_idx
+    ON UserProfile(link);
+
+-- индекс для запроса https://github.com/go-park-mail-ru/2023_1_CashMap/blob/bc0a30922f148f4150dfa3caa6c7718bcbbcdabb/internal/repository/postgres/query.go#L17
+CREATE INDEX IF NOT EXISTS user_email_idx
+    ON UserProfile(email);
+
+-- индекс для оптимизации запроса https://github.com/go-park-mail-ru/2023_1_CashMap/blob/bc0a30922f148f4150dfa3caa6c7718bcbbcdabb/internal/repository/postgres/query.go#L1050
+CREATE INDEX IF NOT EXISTS comment_creation_date_idx
+    ON Comment(creation_date);
+
+-- индекс для оптимизации запросов
+-- https://github.com/go-park-mail-ru/2023_1_CashMap/blob/bc0a30922f148f4150dfa3caa6c7718bcbbcdabb/internal/repository/postgres/query.go#L703
+-- https://github.com/go-park-mail-ru/2023_1_CashMap/blob/bc0a30922f148f4150dfa3caa6c7718bcbbcdabb/internal/repository/postgres/query.go#L724
+-- https://github.com/go-park-mail-ru/2023_1_CashMap/blob/bc0a30922f148f4150dfa3caa6c7718bcbbcdabb/internal/repository/postgres/query.go#L753
+CREATE INDEX IF NOT EXISTS post_creation_date_idx
+    ON Post(creation_date);
+
+-- индекс для оптимизации запросов
+-- https://github.com/go-park-mail-ru/2023_1_CashMap/blob/bc0a30922f148f4150dfa3caa6c7718bcbbcdabb/internal/repository/postgres/query.go#L777
+CREATE INDEX IF NOT EXISTS message_creation_date_idx
+    ON Message(creation_date);
+
+-- foreign keys indexes --
+CREATE INDEX IF NOT EXISTS group_owner_idx
+    ON Groups(owner_id);
+
+CREATE INDEX IF NOT EXISTS post_owner_idx
+    ON Post(owner_id);
+
+CREATE INDEX IF NOT EXISTS post_author_idx
+    ON Post(author_id);
+
+CREATE INDEX IF NOT EXISTS message_author_id_idx
+    ON Message(user_id);
+
+CREATE INDEX IF NOT EXISTS chat_member_user_id_idx
+    ON ChatMember(user_id);
+
+CREATE INDEX IF NOT EXISTS chat_member_chat_id_idx
+    ON ChatMember(chat_id);
+
+CREATE INDEX IF NOT EXISTS comment_user_id_idx
+    ON Comment(user_id);
+
+CREATE INDEX IF NOT EXISTS comment_post_id_idx
+    ON Comment(post_id);
+
+CREATE INDEX IF NOT EXISTS userprofile_avatar_id_idx
+    ON UserProfile(avatar_id);
+-- foreign keys indexes --
